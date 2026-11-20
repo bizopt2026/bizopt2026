@@ -11,7 +11,7 @@ from app.main import render
 from app.models import Activity, Business, Customer, User
 from app.routers._common import (
     activities_linked_to, get_deletable_or_404, get_or_404, name_error, newest_first,
-    resync_activities, resync_related, search_by_name,
+    resync_activities, resync_related, search_by_name, paginate,
 )
 from app.security import can_delete, require_user
 
@@ -44,9 +44,12 @@ def _parse(name, customer_id, description, period, status, memo, db: Session) ->
 
 
 @router.get("")
-def list_businesses(request: Request, q: str = "", user: User = Depends(require_user), db: Session = Depends(get_db)):
+def list_businesses(
+    request: Request, q: str = "", page: str = "1",
+    user: User = Depends(require_user), db: Session = Depends(get_db),
+):
     businesses = search_by_name(db, Business, q, Customer.name, joins=(Business.customer,))
-    return render(request, "businesses/list.html", businesses=businesses, q=q.strip())
+    return render(request, "businesses/list.html", pg=paginate(businesses, page), q=q.strip())
 
 
 @router.get("/new")

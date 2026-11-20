@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "_macros.html" import breadcrumb %}
 {% block title %}리서치 {{ run.started_at.strftime("%Y-%m-%d") }}{% endblock %}
 {% block content %}
-<p><a href="/research">&larr; 리서치 목록</a></p>
+{{ breadcrumb(("리서치", "/research"), (run.started_at.strftime("%Y-%m-%d"), None)) }}
 <h1>리서치 {{ run.started_at.strftime("%Y-%m-%d") }} <span class="badge {{ 'warn' if run.status in ('partial', 'failed') }}">{{ labels.RUN_STATUSES.get(run.status, run.status) }}</span></h1>
 <p class="muted">AI가 웹에서 수집한 내용입니다. 링크를 열어 확인하세요.</p>
 {% if run.status == "running" %}
@@ -10,28 +11,36 @@
 </section>
 {% endif %}
 
+{% macro toggle_all(target) %}<span class="toggle-all" data-target="{{ target }}" hidden><button type="button" class="small" data-open="1">모두 펼치기</button> <button type="button" class="small" data-open="0">모두 접기</button></span>{% endmacro %}
 {% if suggest %}
-<section class="card">
-  <h2>발굴 방향 제안</h2>
+<section class="card" id="suggestions">
+  <div class="section-head"><h2>발굴 방향 제안</h2>{% if suggestions %}{{ toggle_all("suggestions") }}{% endif %}</div>
   {% if suggestions %}<ul class="trends">{% for s in suggestions %}{% include "research/_suggestion.html" %}{% endfor %}</ul>
   {% else %}<p class="muted">제안이 없습니다.</p>{% endif %}
-  {% if suggest.insights %}<h3>시사점</h3><ul>{% for i in suggest.insights %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
+  {% if suggest_insights %}<h3>시사점</h3><ul>{% for i in suggest_insights %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
 </section>
 {% endif %}
 
-{% for a in areas %}{% set report = a.report %}
-<section class="card">
-  <h2>{{ a.name }}{% if report.title %} · {{ report.title }}{% endif %}</h2>
-  {% if report.status == "done" %}
-    {% if a.trends %}<ul class="trends">{% for t in a.trends %}{% include "research/_trend.html" %}{% endfor %}</ul>
-    {% else %}<p class="muted">동향이 없습니다.</p>{% endif %}
-    {% if report.insights %}<h3>시사점</h3><ul>{% for i in report.insights %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
-  {% elif report.status == "failed" %}
-    <p class="error">조사하지 못했습니다. {{ report.error }}</p>
-    {% if user.role == "admin" %}<form method="post" action="/research/reports/{{ report.id }}/retry"><button type="submit">다시 조사</button></form>{% endif %}
-  {% else %}<p class="muted">조사 중입니다.</p>{% endif %}
-</section>
-{% endfor %}
+{% if areas %}
+<div class="area-tabs" id="area-tabs">
+  <div class="tabs">
+    {% for a in areas %}<a href="#{{ a.report.area }}" id="tab-{{ a.report.area }}">{{ a.name }} <span class="count">{% if a.report.status == "failed" %}실패{% elif a.report.status == "done" %}{{ a.trends | length }}{% else %}조사 중{% endif %}</span></a>{% endfor %}
+  </div>
+  {% for a in areas %}{% set report = a.report %}
+  <section class="card tabpanel" id="{{ report.area }}">
+    <div class="section-head"><h2>{{ a.name }}{% if report.title %} · {{ report.title }}{% endif %}</h2>{% if report.status == "done" and a.trends %}{{ toggle_all(report.area) }}{% endif %}</div>
+    {% if report.status == "done" %}
+      {% if a.insights %}<h3>시사점</h3><ul>{% for i in a.insights %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
+      {% if a.trends %}<ul class="trends">{% for t in a.trends %}{% include "research/_trend.html" %}{% endfor %}</ul>
+      {% else %}<p class="muted">동향이 없습니다.</p>{% endif %}
+    {% elif report.status == "failed" %}
+      <p class="error">조사하지 못했습니다. {{ report.error }}</p>
+      {% if user.role == "admin" %}<form method="post" action="/research/reports/{{ report.id }}/retry"><button type="submit">다시 조사</button></form>{% endif %}
+    {% else %}<p class="muted">조사 중입니다.</p>{% endif %}
+  </section>
+  {% endfor %}
+</div>
+{% endif %}
 
 {% if user.role == "admin" and run.status != "running" %}
 <form method="post" action="/research/runs/{{ run.id }}/delete" onsubmit="return confirm('이 조사 결과를 삭제할까요?')"><button type="submit" class="danger">이 조사 삭제</button></form>

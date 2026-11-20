@@ -101,15 +101,22 @@ class ClaudeRunner:
         output_args: list[str],
         allowed_tools: tuple[str, ...] | list[str],
         cwd: Path | None = None,
+        file_scope: bool = False,
     ) -> subprocess.Popen:
-        """공통 명령 구성과 프로세스 시작. 실패는 ClaudeError 로 돌려준다."""
+        """공통 명령 구성과 프로세스 시작. 실패는 ClaudeError 로 돌려준다.
+
+        `file_scope` 이면 파일 도구를 작업 폴더 안으로만 허용한다 (`Read(./**)` 같은 경로 한정 규칙). 이름만 쓴 `Read` 는
+        어느 경로든 미리 허용하는 것이라 `../` 나 절대 경로로 다른 파일을 읽을 수 있다. 파일 도구만 쓸 수 있다."""
         assert_tool_separation(allowed_tools)
+        if file_scope and any(t not in FILE_TOOLS for t in allowed_tools):
+            raise ValueError("파일 범위 제한은 파일 도구에만 쓸 수 있습니다.")
+        approved = [f"{t}(./**)" for t in allowed_tools] if file_scope else list(allowed_tools)
         work_dir = Path(cwd) if cwd is not None else self.cwd
         exe = shutil.which(self.cmd[0])
         if exe is None:
             raise ClaudeError("not_installed", f"Claude CLI를 찾을 수 없습니다: {self.cmd[0]}")
         argv = [exe, *self.cmd[1:], "-p", *output_args,
-                "--allowedTools", ",".join(allowed_tools),
+                "--allowedTools", ",".join(approved),
                 "--tools", ",".join(allowed_tools), "--strict-mcp-config"]
         work_dir.mkdir(parents=True, exist_ok=True)
         popen_kwargs: dict = {}
@@ -135,8 +142,9 @@ class ClaudeRunner:
         allowed_tools: tuple[str, ...] | list[str] = DEFAULT_TOOLS,
         timeout_s: int = 600,
         cwd: Path | None = None,
+        file_scope: bool = False,
     ) -> str:
-        proc = self._spawn(["--output-format", "json"], allowed_tools, cwd)
+        proc = self._spawn(["--output-format", "json"], allowed_tools, cwd, file_scope)
 
         try:
             stdout, stderr = proc.communicate(prompt, timeout=timeout_s)

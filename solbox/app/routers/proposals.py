@@ -15,11 +15,15 @@ from app import labels
 from app.ai.queue import queue_position
 from app.db import get_db
 from app.deck import build_deck
+from app.sources import SourceLookup
 from app.knowledge import safe_name
 from app.main import render
 from app.models import Business, Customer, Proposal, ProposalMessage, Solution, User
-from app.proposals import candidate_solutions, display_title, reset_for_new_direction, start_job
-from app.routers._common import get_deletable_or_404, get_or_404, search_by_name
+from app.proposals import (
+    candidate_solutions, display_title, open_section, reset_for_new_direction, section_summaries, start_job,
+    step_states,
+)
+from app.routers._common import get_deletable_or_404, get_or_404, paginate, search_by_name
 from app.security import can_delete, require_user
 
 router = APIRouter(prefix="/proposals")
@@ -70,7 +74,7 @@ def _new_page(request: Request, db: Session, form: dict, error: str | None = Non
 
 @router.get("")
 def list_proposals(
-    request: Request, q: str = "", status: str = "",
+    request: Request, q: str = "", status: str = "", page: str = "1",
     user: User = Depends(require_user), db: Session = Depends(get_db),
 ):
     stmt = select(Proposal).join(Proposal.customer)
@@ -81,7 +85,7 @@ def list_proposals(
     if q:
         proposals = [p for p in proposals if q in display_title(p) or q in p.customer.name]
     return render(
-        request, "proposals/list.html", proposals=proposals, q=q,
+        request, "proposals/list.html", pg=paginate(proposals, page), q=q,
         status=status if status in labels.PROPOSAL_STATUSES else "",
     )
 
@@ -142,11 +146,15 @@ def _detail_page(
     request: Request, db: Session, proposal: Proposal, user: User, notice: str | None = None,
     status_code: int = 200, **extra,
 ):
+    candidates = candidate_solutions(db, proposal)
+    # 방금 실패한 폼이 들어 있는 구역은 열어 둔다
+    open_key = "chat" if extra.get("chat_error") else "deck" if extra.get("deck_error") else open_section(proposal)
     return render(
         request, "proposals/detail.html", status_code=status_code, proposal=proposal, title=display_title(proposal),
-        candidates=candidate_solutions(db, proposal), extra_candidates=_extra_candidates(db),
+        candidates=candidates, extra_candidates=_extra_candidates(db),
         notice=notice, can_delete=can_delete(user, proposal),
-        position=_position(db, proposal), **extra,
+        position=_position(db, proposal), steps=step_states(proposal), open_key=open_key,
+        summaries=section_summaries(proposal, candidates), src=SourceLookup(db), **extra,
     )
 
 
@@ -295,7 +303,9 @@ def build(
     old_name = p.deck_name
     try:
         folder.mkdir(parents=True, exist_ok=True)
-        build_deck(p.outline, temp, customer_name=p.customer.name, today=date.today())
+        paths = [src for s in p.outline["slides"] if isinstance(s, dict) for src in s.get("sources") or [] if isinstance(src, str)]
+        build_deck(p.outline, temp, customer_name=p.customer.name, today=date.today(),
+                   source_labels=SourceLookup(db).labels(paths))
         temp.replace(final)
         p.deck_name, p.deck_built_at, p.status = name, now, "deck"
         db.commit()

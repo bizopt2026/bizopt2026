@@ -1,3 +1,4 @@
+import re
 from datetime import date, datetime, timedelta
 
 from app.labels import ERROR_KINDS
@@ -108,3 +109,89 @@ def test_latest_research_caps(db, settings):
     db.commit()
     data = latest_research(db)
     assert len(data["insights"]) == 5 and len(data["suggestions"]) == 3
+
+
+def test_home_section_order_and_trimmed_research(user_client, db):
+    from app.models import ResearchReport, ResearchRun
+
+    run = ResearchRun(trigger="manual", status="done", finished_at=datetime.now())
+    db.add(run); db.flush()
+    db.add(ResearchReport(run_id=run.id, kind="area", area="tech", status="done", insights=[f"시사점{i}" for i in range(4)]))
+    db.add(ResearchReport(run_id=run.id, kind="suggest", status="done", suggestions=[
+        {"kind": "new", "title": f"제안{i}", "detail": "", "reason": "", "solution_ids": [], "sources": []} for i in range(5)]))
+    db.commit()
+    page = user_client.get("/").text
+    heads = [page.index(h) for h in ("후속 조치", "진행 중인 제안 건", "발굴 단계별 솔루션", "최신 리서치", "최근 활동 기록")]
+    assert heads == sorted(heads)
+    assert "시사점1" in page and "시사점2" not in page
+    assert "제안1" in page and "제안2" not in page
+
+
+def test_home_follow_up_row_has_check_button_and_no_bullets(user_client, db):
+    a = Activity(raw_text="x", title="회의", date=date.today(), follow_ups=[
+        {"task": "자료 보내기", "owner": "김", "due": (date.today() + timedelta(days=1)).isoformat(), "done": False}])
+    db.add(a); db.commit()
+    page = user_client.get("/").text
+    assert f'action="/activities/{a.id}/followups/0/toggle"' in page
+    assert 'aria-label="완료로 표시"' in page
+    assert 'class="followups"' in page
+
+
+def _bundle(db, user, status, note=""):
+    from app.models import Intake
+    it = Intake(note=note, status=status, created_by_id=user.id)
+    db.add(it); db.commit()
+    return it
+
+
+def test_home_has_upload_card_first(user_client):
+    page = user_client.get("/").text
+    form = re.search(r'<form[^>]*action="/intake"[^>]*>.*?</form>', page, re.S).group(0)
+    assert 'method="post"' in form and 'enctype="multipart/form-data"' in form
+    assert 'type="file"' in form and 'name="files"' in form and "multiple" in form and 'name="note"' in form
+    assert form.count("primary") == 1 and ">올리기</button>" in form
+    assert page.index('action="/intake"') < page.index("후속 조치")
+
+
+def test_intake_summary_counts_only_own_bundles(db):
+    from app.routers.home import intake_summary
+    from tests.conftest import make_user
+    kim, lee = make_user(db, "kim2"), make_user(db, "lee2")
+    mine = [_bundle(db, kim, "ready", f"내것{i}") for i in range(7)]
+    _bundle(db, kim, "analyzing"); _bundle(db, kim, "applied"); _bundle(db, kim, "failed")
+    _bundle(db, lee, "ready", "남의것"); _bundle(db, lee, "analyzing")
+    s = intake_summary(db, kim)
+    assert s["ready_count"] == 7 and s["analyzing_count"] == 1
+    assert [i.id for i in s["ready"]] == [i.id for i in reversed(mine)][:5]
+    admin = make_user(db, "boss", role="admin")
+    # 관리자도 내 묶음만 센다 (남의 묶음은 올리기 목록에서 본다)
+    _bundle(db, admin, "ready", "관리자 것")
+    a = intake_summary(db, admin)
+    assert a["ready_count"] == 1 and a["analyzing_count"] == 0
+    assert [i.note for i in a["ready"]] == ["관리자 것"]
+
+
+def test_home_shows_pending_confirmation_links(user_client, db):
+    from app.models import User
+    kim = db.query(User).filter_by(username="kim").one()
+    from tests.conftest import make_user
+    other = make_user(db, "park")
+    mine = _bundle(db, kim, "ready", "내 묶음")
+    _bundle(db, kim, "analyzing")
+    _bundle(db, other, "ready", "남의 묶음")
+    page = user_client.get("/").text
+    assert "확인 대기 1건" in page and "정리 중 1건" in page
+    assert f'href="/intake/{mine.id}"' in page and 'href="/intake"' in page
+    assert "남의 묶음" not in page
+
+
+def test_home_hides_counts_when_nothing_pending(user_client):
+    page = user_client.get("/").text
+    assert "확인 대기" not in page and "정리 중" not in page
+
+
+def test_admin_home_lists_only_own_bundles(admin_client, db):
+    from tests.conftest import make_user
+    _bundle(db, make_user(db, "park"), "ready", "남의 묶음")
+    page = admin_client.get("/").text
+    assert "확인 대기" not in page and "남의 묶음" not in page

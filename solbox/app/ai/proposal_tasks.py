@@ -55,7 +55,9 @@ class Step(BaseModel):
     detail: str = ""
 
 
-class Slide(BaseModel):
+class AISlide(BaseModel):
+    """AI 가 채우는 장. 확인을 끝낸 표시는 사용자 몫이라 여기에 없다."""
+
     kind: str
     title: str = ""
     key_message: str = ""
@@ -72,9 +74,14 @@ class Slide(BaseModel):
     needs_check: list[str] = []
 
 
+class Slide(AISlide):
+    """저장되는 장. `checked` 는 확인을 끝낸 needs_check 문구이고, 옛 구성안에는 이 키가 없다."""
+    checked: list[str] = []
+
+
 class Outline(BaseModel):
     title: str
-    slides: list[Slide]
+    slides: list[AISlide]
 
 
 def _directions(db: Session, input: dict, runner: ClaudeRunner, settings: Settings) -> str:

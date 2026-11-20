@@ -1,24 +1,34 @@
 {% if proposal.selected_index is not none and proposal.directions and proposal.selected_index < proposal.directions | length %}
 {% set job = proposal.active_job %}
 {% set busy = job is not none and job.status in ("pending", "running") %}
-<div class="chat-list">
-  {% for m in proposal.messages %}
-  {% if proposal.chat_from_id is not none and loop.first and m.id <= proposal.chat_from_id %}
+{% macro msg(m, first) %}
+  {% if first and proposal.chat_from_id is not none and m.id <= proposal.chat_from_id %}
   <p class="chat-divider muted">이전 방향에서 나눈 대화 (새 방향에는 반영되지 않습니다)</p>
   {% endif %}
   <div class="chat-msg {{ m.role }}{% if proposal.chat_from_id is not none and m.id <= proposal.chat_from_id %} old{% endif %}"><span class="chat-who">{{ "사용자" if m.role == "user" else "AI" }}</span>{% if m.role == "user" %}{{ m.content }}{% else %}<div class="md">{{ m.content | md }}</div>{% endif %}</div>
-  {% else %}
-  <p class="muted">선택한 방향에 대해 범위, 강조점, 솔루션 추가·제외를 말해 보세요.</p>
+{% endmacro %}
+{% set msgs = proposal.messages | list %}
+{% set older = msgs[:-6] if msgs | length > 6 else [] %}
+{% set recent = msgs[older | length:] %}
+<div class="chat-list">
+  {% if older %}
+  <details class="more">
+    <summary>이전 대화 {{ older | length }}개 보기</summary>
+    <div class="chat-list">{% for m in older %}{{ msg(m, loop.first) }}{% endfor %}</div>
+  </details>
+  {% endif %}
+  {% for m in recent %}{{ msg(m, loop.first and not older) }}{% else %}
+  {% if not older %}<p class="muted">선택한 방향에 대해 범위, 강조점, 솔루션 추가·제외를 말해 보세요.</p>{% endif %}
   {% endfor %}
 </div>
 {% if chat_error is defined and chat_error %}<p class="error" role="alert">{{ chat_error }}</p>{% endif %}
 {% if not busy %}
 <form method="post" action="/proposals/{{ proposal.id }}/chat" class="stack">
   <label>메시지<textarea name="message" rows="3" required></textarea></label>
-  <div><button type="submit">보내기</button></div>
+  <div><button type="submit"{% if proposal.outline %} class="primary"{% endif %}>보내기</button></div>
 </form>
 <form method="post" action="/proposals/{{ proposal.id }}/outline">
-  <button type="submit">제안서 만들기</button>
+  <button type="submit"{% if not proposal.outline %} class="primary"{% endif %}>제안서 만들기</button>
 </form>
 {% endif %}
 {% else %}

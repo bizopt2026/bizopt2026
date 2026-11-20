@@ -1,0 +1,11 @@
+{% set transcribing = intake_files_transcribing | default(none) %}
+<div id="intake-status" class="job-status" role="status"
+  hx-get="/intake/{{ intake.id }}/status" hx-trigger="every 2s" hx-swap="outerHTML">
+  {% if job is none or job.status == "pending" %}AI 대기 {{ position or 1 }}번째 (앞 작업이 끝나면 시작합니다)
+  {% elif job.status == "running" %}
+    {% if transcribing %}음성 받아쓰는 중 · {{ transcribing.original_name }}{% if transcribing.progress is not none %} · {{ transcribing.progress }}%{% endif %}
+      <span class="muted">녹음 길이에 따라 오래 걸릴 수 있어요. 이 화면을 떠나도 됩니다. {{ wait_detail(job, expected=False) }}</span>
+    {% elif intake.files | selectattr("kind", "equalto", "audio") | selectattr("read_status", "equalto", "ok") | list %}AI가 파일을 정리하고 있어요… <span class="muted">{{ wait_detail(job, expected=False) }}</span>
+    {% else %}정리 중… {{ wait_detail(job) }}{% endif %}
+  {% else %}정리를 마무리하는 중입니다…{% endif %}
+</div>

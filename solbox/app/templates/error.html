@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}오류{% endblock %}
 {% block content %}
-<h1>요청을 처리하지 못했습니다</h1>
+<h1>{{ title }}</h1>
 <div class="card stack" role="alert">
   <p class="error">{{ message }}</p>
   <p><a href="/">처음 화면으로 돌아가기</a></p>

@@ -1,16 +1,15 @@
 {% extends "base.html" %}
-{% from "_macros.html" import activity_list, detail_actions %}
+{% from "_macros.html" import activity_list, detail_head, breadcrumb, stage_badge, val %}
 {% block title %}{{ partner.name }}{% endblock %}
 {% block content %}
-<h1>{{ partner.name }}</h1>
+{{ breadcrumb(("파트너", "/partners"), (partner.name, None)) }}
+{{ detail_head(partner.name, "/partners", partner, can_delete) }}
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-{{ detail_actions("/partners", partner, can_delete) }}
-<section class="card"><dl><dt>연락처</dt><dd>{{ partner.contact }}</dd><dt>소개</dt><dd>{{ partner.description }}</dd><dt>메모</dt><dd>{{ partner.memo }}</dd></dl></section>
+<section class="card"><dl><dt>연락처</dt><dd>{{ val(partner.contact) }}</dd><dt>소개</dt><dd>{{ val(partner.description) }}</dd><dt>메모</dt><dd>{{ val(partner.memo) }}</dd></dl></section>
 <section class="card">
   <h2>솔루션</h2>
-  {% if partner.solutions %}<ul>{% for s in partner.solutions %}<li><a href="/solutions/{{ s.id }}">{{ s.name }}</a></li>{% endfor %}</ul>
+  {% if partner.solutions %}<ul>{% for s in partner.solutions %}<li><a href="/solutions/{{ s.id }}">{{ s.name }}</a> {{ stage_badge(s.stage) }}</li>{% endfor %}</ul>
   {% else %}<p class="muted">연결된 솔루션이 없습니다.</p>{% endif %}
 </section>
 {{ activity_list(activities) }}
-<p><a href="/partners">&larr; 목록</a></p>
 {% endblock %}

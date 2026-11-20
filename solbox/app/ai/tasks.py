@@ -30,6 +30,8 @@ Handler = Callable[[Session, dict, ClaudeRunner, Settings], str]
 HANDLERS: dict[str, Handler] = {}
 # 작업이 끝난 뒤(성공·실패 모두) 새 세션으로 부르는 후처리. 모양: (db, input) -> None.
 AFTER_JOB: dict[str, Callable[[Session, dict], None]] = {}
+# 작업을 집기 전에 부르는 검사 (종류 → 함수(db, 작업 입력) -> 지금 집어도 되는가). False 면 이번에는 건너뛰고 다음 작업을 본다.
+CLAIM_GUARDS: dict[str, Callable[[Session, dict], bool]] = {}
 
 PROMPT_DIR = Path(__file__).parent / "prompts"
 NO_READABLE_FILES = "텍스트를 읽을 수 있는 자료 파일이 없습니다."
@@ -46,16 +48,17 @@ def load_prompt(name: str, **values) -> str:
 def run_json(
     db: Session, runner: ClaudeRunner, prompt: str, model: type[T], settings: Settings,
     *, allowed_tools: tuple[str, ...] | list[str] = DEFAULT_TOOLS,
-    timeout_s: int | None = None, cwd: Path | None = None,
+    timeout_s: int | None = None, cwd: Path | None = None, file_scope: bool = False,
 ) -> T:
     """프롬프트를 실행해 JSON 을 `model` 로 검증한다. 형식 오류(bad_output)면 한 번만 다시 시도한다.
 
     CLI 는 오래 걸리므로 실행 전에 `db` 의 읽기 트랜잭션을 끝낸다 (호출자는 DB 읽기를 먼저 마쳐야 한다)."""
     for attempt in (1, 2):
         db.rollback()
+        extra = {"file_scope": True} if file_scope else {}  # 다른 작업의 호출 모양은 그대로 둔다
         text = runner.run(
             prompt, allowed_tools=allowed_tools,
-            timeout_s=settings.ai_timeout_s if timeout_s is None else timeout_s, cwd=cwd,
+            timeout_s=settings.ai_timeout_s if timeout_s is None else timeout_s, cwd=cwd, **extra,
         )
         try:
             return parse_json_output(text, model)

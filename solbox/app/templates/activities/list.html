@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "_macros.html" import list_head, empty_list, pager %}
 {% block title %}활동 기록{% endblock %}
 {% block content %}
-<h1>활동 기록</h1>
+{{ list_head("활동 기록", pg, q or kind, "/intake/new", "올리기", "/activities/new") }}
 <form method="get" action="/activities" class="row">
   <label>검색 <input type="search" name="q" value="{{ q }}"></label>
   <label>종류
@@ -11,16 +12,16 @@
     </select>
   </label>
   <button type="submit">검색</button>
-  <a href="/activities/new">+ 등록</a>
 </form>
-{% if activities %}
-<table>
+{% if pg.items %}
+<div class="tablewrap"><table>
   <thead><tr><th>일자</th><th>종류</th><th>제목</th></tr></thead>
   <tbody>
-  {% for a in activities %}
+  {% for a in pg.items %}
     <tr><td>{{ a.date or "" }}</td><td>{{ labels.ACTIVITY_KINDS.get(a.kind, a.kind) }}</td><td><a href="/activities/{{ a.id }}">{{ a.title or "(제목 없음)" }}</a></td></tr>
   {% endfor %}
   </tbody>
-</table>
-{% else %}<p class="muted">{{ "검색 결과가 없습니다." if q or kind else "등록된 활동 기록이 없습니다." }}</p>{% endif %}
+</table></div>
+{{ pager(pg, request) }}
+{% else %}{{ empty_list(q or kind, "아직 등록된 활동 기록이 없습니다. 녹취록·사진을 올리면 AI가 정리해 드려요.", "/intake/new", "올리기", "/activities/new") }}{% endif %}
 {% endblock %}

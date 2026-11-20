@@ -1,11 +1,11 @@
 {% set active = job.status in ("pending", "running") %}
 <div id="job-{{ job.id }}" class="job-status job-{{ job.status }}" role="status"
   {% if active %}hx-get="/jobs/{{ job.id }}/status{% if next %}?next={{ next | urlencode }}{% endif %}" hx-trigger="every 2s" hx-swap="outerHTML"{% endif %}>
-  {% if job.status == "pending" %}AI 대기 {{ position }}번째
-  {% elif job.status == "running" %}AI가 작성 중입니다…
+  {% if job.status == "pending" %}AI 대기 {{ position }}번째 (앞 작업이 끝나면 시작합니다)
+  {% elif job.status == "running" %}AI가 작성 중입니다… {{ wait_detail(job) }}
   {% elif job.status == "done" %}완료
   {% else %}
     <span class="error">{{ labels.ERROR_KINDS.get(job.error_kind, labels.ERROR_KINDS["unknown"]) }}</span>
-    <button type="button" hx-post="/jobs/{{ job.id }}/retry" hx-swap="none">다시 시도</button>
+    <button type="button" class="small" hx-post="/jobs/{{ job.id }}/retry" hx-swap="none">다시 시도</button>
   {% endif %}
 </div>

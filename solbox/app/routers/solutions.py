@@ -15,7 +15,7 @@ from app.knowledge import KnowledgeMirror, get_mirror
 from app.main import render
 from app.models import AIJob, Activity, Partner, Solution, User
 from app.routers._common import (
-    activities_linked_to, get_deletable_or_404, get_or_404, name_error, newest_first,
+    activities_linked_to, get_deletable_or_404, get_or_404, name_error, newest_first, paginate,
     resync_activities, resync_related, search_by_name,
 )
 from app.security import can_delete, require_user
@@ -75,13 +75,13 @@ def _parse(db: Session, name, summary, description, partner_id, stage, usage_dir
 
 @router.get("")
 def list_solutions(
-    request: Request, q: str = "", stage: str = "",
+    request: Request, q: str = "", stage: str = "", page: str = "1",
     user: User = Depends(require_user), db: Session = Depends(get_db),
 ):
     solutions = search_by_name(db, Solution, q, Solution.summary, Solution.tags)
     if stage:
         solutions = [s for s in solutions if s.stage == stage]
-    return render(request, "solutions/list.html", solutions=solutions, q=q.strip(), stage=stage)
+    return render(request, "solutions/list.html", pg=paginate(solutions, page), q=q.strip(), stage=stage)
 
 
 @router.get("/new")
@@ -174,9 +174,10 @@ def change_stage(
     solution = get_or_404(db, Solution, solution_id)
     if stage not in labels.STAGES:
         raise HTTPException(status_code=400, detail=BAD_STAGE)
-    solution.stage = stage
-    db.commit()
-    mirror.sync(solution)
+    if solution.stage != stage:  # 같은 단계로 바꾸는 요청은 쓰지 않는다
+        solution.stage = stage
+        db.commit()
+        mirror.sync(solution)
     return RedirectResponse(f"/solutions/{solution.id}", status_code=303)
 
 

@@ -29,17 +29,117 @@
 <form method="get" action="{{ path }}" class="row">
   <label>검색 <input type="search" name="q" value="{{ q }}"></label>
   <button type="submit">검색</button>
-  <a href="{{ path }}/new">+ 등록</a>
 </form>
 {% endmacro %}
 
-{% macro detail_actions(path, obj, can_delete) %}
-<div class="row">
-  <a href="{{ path }}/{{ obj.id }}/edit">수정</a>
-  {% if can_delete %}
-  <form method="post" action="{{ path }}/{{ obj.id }}/delete" onsubmit="return confirm('삭제할까요?')">
-    <button type="submit">삭제</button>
-  </form>
-  {% endif %}
+{# 목록 제목 줄: 제목 + 건수, 오른쪽 끝에 주 버튼. searching 이 참이면 "검색 결과 N건". #}
+{% macro list_head(title, pg, searching, new_url=None, new_label="+ 등록", alt_url=None, alt_label="직접 입력") %}
+<div class="page-head">
+  <h1>{{ title }} <span class="count">{{ "검색 결과 " if searching else "" }}{{ pg.total }}건</span></h1>
+  {% if new_url %}<div class="actions"><a class="button primary" href="{{ new_url }}">{{ new_label }}</a>{% if alt_url %}<a href="{{ alt_url }}">{{ alt_label }}</a>{% endif %}</div>{% endif %}
 </div>
+{% endmacro %}
+
+{% macro empty_list(searching, text, new_url=None, new_label="+ 등록", alt_url=None, alt_label="직접 입력") %}
+{% if searching %}<p class="muted">조건에 맞는 항목이 없습니다.</p>
+{% else %}<div class="empty"><p class="muted">{{ text }}</p>{% if new_url %}<a class="button{{ " primary" if alt_url }}" href="{{ new_url }}">{{ new_label }}</a>{% if alt_url %}<a href="{{ alt_url }}">{{ alt_label }}</a>{% endif %}{% endif %}</div>{% endif %}
+{% endmacro %}
+
+{% macro pager(pg, request) %}
+{% if pg.has_pages %}
+{% set keep = request.query_params.multi_items() | rejectattr(0, "equalto", "page") | list %}
+<nav class="pager" aria-label="페이지">
+  {% if pg.page > 1 %}<a href="{{ request.url.path }}?{{ (keep + [("page", pg.page - 1)]) | urlencode }}">이전</a>{% else %}<span class="muted">이전</span>{% endif %}
+  <span class="sep" aria-hidden="true">·</span>
+  <span>{{ pg.page }} / {{ pg.pages }}</span>
+  <span class="sep" aria-hidden="true">·</span>
+  {% if pg.page < pg.pages %}<a href="{{ request.url.path }}?{{ (keep + [("page", pg.page + 1)]) | urlencode }}">다음</a>{% else %}<span class="muted">다음</span>{% endif %}
+</nav>
+{% endif %}
+{% endmacro %}
+
+{# 화면 제목 위 경로. 앞 마디는 (이름, 주소), 마지막 마디는 (이름, None). 예: breadcrumb(("솔루션", "/solutions"), (solution.name, None)) #}
+{% macro breadcrumb() %}
+<nav class="breadcrumb" aria-label="경로">
+  {% for label, url in varargs %}
+  {% if not loop.first %}<span class="sep" aria-hidden="true">›</span>{% endif %}
+  {% if url %}<a href="{{ url }}">{{ label }}</a>{% else %}<span{% if loop.last %} aria-current="page"{% endif %}>{{ label }}</span>{% endif %}
+  {% endfor %}
+</nav>
+{% endmacro %}
+
+{% macro detail_head(title, path, obj, can_delete) %}
+<div class="page-head">
+  <h1>{{ title }}</h1>
+  <div class="actions">
+    <a class="button" href="{{ path }}/{{ obj.id }}/edit">수정</a>
+    {% if can_delete %}
+    <form method="post" action="{{ path }}/{{ obj.id }}/delete" onsubmit="return confirm('삭제할까요?')">
+      <button type="submit" class="danger">삭제</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro stage_badge(code) %}<span class="badge stage-{{ code }}">{{ labels.STAGES.get(code, code) }}</span>{% endmacro %}
+
+{# 정보 목록(dl)의 값: 비었으면 흐린 "없음" #}
+{% macro val(v) %}{% if v %}{{ v }}{% else %}<span class="muted">없음</span>{% endif %}{% endmacro %}
+
+
+{# 체크 상자 목록. 선택된 항목이 위로 오고, 항목이 8개를 넘으면 걸러 보기 입력칸(스크립트가 켜 준다)과 스크롤 상자가 붙는다.
+   options 의 각 항목은 id, name (stage 가 있고 show_stage 가 참이면 단계 배지도). #}
+{% macro check_picker(field, title, options, selected, show_stage=False) %}
+{% set picked = options | selectattr("id", "in", selected) | list %}
+{% set rest = options | rejectattr("id", "in", selected) | list %}
+{% set many = options | length > 8 %}
+<fieldset class="picker{{ ' scroll' if many }}" data-field="{{ field }}">
+  <legend>{{ title }}<span class="picked-count muted" data-count>{% if picked %} · {{ picked | length }}개 선택{% endif %}</span></legend>
+  {% if many %}<input type="search" class="picker-filter" placeholder="이름으로 걸러 보기" aria-label="{{ title }} 걸러 보기" hidden>{% endif %}
+  <div class="picker-list">
+    {% for o in picked + rest %}
+    <label class="check"><input type="checkbox" name="{{ field }}" value="{{ o.id }}"{% if o.id in selected %} checked{% endif %}> <span class="pname">{{ o.name }}</span>{% if show_stage %} {{ stage_badge(o.stage) }}{% endif %}</label>
+    {% else %}<p class="muted">고를 수 있는 항목이 없습니다.</p>
+    {% endfor %}
+  </div>
+</fieldset>
+{% endmacro %}
+
+{# 출처 한 건: `종류 · 이름` 칩 링크. 링크가 없으면 글자만. src 는 요청마다 만든 조회 함수(app.sources.SourceLookup). #}
+{% macro source_chip(src, path) %}{% set d = src(path) %}{% if d.url %}<a class="chip" href="{{ d.url }}">{% if d.kind %}<span class="chip-kind">{{ d.kind }}</span>{% endif %}{{ d.label }}</a>{% else %}<span class="chip raw">{{ d.label }}</span>{% endif %}{% endmacro %}
+
+{# 확인 필요 배지: 종류에 따라 빨강(근거 문제) / 노랑(확인할 점) #}
+{% macro check_badge(kind) %}<span class="badge {{ kind }}">{{ "근거 문제" if kind == "evidence" else "확인할 점" }}</span>{% endmacro %}
+
+{# 올리기 정리안 카드 머리: 종류 배지, 제목, 이 항목 제외 체크. card 는 intake.review_cards 의 한 항목.
+   data-sum 은 고치기를 닫을 때 스크립트가 입력값으로 갱신하는 자리 (스크립트가 없으면 서버가 그린 값 그대로). #}
+{% macro plan_head(card) %}
+<div class="plan-head">
+  <span class="badge plan-{{ card.item.kind }}">{{ labels.INTAKE_ITEM_KINDS.get(card.item.kind, card.item.kind) }}</span>
+  {% if card.brief %}<strong class="plan-title"{% if card.item.kind in ("activity", "new_solution", "new_customer", "new_partner", "add_contact") %} data-sum="{{ 'title' if card.item.kind == 'activity' else ('target' if card.item.kind == 'add_contact' else 'name') }}" data-empty="{{ '(제목 없음)' if card.item.kind == 'activity' else ('(대상을 고르세요)' if card.item.kind == 'add_contact' else '(이름 없음)') }}"{% endif %}>{{ card.brief.title }}</strong>{% endif %}
+  {% if card.item.kind != "unplaced" %}<label class="check plan-skip"><input type="checkbox" name="skip_{{ card.item.key }}" value="on"{% if card.v.skip %} checked{% endif %}> 이 항목 제외</label>{% endif %}
+</div>
+{% endmacro %}
+
+{# 정리한 이유와 붙는 파일 이름 #}
+{% macro plan_meta(card) %}
+{% if card.item.reason %}<p class="plan-reason"><strong>이렇게 정리한 이유</strong> {{ card.item.reason }}</p>{% endif %}
+{% if card.files %}<p class="muted">{{ "정리하지 못한 파일" if card.item.kind == "unplaced" else "붙는 파일" }}: {% for n, name in card.files %}{{ n }}번 {{ name }}{{ ", " if not loop.last }}{% endfor %}</p>{% endif %}
+{% endmacro %}
+
+{# 솔루션 자료 종류(소개/스펙/관련)를 파일마다 고르는 칸 #}
+{% macro file_kind_pickers(card) %}
+{% if card.files %}
+<fieldset class="plan-files">
+  <legend>자료 종류</legend>
+  {% for n, name in card.files %}
+  <label>{{ name }}
+    <select name="{{ card.item.key }}__kind_{{ n }}">
+      {% for code, text in labels.FILE_KINDS.items() %}<option value="{{ code }}"{% if card.v.kinds[n] == code %} selected{% endif %}>{{ text }}</option>{% endfor %}
+    </select>
+  </label>
+  {% endfor %}
+</fieldset>
+{% endif %}
 {% endmacro %}

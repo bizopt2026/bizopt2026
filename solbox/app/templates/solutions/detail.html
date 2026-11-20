@@ -1,27 +1,32 @@
 {% extends "base.html" %}
-{% from "_macros.html" import activity_list, detail_actions, proposal_list %}
+{% from "_macros.html" import activity_list, detail_head, proposal_list, breadcrumb, val %}
 {% block title %}{{ solution.name }}{% endblock %}
 {% block content %}
-<h1>{{ solution.name }}</h1>
-{{ detail_actions("/solutions", solution, can_delete) }}
+{{ breadcrumb(("솔루션", "/solutions"), (solution.name, None)) }}
+{{ detail_head(solution.name, "/solutions", solution, can_delete) }}
 <section class="card">
   <h2>기본 정보</h2>
   <dl>
-    <dt>한 줄 소개</dt><dd>{{ solution.summary }}</dd>
-    <dt>상세 설명</dt><dd>{{ solution.description }}</dd>
-    <dt>파트너</dt><dd>{% if solution.partner %}<a href="/partners/{{ solution.partner.id }}">{{ solution.partner.name }}</a>{% endif %}</dd>
-    <dt>활용 방향</dt><dd>{{ solution.usage_direction }}</dd>
-    <dt>적용 가능 유형</dt><dd>{{ solution.applicable_types }}</dd>
-    <dt>태그</dt><dd>{{ solution.tags }}</dd>
+    <dt>한 줄 소개</dt><dd>{{ val(solution.summary) }}</dd>
+    <dt>상세 설명</dt><dd>{{ val(solution.description) }}</dd>
+    <dt>파트너</dt><dd>{% if solution.partner %}<a href="/partners/{{ solution.partner.id }}">{{ solution.partner.name }}</a>{% else %}<span class="muted">없음</span>{% endif %}</dd>
+    <dt>활용 방향</dt><dd>{{ val(solution.usage_direction) }}</dd>
+    <dt>적용 가능 유형</dt><dd>{{ val(solution.applicable_types) }}</dd>
+    <dt>태그</dt><dd>{{ val(solution.tags) }}</dd>
   </dl>
 </section>
 <section class="card">
   <h2>발굴 단계</h2>
-  <p>현재 단계: <strong>{{ labels.STAGES.get(solution.stage, solution.stage) }}</strong></p>
-  <form method="post" action="/solutions/{{ solution.id }}/stage" class="row">
-    {% for code, name in labels.STAGES.items() %}
-    <button type="submit" name="stage" value="{{ code }}" {{ "disabled" if code == solution.stage }}>{{ name }}</button>
-    {% endfor %}
+  <p class="sr-only">현재 단계: <strong>{{ labels.STAGES.get(solution.stage, solution.stage) }}</strong></p>
+  {% set flow = ["intake", "tapping", "survey", "boxed"] %}
+  {% set at = flow.index(solution.stage) if solution.stage in flow else -1 %}
+  <form method="post" action="/solutions/{{ solution.id }}/stage" class="stagebar">
+    <div class="steps">
+      {% for code in flow %}
+      <button type="submit" name="stage" value="{{ code }}" class="step{{ ' current' if loop.index0 == at }}{{ ' done' if loop.index0 < at }}"{% if loop.index0 == at %} aria-current="step" disabled{% endif %}>{{ "✓ " if loop.index0 < at }}{{ labels.STAGES[code] }}</button>
+      {% endfor %}
+    </div>
+    <button type="submit" name="stage" value="hold" class="step hold{{ ' current' if solution.stage == 'hold' }}"{% if solution.stage == "hold" %} aria-current="step" disabled{% endif %}>{{ labels.STAGES["hold"] }}</button>
   </form>
 </section>
 <section class="card">
@@ -33,5 +38,4 @@
 </section>
 {{ proposal_list(proposals, heading="이 솔루션이 들어간 제안 건") }}
 {{ activity_list(activities) }}
-<p><a href="/solutions">&larr; 목록</a></p>
 {% endblock %}

@@ -1,0 +1,90 @@
+{# 활동 기록 카드. 컨텍스트: card, choices #}
+{% from "_macros.html" import plan_head, plan_meta, check_picker %}
+{% set k = card.item.key %}{% set v = card.v %}{% set b = card.brief %}
+<section class="card plan-item" id="item-{{ k }}">
+  {{ plan_head(card) }}
+  <p class="plan-facts">
+    <span data-sum="date">{{ b.date }}</span> · <span data-sum="kind">{{ b.kind_label }}</span>
+    · 후속 조치 {{ b.fu_count }} · 수요 단서 {{ b.ds_count }}
+    {% if b.dup_count %}<span class="badge decide">비슷한 할 일 {{ b.dup_count }}건 확인</span>{% endif %}
+  </p>
+  {% if b.dup_rows %}
+  <div class="plan-dup-drop">
+    {% for d in b.dup_rows %}<label class="check"><input type="checkbox" name="{{ k }}__fu_drop" value="{{ d.row }}"{% if d.checked %} checked{% endif %}> 이 할 일 빼기: {{ d.task }}</label>{% endfor %}
+  </div>
+  {% endif %}
+  {% if b.lines %}<ul class="plan-lines">{% for line in b.lines %}<li>{{ line }}</li>{% endfor %}</ul>{% endif %}
+  {% if b.linked or b.new_names %}
+  <p class="chips plan-links">
+    {% for name in b.linked %}<span class="chip">{{ name }}</span>{% endfor %}
+    {% for name in b.new_names %}<span class="chip new">새로 등록: {{ name }}</span>{% endfor %}
+  </p>
+  {% if b.new_candidates %}<p class="muted plan-candidates">미등록 후보: {{ b.new_candidates | join(", ") }} (등록하려면 고치기에서 체크)</p>{% endif %}
+  {% endif %}
+  {{ plan_meta(card) }}
+  <details class="plan-edit"{% if card.open %} open{% endif %}>
+    <summary aria-label="{{ card.brief.title }} 고치기">고치기</summary>
+    <div class="plan-edit-body">
+      <div class="row">
+        <label>종류
+          <select name="{{ k }}__kind">
+            {% for code, name in labels.ACTIVITY_KINDS.items() %}<option value="{{ code }}"{% if v.kind == code %} selected{% endif %}>{{ name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>일자 <input type="date" name="{{ k }}__date" value="{{ v.date }}"></label>
+        <label class="grow">제목 <input name="{{ k }}__title" value="{{ v.title }}"></label>
+      </div>
+      <label>정리본 <textarea name="{{ k }}__summary_md" rows="8">{{ v.summary_md }}</textarea></label>
+      <details>
+        <summary>원문 (접어 둠)</summary>
+        <label>원문 메모 <textarea name="{{ k }}__raw_text" rows="8">{{ v.raw_text }}</textarea></label>
+      </details>
+      <fieldset class="plan-rows">
+        <legend>후속 조치</legend>
+        {% for row in v.fu_rows + [{"task": "", "owner": "", "due": ""}] %}
+        <div class="row">
+          <label>할 일 <input name="{{ k }}__fu_task" value="{{ row.task }}"></label>
+          <label>담당 <input name="{{ k }}__fu_owner" value="{{ row.owner }}"></label>
+          <label>기한 <input type="date" name="{{ k }}__fu_due" value="{{ row.due }}"></label>
+          {% if row.task | trim and row.task | trim in b.dup_tasks %}{% set other = b.dup_of.get(row.task | trim) %}<p class="notice plan-dup" role="note">{% if other %}「{{ other }}」 {% else %}다른 {% endif %}항목에도 비슷한 할 일이 있습니다. 필요 없으면 이 칸을 비우세요.</p>{% endif %}
+        </div>
+        {% endfor %}
+      </fieldset>
+      <fieldset class="plan-rows">
+        <legend>수요 단서</legend>
+        {% for row in v.ds_rows + [{"customer": "", "content": ""}] %}
+        <div class="row">
+          <label>고객 <input name="{{ k }}__ds_customer" value="{{ row.customer }}"></label>
+          <label class="grow">내용 <input name="{{ k }}__ds_content" value="{{ row.content }}"></label>
+        </div>
+        {% endfor %}
+      </fieldset>
+      {% for key, title in (("solution", "솔루션"), ("customer", "고객"), ("business", "기존 사업"), ("partner", "파트너")) %}
+      {{ check_picker(k ~ "__" ~ key ~ "_ids", title, choices[key], v.selected[key]) }}
+      {% for amb in card.ambiguous.get(key, []) %}
+      <p class="muted">“{{ amb.name }}”: 여러 항목과 비슷합니다: {{ amb.candidates | join(", ") }} — 위 목록에서 맞는 항목을 직접 선택하세요.</p>
+      {% endfor %}
+      {% endfor %}
+      <fieldset class="newnames">
+        <legend>새로 등록</legend>
+        {% if b.new_names or b.new_candidates %}<p class="muted">아직 등록되지 않은 이름입니다. 체크하면 이름만 가진 항목으로 만들어 연결합니다. 이 묶음에서 새로 만드는 솔루션·고객·파트너와 이름이 같으면 자동으로 연결됩니다.</p>{% endif %}
+        {% for rel, title in (("solutions", "솔루션"), ("customers", "고객"), ("partners", "파트너")) %}
+        {% if v.new_options[rel] %}
+        <div class="stack">
+          <strong>{{ title }}</strong>
+          {% for name, on in v.new_options[rel] %}
+          <label class="check"><input type="checkbox" name="{{ k }}__new_{{ rel }}" value="{{ name }}"{% if on %} checked{% endif %}> {{ name }} 새로 등록</label>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+        <details class="plan-newnames">
+          <summary>새 이름 직접 추가</summary>
+          {% for rel, title in (("solutions", "솔루션"), ("customers", "고객"), ("partners", "파트너")) %}
+          <label>{{ title }} 직접 추가 <input name="{{ k }}__new_{{ rel }}" placeholder="새로 등록할 {{ title }} 이름"></label>
+          {% endfor %}
+        </details>
+      </fieldset>
+    </div>
+  </details>
+</section>

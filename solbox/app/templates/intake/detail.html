@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% from "_macros.html" import breadcrumb %}
+{% block title %}올리기 {{ intake.id }}번{% endblock %}
+{% block content %}
+{{ breadcrumb(("올리기", "/intake"), ("묶음 " ~ intake.id, None)) }}
+<div class="page-head">
+  <h1>올린 파일 <span class="count">{{ intake.files | length }}개</span></h1>
+  <span class="badge intake-{{ intake.status }}">{{ labels.INTAKE_STATUSES.get(intake.status, intake.status) }}</span>
+</div>
+{% if skipped %}
+<div class="error" role="alert">
+  <p>받지 못한 파일이 있어요.</p>
+  <ul>{% for s in skipped %}<li>{{ s }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+{% if notice %}<p class="error" role="alert">{{ notice }}</p>{% endif %}
+<section class="card">
+  <dl>
+    <dt>메모</dt><dd>{% if intake.note %}{{ intake.note }}{% else %}<span class="muted">없음</span>{% endif %}</dd>
+    <dt>올린 때</dt><dd>{{ intake.created_at.strftime("%Y-%m-%d %H:%M") }}</dd>
+  </dl>
+  <details class="file-list"{% if intake.status != "ready" %} open{% endif %}>
+  <summary>올린 파일 {{ intake.files | length }}개{% if intake.status == "ready" %} (표로 보기){% endif %}</summary>
+  <div class="tablewrap"><table class="file-table">
+    <thead><tr><th class="col-num">번호</th><th>이름</th><th>종류</th><th class="col-size">크기</th><th class="col-status">읽기 상태</th><th></th></tr></thead>
+    <tbody>
+    {% for f in intake.files %}
+      {% set active = intake.status not in ("applied", "discarded") %}
+      {% set audio_note = f.read_status == "needs_transcript" and active %}
+      {% set status_text = ("받아쓰는 중 " ~ f.progress ~ "%") if (f.read_status == "pending_transcript" and f.progress is not none and intake.status == "analyzing" and intake.job is not none and intake.job.status == "running") else labels.READ_STATUSES.get(f.read_status, f.read_status) %}
+      {% set redo = active and intake.status != "analyzing" %}
+      {% set fail_note = f.kind == "audio" and f.read_status == "failed" and (f.read_error or redo) %}
+      {% set note_html %}{% if audio_note and can_transcribe %}<span class="file-note">이제 음성을 받아쓸 수 있어요. 다시 정리를 눌러 주세요.</span>{% elif audio_note %}<span class="file-note">받아쓰기 필요 · 글자로 풀어 올려 주세요</span>{% elif fail_note %}<span class="file-note">{{ f.read_error or "" }}{% if f.read_error and redo %} · {% endif %}{% if redo %}다시 정리를 누르면 다시 받아씁니다.{% endif %}</span>{% endif %}{% endset %}
+      <tr>
+        <td class="col-num">{{ loop.index }}</td>
+        <td>{{ f.original_name }}
+          <span class="name-status"><span class="badge read-{{ f.read_status }}">{{ status_text }}</span> {{ note_html }}</span></td>
+        <td>{{ labels.INTAKE_FILE_KINDS.get(f.kind, f.kind) }}</td>
+        <td class="col-size">{% if f.size >= 1048576 %}{{ (f.size / 1024 / 1024)|round(2) }} MB{% elif f.size >= 1024 %}{{ (f.size / 1024)|round(1) }} KB{% else %}{{ f.size }} B{% endif %}</td>
+        <td class="col-status"><span class="badge read-{{ f.read_status }}">{{ status_text }}</span>{% if audio_note or fail_note %}<br>{{ note_html }}{% endif %}</td>
+        <td><a class="button small" href="/intake/files/{{ f.id }}/download">내려받기</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  </details>
+</section>
+{% if intake.status == "analyzing" %}
+<section class="card" aria-label="정리 진행">
+  <h2>AI가 파일을 정리하고 있어요</h2>
+  {% set job = intake.job %}
+  {% include "intake/_status.html" %}
+</section>
+{% elif intake.status == "uploaded" %}
+<section class="card">
+  <h2>아직 정리를 시작하지 않았어요</h2>
+  <form method="post" action="/intake/{{ intake.id }}/analyze" class="stack">
+    <div class="row"><button type="submit" class="primary">정리 시작</button></div>
+  </form>
+  <form method="post" action="/intake/{{ intake.id }}/discard" onsubmit="return confirm('이 묶음을 버릴까요? 올린 원본 파일은 남습니다.')">
+    <button type="submit" class="danger">이 묶음 버리기</button>
+  </form>
+</section>
+{% elif intake.status == "failed" %}
+<section class="card">
+  <h2>정리하지 못했어요</h2>
+  <p class="error" role="alert">{{ intake.error or labels.ERROR_KINDS["unknown"] }}</p>
+  <form method="post" action="/intake/{{ intake.id }}/analyze" class="stack">
+    <label><span>메모 (선택, {{ max_note }}자까지)</span>
+      <input type="text" name="note" value="{{ intake.note }}" maxlength="{{ max_note }}">
+    </label>
+    <div class="row"><button type="submit" class="primary">다시 정리</button></div>
+  </form>
+  <form method="post" action="/intake/{{ intake.id }}/discard" onsubmit="return confirm('이 묶음을 버릴까요? 올린 원본 파일은 남습니다.')">
+    <button type="submit" class="danger">이 묶음 버리기</button>
+  </form>
+</section>
+{% elif intake.status == "ready" %}
+{% if intake.error %}<p class="error" role="alert">{{ intake.error }}</p>{% endif %}
+{% set saveable = cards | rejectattr("item.kind", "equalto", "unplaced") | list %}
+{% if saveable %}
+<p class="muted">AI가 제안한 정리안입니다. 저장하기 전에는 아무것도 등록되지 않아요. 고칠 곳은 "고치기", 뺄 항목은 "이 항목 제외"를 쓰세요.</p>
+{% set save_count = saveable | rejectattr("v.skip") | list | length %}
+{% set skip_count = saveable | length - save_count %}
+<span class="toggle-all plan-toggle" data-target="plan-cards" hidden><button type="button" class="small" data-open="1">모두 펼치기</button> <button type="button" class="small" data-open="0">모두 접기</button></span>
+<form method="post" action="/intake/{{ intake.id }}/apply" class="stack plan-form">
+  <div class="stack" id="plan-cards">
+  {% for card in cards %}
+  {% with item = card.item, v = card.v %}
+  {% if item.kind == "new_solution" %}{% include "intake/_item_solution.html" %}
+  {% elif item.kind == "add_to_solution" %}{% include "intake/_item_addition.html" %}
+  {% elif item.kind == "add_contact" %}{% include "intake/_item_contact.html" %}
+  {% elif item.kind == "activity" %}{% include "intake/_item_activity.html" %}
+  {% elif item.kind in ("new_customer", "new_partner") %}{% include "intake/_item_entity.html" %}
+  {% else %}{% include "intake/_item_unplaced.html" %}{% endif %}
+  {% endwith %}
+  {% endfor %}
+  </div>
+  <div class="row savebar plan-savebar" data-total="{{ saveable | length }}">
+    <button type="submit" class="primary" data-save-button>이대로 저장 ({{ save_count }}건)</button>
+    <span class="muted" data-save-count aria-live="polite">{{ save_count }}건 저장{% if skip_count %} · {{ skip_count }}건 제외{% endif %}</span>
+  </div>
+</form>
+{% else %}
+<section class="card"><h2>정리안</h2><p class="muted">정리할 내용을 찾지 못했습니다.</p></section>
+{% for card in cards %}{% include "intake/_item_unplaced.html" %}{% endfor %}
+{% endif %}
+<section class="card">
+  <h2>다시 정리하거나 버리기</h2>
+  <div class="row redo-row">
+    <form method="post" action="/intake/{{ intake.id }}/analyze" class="row grow">
+      <label class="grow"><span>메모 (선택, {{ max_note }}자까지)</span>
+        <input type="text" name="note" value="{{ intake.note }}" maxlength="{{ max_note }}">
+      </label>
+      <button type="submit">다시 정리</button>
+    </form>
+    <form method="post" action="/intake/{{ intake.id }}/discard" onsubmit="return confirm('이 묶음을 버릴까요? 올린 원본 파일은 남습니다.')">
+      <button type="submit" class="danger">이 묶음 버리기</button>
+    </form>
+  </div>
+</section>
+{% elif intake.status == "applying" %}
+<section class="card" aria-label="저장 중"><h2>저장하고 있어요</h2><p class="muted">저장이 끝나면 이 화면에 만들어진 기록이 나타납니다. 잠시 뒤 새로 고침하세요.</p>
+  {% if stale_applying %}
+  <p class="error" role="alert">저장이 오래 끝나지 않고 있습니다. 서버가 멈췄을 수 있습니다.</p>
+  <form method="post" action="/intake/{{ intake.id }}/recheck"><button type="submit">다시 확인</button></form>
+  {% endif %}
+</section>
+{% elif intake.status == "applied" %}
+<section class="card">
+  <h2>저장한 기록</h2>
+  <ul>
+    {% for e in saved %}
+    <li>{{ {"partner": "파트너", "customer": "고객", "solution": "솔루션", "activity": "활동 기록"}.get(e.type, e.type) }}
+      <a href="/{{ {"partner": "partners", "customer": "customers", "solution": "solutions", "activity": "activities"}.get(e.type, e.type) }}/{{ e.id }}">{{ e.label }}</a></li>
+    {% else %}<li class="muted">만들어진 기록이 없습니다.</li>{% endfor %}
+  </ul>
+  {% if not_saved %}
+  <h3>저장하지 못한 항목</h3>
+  <ul>{% for e in not_saved %}<li class="error">{{ e.label }}
+    {% for f in e.files or [] %}<span class="muted">— {{ f.name }} <a href="/intake/files/{{ f.id }}/download">내려받기</a></span>{% endfor %}</li>{% endfor %}</ul>
+  {% endif %}
+  <p class="muted">{% if intake.applied_at %}{{ intake.applied_at.strftime("%Y-%m-%d %H:%M") }}에 저장했습니다. {% endif %}올린 원본 파일은 위 표에서 내려받을 수 있습니다.</p>
+</section>
+{% if unsaved_files %}
+<section class="card" id="unsaved-files">
+  <h2>저장하지 않은 파일</h2>
+  <p class="muted">아래 파일은 기록으로 저장되지 않았습니다. 올린 원본은 남아 있어요. 필요하면 직접 등록에 쓰세요.</p>
+  <ul>
+    {% for e in unsaved_files %}
+    <li>{{ e.label }} <span class="muted">— {{ e.reason }}</span><br>
+      <a href="/solutions/new">솔루션 직접 등록</a> · <a href="/activities/new">활동 기록 직접 등록</a> · <a href="/intake/files/{{ e.file_id }}/download">내려받기</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% elif intake.status == "discarded" %}
+<section class="card"><h2>버린 묶음입니다</h2><p class="muted">정리 결과는 저장하지 않았습니다. 올린 원본 파일은 남아 있어 위 표에서 내려받을 수 있습니다.</p></section>
+{% endif %}
+<p><a class="button" href="/intake/new">+ 더 올리기</a></p>
+{% endblock %}

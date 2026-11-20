@@ -183,6 +183,7 @@ def paginate(slide: dict) -> list[dict]:
             page["key_message"] = ""
             page["sources"] = []
             page["needs_check"] = []
+            page["checked"] = []
         result.append(page)
     return result
 
@@ -427,14 +428,18 @@ def _page_number(slide, number: int):
     _write(p, str(number), 12, color=MUTED)
 
 
-def _notes(slide, data: dict):
-    sources = [_clean(s) for s in _list(data, "sources") if _clean(s).strip()]
+def _notes(slide, data: dict, source_labels: dict[str, str] | None = None):
+    labels = source_labels or {}
+    sources = [_clean(labels.get(s, s) if isinstance(s, str) else s) for s in _list(data, "sources") if _clean(s).strip()]
     checks = [_clean(s) for s in _list(data, "needs_check") if _clean(s).strip()]
+    done = {_clean(s) for s in _list(data, "checked")}
     blocks = []
     if sources:
         blocks.append("\n".join(["[출처]", *sources]))
-    if checks:
-        blocks.append("\n".join(["[확인 필요]", *checks]))
+    if [c for c in checks if c not in done]:
+        blocks.append("\n".join(["[확인 필요]", *[c for c in checks if c not in done]]))
+    if [c for c in checks if c in done]:
+        blocks.append("\n".join(["[확인함]", *[c for c in checks if c in done]]))
     if blocks:
         slide.notes_slide.notes_text_frame.text = "\n\n".join(blocks)
 
@@ -456,8 +461,11 @@ def _draw_body(slide, data: dict):
         _draw_bullets(slide, data)
 
 
-def build_deck(outline: dict, out_path: Path, *, customer_name: str = "", today: date | None = None) -> int:
-    """구성안으로 .pptx 를 쓰고 만든 슬라이드 수를 돌려준다."""
+def build_deck(
+    outline: dict, out_path: Path, *, customer_name: str = "", today: date | None = None,
+    source_labels: dict[str, str] | None = None,
+) -> int:
+    """구성안으로 .pptx 를 쓰고 만든 슬라이드 수를 돌려준다. 노트의 출처는 `source_labels`(경로→이름)가 있으면 이름으로 적는다."""
     source = (outline or {}).get("slides")
     if not isinstance(source, list) or not source:
         raise ValueError("구성안에 슬라이드가 없습니다.")
@@ -475,7 +483,7 @@ def build_deck(outline: dict, out_path: Path, *, customer_name: str = "", today:
         else:
             _draw_body(slide, data)
             _page_number(slide, number)
-        _notes(slide, data)
+        _notes(slide, data, source_labels)
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     prs.save(out_path)

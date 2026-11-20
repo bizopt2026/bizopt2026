@@ -1,49 +1,94 @@
 {% extends "base.html" %}
+{% from "_macros.html" import breadcrumb, source_chip, check_badge %}
 {% block title %}구성안 · {{ title }}{% endblock %}
 {% block content %}
-<p><a href="/proposals/{{ proposal.id }}">&larr; {{ title }}</a></p>
+{{ breadcrumb(("제안", "/proposals"), (title, "/proposals/" ~ proposal.id), ("구성안", None)) }}
 <h1>구성안 검토·수정</h1>
 <section class="card" id="deck">
   <h2>제안서</h2>
   {% include "proposals/_deck.html" %}
 </section>
 {% if busy %}<p class="error" role="alert">AI 작업이 진행 중입니다. 끝난 뒤에 수정하세요.</p>{% endif %}
-<p class="muted">{{ cards | length }}장{% if proposal.outline_updated_at %} · 마지막 저장 {{ proposal.outline_updated_at.strftime("%Y-%m-%d %H:%M") }}{% endif %}</p>
+<div class="outline-summary">
+  <p class="muted">{{ cards | length }}장{% if proposal.outline_updated_at %} · 마지막 저장 {{ proposal.outline_updated_at.strftime("%Y-%m-%d %H:%M") }}{% endif %}</p>
+  <p class="check-summary">
+    <span class="count-evidence">근거 문제 {{ summary.evidence }}장</span> · <span class="count-decide">확인할 점 {{ summary.decide }}장</span> · <span class="count-done">확인 끝 {{ summary.done }}장</span>
+    <button type="button" class="small remaining-toggle" aria-pressed="false" hidden>남은 장만 보기</button>
+  </p>
+  <span class="toggle-slides" hidden>
+    <button type="button" class="small" data-open="1">모두 펼치기</button>
+    <button type="button" class="small" data-open="0">모두 접기</button>
+  </span>
+</div>
 {% for card in cards %}
 {% set s = card.slide %}
-<section class="card slide-card{% if s.needs_check %} needs-check{% endif %}" id="slide-{{ card.index }}">
-  <div class="slide-head">
-    <strong>{{ card.index + 1 }}</strong>
+{% set st = card.state %}
+<details class="card slide-card{% if st.level != "clear" %} check-{{ st.level }}{% endif %}" id="slide-{{ card.index }}"{% if st.level != "clear" %} data-remaining="1"{% endif %}{% if open_index == card.index %} open{% endif %}>
+  <summary class="slide-summary">
+    <strong class="slide-no">{{ card.index + 1 }}</strong>
     <span class="badge">{{ slide_kinds.get(s.kind, s.kind) }}</span>
-    {% if s.needs_check %}<span class="badge warn">확인 필요</span>{% endif %}
-    <h2>{{ s.title or "(제목 없음)" }}</h2>
-    <span class="spacer"></span>
-    {% if not busy %}
-    {% if card.index > 1 %}<form method="post" action="/proposals/{{ proposal.id }}/outline/slides/{{ card.index }}/move"><input type="hidden" name="dir" value="up"><button type="submit" title="위로">&uarr;</button></form>{% endif %}
-    {% if card.index > 0 and card.index < cards | length - 1 %}<form method="post" action="/proposals/{{ proposal.id }}/outline/slides/{{ card.index }}/move"><input type="hidden" name="dir" value="down"><button type="submit" title="아래로">&darr;</button></form>{% endif %}
-    {% if card.index > 0 %}<form method="post" action="/proposals/{{ proposal.id }}/outline/slides/{{ card.index }}/delete" onsubmit="return confirm('이 슬라이드를 지울까요?')"><button type="submit">삭제</button></form>{% endif %}
-    {% endif %}
+    <h2 class="slide-title">{{ s.title or "(제목 없음)" }}</h2>
+    {% if s.key_message %}<span class="slide-msg muted">{{ s.key_message }}</span>{% endif %}
+    {% if st.evidence %}<span class="badge evidence">근거 문제 {{ st.evidence }}</span>{% endif %}
+    {% if st.decide %}<span class="badge decide">확인할 점 {{ st.decide }}</span>{% endif %}
+    {% if not st.evidence and not st.decide and st.done %}<span class="badge done">확인 끝</span>{% endif %}
+  </summary>
+  <div class="slide-body">
+  {% if not busy and card.index > 0 %}
+  <div class="slide-actions">
+    {% if card.index > 1 %}<form method="post" action="/proposals/{{ proposal.id }}/outline/slides/{{ card.index }}/move"><input type="hidden" name="dir" value="up"><button type="submit" title="위로" aria-label="위로" class="small">&uarr;</button></form>{% endif %}
+    {% if card.index < cards | length - 1 %}<form method="post" action="/proposals/{{ proposal.id }}/outline/slides/{{ card.index }}/move"><input type="hidden" name="dir" value="down"><button type="submit" title="아래로" aria-label="아래로" class="small">&darr;</button></form>{% endif %}
+    <form method="post" action="/proposals/{{ proposal.id }}/outline/slides/{{ card.index }}/delete" onsubmit="return confirm('이 슬라이드를 지울까요?')"><button type="submit" class="small danger">삭제</button></form>
   </div>
+  {% endif %}
   {% if s.key_message %}<p><strong>{{ s.key_message }}</strong></p>{% endif %}
   {% if s.kind == "cover" and s.subtitle %}<p>{{ s.subtitle }}</p>{% endif %}
   {% if s.kind == "bullets" and s.bullets %}<ul>{% for b in s.bullets %}<li>{{ b }}</li>{% endfor %}</ul>{% endif %}
   {% if s.kind == "two_column" %}
-  <div class="row">
+  <div class="twocol">
     <div><h3>{{ s.left_title }}</h3><ul>{% for b in s.left %}<li>{{ b }}</li>{% endfor %}</ul></div>
     <div><h3>{{ s.right_title }}</h3><ul>{% for b in s.right %}<li>{{ b }}</li>{% endfor %}</ul></div>
   </div>
   {% endif %}
   {% if s.kind == "table" and s.columns %}
-  <table>
+  <div class="tablewrap"><table>
     <thead><tr>{% for c in s.columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
     <tbody>{% for row in s.rows %}<tr>{% for c in row %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody>
-  </table>
+  </table></div>
   {% endif %}
   {% if s.kind == "steps" and s.steps %}<ol>{% for st in s.steps %}<li><strong>{{ st.name }}</strong>{% if st.detail %} — {{ st.detail }}{% endif %}</li>{% endfor %}</ol>{% endif %}
-  <p><strong>출처</strong>
-    {% if s.sources %}{% for src in s.sources %}<code>{{ src }}</code>{{ " " if not loop.last }}{% endfor %}{% else %}<span class="muted">없음</span>{% endif %}</p>
-  {% if s.needs_check %}
-  <div class="error"><strong>확인 필요</strong><ul>{% for n in s.needs_check %}<li>{{ n }}</li>{% endfor %}</ul></div>
+  <div class="slide-sources">
+    <strong>출처</strong>
+    {% if card.sources %}<ol class="source-list">{% for path in card.sources %}<li id="s{{ card.index }}-src-{{ loop.index }}">{{ source_chip(src, path) }}</li>{% endfor %}</ol>
+    {% elif s.kind in ("cover", "closing") %}<span class="muted">없음</span>
+    {% else %}<span class="badge evidence">출처 없음</span>{% endif %}
+  </div>
+  {% if card.checks %}
+  <div class="checks check-{{ st.level }}">
+    <div class="checks-head">
+      <strong>확인할 점</strong>
+      {% if not busy %}
+      {% if card.unchecked >= 2 %}
+      <form method="post" action="/proposals/{{ proposal.id }}/outline/slides/{{ card.index }}/check-all" data-ajax-check><input type="hidden" name="done" value="1"><button type="submit" class="small">이 장의 항목 모두 확인함</button></form>
+      {% elif card.unchecked == 0 and card.checks | length >= 2 %}
+      <form method="post" action="/proposals/{{ proposal.id }}/outline/slides/{{ card.index }}/check-all" data-ajax-check><input type="hidden" name="done" value="0"><button type="submit" class="small linklike">확인 모두 취소</button></form>
+      {% endif %}
+      {% endif %}
+    </div>
+    <ul class="checklist">
+      {% for it in card.checks %}
+      <li class="{{ it.kind }}{% if it.checked %} done{% endif %}">
+        {% if not busy %}
+        <form method="post" action="/proposals/{{ proposal.id }}/outline/slides/{{ card.index }}/check" class="tick-form" data-ajax-check>
+          <input type="hidden" name="item" value="{{ it.index }}"><input type="hidden" name="text" value="{{ it.text }}"><input type="hidden" name="done" value="{{ 0 if it.checked else 1 }}">
+          <button type="submit" class="tick" aria-label="확인함" aria-pressed="{{ 'true' if it.checked else 'false' }}" title="{{ '확인함 취소' if it.checked else '확인함으로 표시' }}">{% if it.checked %}&#10003;{% endif %}</button>
+        </form>
+        {% endif %}
+        {{ check_badge(it.kind) }} <span class="check-text">{{ it.text }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
   {% endif %}
   {% if not busy %}
   <details>
@@ -56,21 +101,8 @@
   </form>
   {% endif %}
   {% endif %}
-</section>
+  </div>
+</details>
 {% endfor %}
 {% if not can_add %}<p class="muted">슬라이드는 14장까지 만들 수 있습니다.</p>{% endif %}
-<script>
-(function () {
-  function sync(form) {
-    var kind = form.querySelector(".kind-select").value;
-    form.querySelectorAll("[data-kinds]").forEach(function (el) {
-      el.hidden = el.dataset.kinds.split(" ").indexOf(kind) < 0;
-    });
-  }
-  document.querySelectorAll(".slide-form").forEach(function (form) {
-    sync(form);
-    form.querySelector(".kind-select").addEventListener("change", function () { sync(form); });
-  });
-})();
-</script>
 {% endblock %}

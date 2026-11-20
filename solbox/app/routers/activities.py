@@ -8,30 +8,27 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
 from fastapi.responses import RedirectResponse
 from pydantic import ValidationError
 from sqlalchemy import or_, select
+from sqlalchemy import update as sql_update
 from sqlalchemy.orm import Session
 
 from app import labels
 from app.ai.queue import enqueue, queue_position
-from app.ai.tasks import ActivityDraft, draft_summary_md, match_mentions, normalize_draft, normalize_name
+from app.ai.tasks import ActivityDraft, draft_summary_md, match_mentions, normalize_draft
 from app.db import get_db
 from app.extract import decode_text
 from app.knowledge import KnowledgeMirror, get_mirror
 from app.main import render
-from app.models import AIJob, Activity, Business, Customer, Partner, Solution, User
-from app.routers._common import get_deletable_or_404, get_or_404, newest_first
+from app.models import AIJob, Activity, Business, Customer, IntakeFile, Partner, Solution, User
+from app.records import (
+    LINK_TYPES, NEW_TYPES, ambiguous_view, apply_activity_fields, first_line, linked, rows, sync_all,
+)
+from app.routers._common import get_deletable_or_404, get_or_404, newest_first, paginate
 from app.security import can_delete, require_user
 
 router = APIRouter(prefix="/activities")
 
 MEMO_REQUIRED = "메모를 입력하세요."
 BAD_MEMO_FILE = "텍스트 파일(.txt, .md)만 올릴 수 있습니다."
-LINK_TYPES = {  # 연결 종류: (모델, Activity 관계 이름)
-    "solution": (Solution, "solutions"),
-    "customer": (Customer, "customers"),
-    "business": (Business, "businesses"),
-    "partner": (Partner, "partners"),
-}
-NEW_TYPES = {"solutions": Solution, "customers": Customer, "partners": Partner}
 
 
 def read_memo(raw_text: str, memo_file: UploadFile | None) -> str:
@@ -45,83 +42,6 @@ def read_memo(raw_text: str, memo_file: UploadFile | None) -> str:
     if not text:
         raise HTTPException(status_code=400, detail=MEMO_REQUIRED)
     return text
-
-
-def _first_line(text: str, limit: int = 40) -> str:
-    for line in text.splitlines():
-        if line.strip():
-            return line.strip()[:limit]
-    return ""
-
-
-def _parse_date(value: str) -> date:
-    try:
-        return date.fromisoformat(value.strip()) if len(value.strip()) == 10 else date.today()
-    except ValueError:
-        return date.today()
-
-
-def _valid_due(value: str) -> str:
-    value = value.strip()
-    try:
-        date.fromisoformat(value)
-    except ValueError:
-        return ""
-    return value if len(value) == 10 else ""
-
-
-def _rows(*columns: list[str]) -> list[tuple[str, ...]]:
-    """같은 순서의 반복 필드를 행으로 묶는다. 짧은 열은 빈 문자열로 채운다."""
-    count = max((len(c) for c in columns), default=0)
-    return [tuple((c[i] if i < len(c) else "").strip() for c in columns) for i in range(count)]
-
-
-def _follow_ups(task, owner, due, done) -> list[dict]:
-    flags = set(done)
-    return [
-        {"task": t, "owner": o, "due": _valid_due(d), "done": str(i) in flags}
-        for i, (t, o, d) in enumerate(_rows(task, owner, due))
-        if t
-    ]
-
-
-def _demand_signals(customer, content) -> list[dict]:
-    return [{"customer": c, "content": t} for c, t in _rows(customer, content) if t]
-
-
-def _linked(a: Activity) -> list:
-    return [obj for _, rel in LINK_TYPES.values() for obj in getattr(a, rel)]
-
-
-def _pick(db: Session, model, ids: list[str]) -> list:
-    picked, seen = [], set()
-    for raw in ids:
-        if not raw.strip().isdigit() or int(raw) in seen:
-            continue
-        seen.add(int(raw))
-        if (obj := db.get(model, int(raw))) is not None:
-            picked.append(obj)
-    return picked
-
-
-def _find_or_create(db: Session, model, names: list[str], user: User) -> list:
-    """이름만 가진 항목을 만든다. 같은 이름(공백·문장부호·대소문자 무시, 완전 일치만)이 있으면 그것을 쓴다."""
-    existing: dict[str, object] = {}
-    for o in db.scalars(select(model).order_by(model.id)):
-        existing.setdefault(normalize_name(o.name), o)
-    result = []
-    for name in names:
-        key = normalize_name(name)
-        if not key:
-            continue
-        if key not in existing:
-            extra = {"stage": "intake"} if model is Solution else {}
-            existing[key] = model(name=name.strip(), created_by_id=user.id, **extra)
-            db.add(existing[key])
-        if existing[key] not in result:
-            result.append(existing[key])
-    db.flush()
-    return result
 
 
 def _choices(db: Session) -> dict:
@@ -169,8 +89,8 @@ def _submitted_values(
     ids = dict(solution=solution_ids, customer=customer_ids, business=business_ids, partner=partner_ids)
     return {
         "kind": kind, "date": date_, "title": title, "raw_text": raw_text, "summary_md": summary_md,
-        "follow_ups": [{"task": t, "owner": o, "due": d, "done": False} for t, o, d in _rows(fu_task, fu_owner, fu_due)],
-        "demand_signals": [{"customer": c, "content": t} for c, t in _rows(ds_customer, ds_content)],
+        "follow_ups": [{"task": t, "owner": o, "due": d, "done": False} for t, o, d in rows(fu_task, fu_owner, fu_due)],
+        "demand_signals": [{"customer": c, "content": t} for c, t in rows(ds_customer, ds_content)],
         "selected": {t: [int(i) for i in v if i.strip().isdigit()] for t, v in ids.items()},
         "new_names": {
             rel: [n.strip() for n in names if n.strip()]
@@ -178,37 +98,6 @@ def _submitted_values(
         },
         "new_candidates": {t: [] for t in NEW_TYPES},
     }
-
-
-def _apply_form(
-    db: Session, user: User, a: Activity, *, kind, date_, title, raw_text, summary_md,
-    fu_task, fu_owner, fu_due, fu_done, ds_customer, ds_content,
-    solution_ids, customer_ids, business_ids, partner_ids, new_solutions, new_customers, new_partners,
-) -> None:
-    a.kind = kind if kind in labels.ACTIVITY_KINDS else "other"
-    a.date = _parse_date(date_)
-    a.raw_text = raw_text
-    a.title = title.strip() or _first_line(raw_text)
-    a.summary_md = summary_md.strip()
-    a.follow_ups = _follow_ups(fu_task, fu_owner, fu_due, fu_done)
-    a.demand_signals = _demand_signals(ds_customer, ds_content)
-    ids = dict(solution=solution_ids, customer=customer_ids, business=business_ids, partner=partner_ids)
-    for t, (model, rel) in LINK_TYPES.items():
-        setattr(a, rel, _pick(db, model, ids[t]))
-    for rel, names in (("solutions", new_solutions), ("customers", new_customers), ("partners", new_partners)):
-        current = getattr(a, rel)
-        for obj in _find_or_create(db, NEW_TYPES[rel], names, user):
-            if obj not in current:
-                current.append(obj)
-
-
-def _sync_all(mirror: KnowledgeMirror, a: Activity, extra: list = ()) -> None:
-    mirror.sync(a)
-    seen = set()
-    for obj in [*_linked(a), *extra]:
-        if (type(obj), obj.id) not in seen:
-            seen.add((type(obj), obj.id))
-            mirror.sync(obj)
 
 
 def _save(request, db, user, mirror, activity: Activity | None, raw_text, memo_file, kind, date_, title, summary_md,
@@ -222,11 +111,11 @@ def _save(request, db, user, mirror, activity: Activity | None, raw_text, memo_f
         text = read_memo(raw_text, memo_file)
     except HTTPException as e:
         return _form_page(request, db, submitted, activity, e.detail)
-    old = _linked(activity) if activity is not None else []
+    old = linked(activity) if activity is not None else []
     if activity is None:
         activity = Activity(created_by_id=user.id, raw_text=text)
         db.add(activity)
-    _apply_form(
+    apply_activity_fields(
         db, user, activity, kind=kind, date_=date_, title=title, raw_text=text, summary_md=summary_md,
         fu_task=fu_task, fu_owner=fu_owner, fu_due=fu_due, fu_done=fu_done,
         ds_customer=ds_customer, ds_content=ds_content, solution_ids=solution_ids, customer_ids=customer_ids,
@@ -234,13 +123,13 @@ def _save(request, db, user, mirror, activity: Activity | None, raw_text, memo_f
         new_solutions=new_solutions, new_customers=new_customers, new_partners=new_partners,
     )
     db.commit()
-    _sync_all(mirror, activity, old)
+    sync_all(mirror, activity, old)
     return RedirectResponse(f"/activities/{activity.id}", status_code=303)
 
 
 @router.get("")
 def list_activities(
-    request: Request, q: str = "", kind: str = "", user: User = Depends(require_user), db: Session = Depends(get_db),
+    request: Request, q: str = "", kind: str = "", page: str = "1", user: User = Depends(require_user), db: Session = Depends(get_db),
 ):
     stmt = select(Activity)
     q = q.strip()
@@ -250,7 +139,7 @@ def list_activities(
         stmt = stmt.where(or_(*(c.like(like, escape="\\") for c in (Activity.title, Activity.raw_text, Activity.summary_md))))
     if kind in labels.ACTIVITY_KINDS:
         stmt = stmt.where(Activity.kind == kind)
-    return render(request, "activities/list.html", activities=newest_first(db.scalars(stmt)), q=q, kind=kind)
+    return render(request, "activities/list.html", pg=paginate(newest_first(db.scalars(stmt)), page), q=q, kind=kind)
 
 
 @router.get("/new")
@@ -269,7 +158,7 @@ def save_raw(
     except HTTPException as e:
         return render(request, "activities/new.html", status_code=400, error=e.detail, raw_text=raw_text)
     activity = Activity(
-        kind="meeting", date=date.today(), title=_first_line(text), raw_text=text, summary_md="",
+        kind="meeting", date=date.today(), title=first_line(text), raw_text=text, summary_md="",
         follow_ups=[], demand_signals=[], created_by_id=user.id,
     )
     db.add(activity)
@@ -290,12 +179,6 @@ def _draft_job(db: Session, job_id: int, user: User) -> AIJob:
     return job
 
 
-def _ambiguous_view(db: Session, model, items: list[dict]) -> list[dict]:
-    """모호한 이름의 후보 id 를 화면에 보일 이름으로 바꾼다."""
-    return [{"name": i["name"], "candidates": [o.name for c in i["candidates"] if (o := db.get(model, c)) is not None]}
-            for i in items]
-
-
 def draft_values(db: Session, d: ActivityDraft, raw_text: str) -> dict:
     """AI 초안을 정리 폼 값으로 바꾼다. 새 이름은 체크 해제 후보로 둔다."""
     d = normalize_draft(d, date.today())
@@ -308,7 +191,7 @@ def draft_values(db: Session, d: ActivityDraft, raw_text: str) -> dict:
         selected={"solution": found["solutions"]["matched"], "customer": found["customers"]["matched"],
                   "business": found["businesses"]["matched"], "partner": found["partners"]["matched"]},
         new_candidates={rel: found[rel]["new"] for rel in NEW_TYPES},
-        ambiguous={t: _ambiguous_view(db, model, found[rel]["ambiguous"]) for t, (model, rel) in LINK_TYPES.items()},
+        ambiguous={t: ambiguous_view(db, model, found[rel]["ambiguous"]) for t, (model, rel) in LINK_TYPES.items()},
     )
     return values
 
@@ -388,7 +271,10 @@ def create(
 @router.get("/{activity_id}")
 def detail(activity_id: int, request: Request, user: User = Depends(require_user), db: Session = Depends(get_db)):
     a = get_or_404(db, Activity, activity_id)
-    return render(request, "activities/detail.html", activity=a, can_delete=can_delete(user, a))
+    originals = list(db.scalars(  # 올리기로 만든 기록이면 올린 원본 파일
+        select(IntakeFile).where(IntakeFile.target_type == "activity", IntakeFile.target_id == a.id).order_by(IntakeFile.id)
+    ))
+    return render(request, "activities/detail.html", activity=a, can_delete=can_delete(user, a), originals=originals)
 
 
 @router.get("/{activity_id}/edit")
@@ -412,11 +298,13 @@ def delete(
     mirror: KnowledgeMirror = Depends(get_mirror),
 ):
     a = get_deletable_or_404(db, Activity, activity_id, user)
-    linked = _linked(a)
+    related = linked(a)
     mirror.remove(a)
+    db.execute(sql_update(IntakeFile).where(IntakeFile.target_type == "activity", IntakeFile.target_id == a.id)
+               .values(target_type="", target_id=None))  # 번호를 다시 쓰는 새 기록이 올린 원본을 물려받지 않게
     db.delete(a)
     db.commit()
-    for obj in linked:
+    for obj in related:
         mirror.sync(obj)
     return RedirectResponse("/activities", status_code=303)
 

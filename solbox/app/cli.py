@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import argparse
 import getpass
+import sys
+import time
 from pathlib import Path
 
-from app import backup, certs
+from app import backup, certs, transcribe
 from app.config import load_settings
 from app.db import Base, make_engine, make_session_factory
 from app.knowledge import KnowledgeMirror
@@ -68,6 +70,72 @@ def _check_command() -> None:
     print("모두 정상입니다.")
 
 
+def _configure_console() -> None:
+    """한글을 못 쓰는 콘솔(Windows cp949 등)이나 파일로 돌릴 때 출력이 글자 오류로 끊기지 않게, 못 쓰는 글자는 ?로 바꿔 쓴다.
+    표준 라이브러리의 `reconfigure` 만 쓴다 (코드 페이지는 바꾸지 않는다). 없는 스트림은 그대로 둔다."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="replace")
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
+def _error_text(e: transcribe.TranscribeError) -> str:
+    """사용자용 안내 뒤에 관리자용 원인을 붙인다 (명령줄은 서버 PC 관리자가 본다)."""
+    cause = getattr(e, "cause", "")
+    return f"{e}\n원인: {cause}" if cause and cause not in str(e) else str(e)
+
+
+def _stt_engine(settings) -> transcribe.Transcriber:
+    """받아쓰기 명령은 설정의 `transcriber` 값과 상관없이 faster-whisper 로 점검한다 (켜기 전에 먼저 확인할 수 있게)."""
+    return transcribe.TRANSCRIBERS["faster-whisper"].from_settings(settings)
+
+
+def _stt_setup_command() -> None:
+    settings = load_settings()
+    engine = _stt_engine(settings)
+    try:
+        engine.prepare_model(print)
+        print(engine.self_test())
+    except transcribe.TranscribeError as e:
+        raise SystemExit(_error_text(e)) from None
+    print(f"준비가 끝났습니다. 모델은 {settings.models_dir} 에 있습니다.")
+    if settings.transcriber != "faster-whisper":
+        print('받아쓰기를 쓰려면 config.toml 에 transcriber = "faster-whisper" 를 적고 서버를 다시 시작하세요.')
+    print("실제 녹음으로 속도를 보려면: python -m app.cli stt-test <음성 파일>")
+
+
+def _stt_test_command(audio: str) -> None:
+    path = Path(audio)
+    if not path.is_file():
+        raise SystemExit(f"음성 파일을 찾을 수 없습니다: {path}")
+    settings = load_settings()
+    engine = _stt_engine(settings)
+    if not engine.available():
+        raise SystemExit(engine.label())
+    steps = [10]
+
+    def show(fraction: float) -> None:
+        pct = int(fraction * 100)
+        if pct >= steps[0]:
+            print(f"진행 {pct}%", flush=True)
+            steps[0] = (pct // 10 + 1) * 10
+
+    started = time.monotonic()
+    try:
+        text = transcribe.run(engine, path, on_progress=show)
+    except transcribe.TranscribeError as e:
+        raise SystemExit(_error_text(e)) from None
+    elapsed = time.monotonic() - started
+    print(text or "(받아쓴 글이 없습니다)")
+    print(f"\n모델: {engine.label()}")
+    minutes, seconds = divmod(int(elapsed), 60)
+    print("걸린 시간: " + (f"{minutes}분 {seconds}초" if minutes else f"{seconds}초"))
+    audio_s = engine.last_audio_seconds
+    if audio_s and elapsed > 0:
+        print(f"음성 길이: 약 {audio_s / 60:.1f}분, 속도: {audio_s / elapsed:.1f}배 (음성 {audio_s / elapsed:.1f}분을 실제 1분에)")
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -82,10 +150,20 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--host", action="append", required=True, help="접속 주소(IP 또는 이름). 여러 번 쓸 수 있고 첫 항목이 대표 이름이 된다")
     p.add_argument("--out", default="certs", help="저장할 폴더 (기본 certs)")
     p.add_argument("--overwrite", action="store_true", help="이미 있는 인증서를 덮어쓴다")
+    sub.add_parser("stt-setup", help="음성 받아쓰기 모델을 data_dir/models 에 받고 점검하기 (인터넷 필요, 처음 한 번)")
+    p = sub.add_parser("stt-test", help="음성 파일 하나를 받아써서 글·걸린 시간·속도 보기")
+    p.add_argument("audio", metavar="음성파일")
     sub.add_parser("check", help="설치 상태 점검 (서버를 띄우거나 데이터를 바꾸지 않는다)")
+    _configure_console()
     args = parser.parse_args(argv)
     if args.cmd == "make-cert":
         _make_cert_command(args.host, args.out, args.overwrite)
+        return
+    if args.cmd == "stt-setup":
+        _stt_setup_command()
+        return
+    if args.cmd == "stt-test":
+        _stt_test_command(args.audio)
         return
     if args.cmd == "check":
         _check_command()

@@ -1,5 +1,6 @@
 import json
 import sys
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
@@ -17,6 +18,16 @@ def _no_daily_jobs(monkeypatch):
     from app import scheduler
 
     monkeypatch.setattr(scheduler, "DAILY_JOBS", [])
+
+
+@pytest.fixture(autouse=True)
+def _keep_hf_home(monkeypatch):
+    """받아쓰기 엔진을 만들면 `HF_HOME` 이 정해진다. 시험이 끝나면 원래대로 돌린다."""
+    import os
+
+    monkeypatch.setenv("HF_HOME", os.environ.get("HF_HOME", ""))
+    if not os.environ["HF_HOME"]:
+        monkeypatch.delenv("HF_HOME")
 
 
 @pytest.fixture
@@ -257,3 +268,113 @@ def finished_run(db, settings):
     for r in (tech, suggest):
         mirror.sync(r)
     return run
+
+
+# ---- 올리기 묶음 시험용 도우미 ----
+
+class _PageForm(HTMLParser):
+    """화면의 저장 폼이 브라우저에서 그대로 제출될 때의 값 (이름 -> 값 목록)."""
+
+    def __init__(self, action: str):
+        super().__init__(convert_charrefs=True)
+        self.action = action
+        self.inside = False
+        self.fields: dict[str, list[str]] = {}
+        self._area = None
+        self._select = None
+
+    def _add(self, name, value):
+        self.fields.setdefault(name, []).append(value)
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "form":
+            self.inside = a.get("action") == self.action
+            return
+        if not self.inside:
+            return
+        name = a.get("name")
+        if tag == "input" and name:
+            kind = (a.get("type") or "text").lower()
+            if kind in ("checkbox", "radio"):
+                if "checked" in a:
+                    self._add(name, a.get("value") or "on")
+            elif kind not in ("submit", "button", "file", "reset"):
+                self._add(name, a.get("value") or "")
+        elif tag == "textarea" and name:
+            self._area = (name, [])
+        elif tag == "select" and name:
+            self._select = [name, None, None]
+        elif tag == "option" and self._select:
+            value = a.get("value", "")
+            if self._select[2] is None:
+                self._select[2] = value
+            if "selected" in a:
+                self._select[1] = value
+
+    def handle_data(self, data):
+        if self._area:
+            self._area[1].append(data)
+
+    def handle_endtag(self, tag):
+        if tag == "form":
+            self.inside = False
+        elif tag == "textarea" and self._area:
+            self._add(self._area[0], "".join(self._area[1]))
+            self._area = None
+        elif tag == "select" and self._select:
+            name, picked, first = self._select
+            self._add(name, picked if picked is not None else (first or ""))
+            self._select = None
+
+
+def form_from_page(client, intake) -> dict[str, list[str]]:
+    """정리안 확인 화면(`GET /intake/{id}`)의 저장 폼을 화면의 기본값 그대로 읽는다."""
+    r = client.get(f"/intake/{intake.id}")
+    assert r.status_code == 200
+    parser = _PageForm(f"/intake/{intake.id}/apply")
+    parser.feed(r.text)
+    assert parser.fields, "저장 폼을 찾지 못했습니다"
+    return parser.fields
+
+
+def ready_bundle(db, settings, files, owner="kim", **plan):
+    """파일을 올리고 `plan`(AI 정리안 모양) 을 검증해 저장해 둔 확인 대기(ready) 묶음."""
+    import io
+    from datetime import date
+
+    from fastapi import UploadFile
+
+    from app import intake as intake_lib
+    from app.ai.intake_tasks import IntakePlanOut
+    from app.models import User
+
+    user = db.query(User).filter_by(username=owner).one()
+    uploads = [UploadFile(io.BytesIO(data), filename=name) for name, data in files]
+    it, _ = intake_lib.create_intake(db, settings, user, "", uploads)
+    intake_lib.prepare_workdir(settings, it)
+    it.plan = intake_lib.clean_plan(db, it, IntakePlanOut(**plan), date(2026, 11, 19), settings)
+    it.status = "ready"
+    db.commit()
+    return it
+
+
+def ready_intake(db, settings, owner="kim"):
+    """txt 3개가 든 확인 대기 묶음과 기존 솔루션 s1, 고객 c1. 정리안: 새 솔루션(파트너 루미텍) 1번 파일,
+    s1 에 자료 추가 2번 파일, 한빛병원 통화 활동 기록 3번 파일."""
+    from app.models import Customer, Solution
+
+    s1 = Solution(name="AI 공조 최적제어", stage="boxed", summary="공조")
+    c1 = Customer(name="한빛병원")
+    db.add_all([s1, c1])
+    db.commit()
+    files = [("소개서.txt", "스마트 조명 소개".encode()), ("스펙.txt", "공조 스펙".encode()), ("녹취.txt", "한빛병원 통화 내용".encode())]
+    plan = {
+        "solutions": [{"name": "스마트 조명 제어", "summary": "재실 감지 조명", "tags": ["조명"], "partner": "루미텍",
+                       "files": [1], "reason": "제품 소개서"}],
+        "additions": [{"solution_id": s1.id, "files": [2], "reason": "기존 솔루션 스펙"}],
+        "activities": [{"draft": {"kind": "tapping", "date": "2026-11-17", "title": "한빛병원 통화", "discussion": ["전력비 문의"],
+                                  "mentions": {"customers": ["한빛 병원"], "solutions": ["AI 공조 최적제어", "스마트 조명 제어"]}},
+                        "raw_from": 3, "files": [3], "reason": "통화 녹취록"}],
+    }
+    return ready_bundle(db, settings, files, owner, **plan), s1, c1

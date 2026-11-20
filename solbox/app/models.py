@@ -174,6 +174,46 @@ class AIJob(Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
+class Intake(Stamped, Base):
+    """올리기 묶음: 한 번에 올린 파일들과 그 정리 상태."""
+
+    __tablename__ = "intakes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    note: Mapped[str] = mapped_column(String, default="")
+    status: Mapped[str] = mapped_column(String, default="uploaded")  # uploaded / analyzing / ready / applying(저장 중) / applied / failed / discarded
+    plan: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    result: Mapped[list] = mapped_column(JSON, default=list)  # 저장으로 만들어진 기록 [{"type", "id", "label"}]
+    job_id: Mapped[int | None] = mapped_column(ForeignKey("ai_jobs.id"), nullable=True)
+    error: Mapped[str] = mapped_column(Text, default="")
+    applied_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    apply_token: Mapped[str | None] = mapped_column(String, nullable=True)  # 저장 중(applying)인 선점의 정체. 그 선점만 저장을 끝내거나 풀 수 있다
+
+    files: Mapped[list["IntakeFile"]] = relationship(
+        back_populates="intake", cascade="all, delete-orphan", order_by="IntakeFile.id"
+    )
+    job: Mapped[AIJob | None] = relationship()
+
+
+class IntakeFile(Base):
+    __tablename__ = "intake_files"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    intake_id: Mapped[int] = mapped_column(ForeignKey("intakes.id"))
+    original_name: Mapped[str] = mapped_column(String, default="")
+    stored_name: Mapped[str] = mapped_column(String, default="")
+    kind: Mapped[str] = mapped_column(String, default="other")  # document / image / audio / other
+    read_status: Mapped[str] = mapped_column(String, default="")  # ok / failed / unsupported / needs_transcript / pending_transcript
+    read_error: Mapped[str | None] = mapped_column(String, nullable=True)  # 읽지 못한 이유 (받아쓰기 실패 등, 화면에 보이는 한국어)
+    progress: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 받아쓰기 진행 0~100
+    size: Mapped[int] = mapped_column(Integer, default=0)
+    target_type: Mapped[str] = mapped_column(String, default="")
+    target_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), default=datetime.now)
+
+    intake: Mapped[Intake] = relationship(back_populates="files")
+
+
 class Proposal(Stamped, Base):
     __tablename__ = "proposals"
 

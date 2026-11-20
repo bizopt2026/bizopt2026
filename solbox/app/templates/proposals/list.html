@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "_macros.html" import list_head, empty_list, pager %}
 {% block title %}제안{% endblock %}
 {% block content %}
-<h1>제안</h1>
+{{ list_head("제안", pg, q or status, "/proposals/new", "+ 제안 만들기") }}
 <form method="get" action="/proposals" class="row">
   <label>검색 <input type="search" name="q" value="{{ q }}"></label>
   <label>상태
@@ -13,13 +14,12 @@
     </select>
   </label>
   <button type="submit">검색</button>
-  <a href="/proposals/new">+ 제안 만들기</a>
 </form>
-{% if proposals %}
-<table>
+{% if pg.items %}
+<div class="tablewrap"><table>
   <thead><tr><th>제안</th><th>고객</th><th>상태</th><th>수정</th></tr></thead>
   <tbody>
-  {% for p in proposals %}
+  {% for p in pg.items %}
     <tr>
       <td><a href="/proposals/{{ p.id }}">{{ display_title(p) }}</a></td>
       <td><a href="/customers/{{ p.customer_id }}">{{ p.customer.name }}</a></td>
@@ -28,6 +28,7 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
-{% else %}<p class="muted">{{ "검색 결과가 없습니다." if (q or status) else "등록된 제안 건이 없습니다." }}</p>{% endif %}
+</table></div>
+{{ pager(pg, request) }}
+{% else %}{{ empty_list(q or status, "아직 등록된 제안 건이 없습니다.", "/proposals/new", "+ 제안 만들기") }}{% endif %}
 {% endblock %}

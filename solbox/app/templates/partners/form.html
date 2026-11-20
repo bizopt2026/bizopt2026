@@ -1,15 +1,17 @@
 {% extends "base.html" %}
+{% from "_macros.html" import breadcrumb %}
 {% block title %}파트너 {{ "수정" if partner else "등록" }}{% endblock %}
 {% block content %}
+{% if partner %}{{ breadcrumb(("파트너", "/partners"), (partner.name, "/partners/" ~ partner.id), ("수정", None)) }}{% else %}{{ breadcrumb(("파트너", "/partners"), ("등록", None)) }}{% endif %}
 <h1>파트너 {{ "수정" if partner else "등록" }}</h1>
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 <form method="post" action="{{ "/partners/" ~ partner.id if partner else "/partners" }}" class="card stack">
     <label>이름 (필수) <input name="name" value="{{ form.name }}"></label>
-    <label>연락처 <input name="contact" value="{{ form.contact }}"></label>
+    <label>연락처 <textarea name="contact" rows="2">{{ form.contact }}</textarea></label>
     <label>소개 <textarea name="description" rows="3">{{ form.description }}</textarea></label>
     <label>메모 <textarea name="memo" rows="3">{{ form.memo }}</textarea></label>
     <div class="row">
-      <button type="submit">저장</button>
+      <button type="submit" class="primary">저장</button>
       <a href="{{ "/partners/" ~ partner.id if partner else "/partners" }}">취소</a>
     </div>
 </form>

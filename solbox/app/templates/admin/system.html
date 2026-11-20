@@ -1,18 +1,21 @@
 {% extends "base.html" %}
+{% from "_macros.html" import breadcrumb %}
 {% block title %}시스템{% endblock %}
 {% block content %}
+{{ breadcrumb(("관리", None), ("시스템", None)) }}
 <h1>시스템</h1>
 {% if error %}<p class="error">{{ error }}</p>{% endif %}
-<table style="margin-bottom:1.25rem">
+<div class="tablewrap"><table>
   <tbody>
     <tr><th>버전</th><td>{{ version }}</td></tr>
-    <tr><th>데이터 폴더</th><td>{{ data_dir }} ({{ data_size }})</td></tr>
+    <tr><th>데이터 폴더</th><td><code class="path">{{ data_dir }}</code> ({{ data_size }})</td></tr>
     <tr><th>최근 백업</th><td>
-      {% if last_backup %}{{ last_backup.created_at.strftime("%Y-%m-%d %H:%M") }} — {{ last_backup.path }}
+      {% if last_backup %}{{ last_backup.created_at.strftime("%Y-%m-%d %H:%M") }} — <code class="path">{{ last_backup.path }}</code>
       {% else %}백업 없음{% endif %}
-      <br><small>백업 폴더: {{ backup_dir }}</small>
+      <br><small>백업 폴더: <code class="path">{{ backup_dir }}</code></small>
     </td></tr>
     <tr><th>AI 작업</th><td>대기 {{ pending }}건, 진행 {{ running }}건</td></tr>
+    <tr><th>음성 받아쓰기</th><td>{{ transcriber }}</td></tr>
     <tr><th>다음 조사 예정</th><td>
       {% if next_run %}{{ next_run.strftime("%Y-%m-%d %H:%M") }}{% else %}주간 조사가 꺼져 있습니다{% endif %}
     </td></tr>
@@ -21,17 +24,17 @@
       {% else %}없음{% endif %}
     </td></tr>
   </tbody>
-</table>
+</table></div>
 
 <section class="card">
 <h2>AI 연결 확인</h2>
-<form method="post" action="/admin/system/ai-check" style="margin-bottom:.75rem"><button type="submit">AI 연결 확인</button></form>
+<form method="post" action="/admin/system/ai-check"><button type="submit">AI 연결 확인</button></form>
 <p class="muted"><small>다른 AI 작업이 진행 중이면 그 작업이 끝난 뒤에 확인합니다.</small></p>
 {% include "admin/_ai_check.html" %}
 </section>
 
 <section class="card">
 <h2>백업</h2>
-<form method="post" action="/admin/system/backup" style="margin-bottom:.75rem"><button type="submit">지금 백업</button></form>
+<form method="post" action="/admin/system/backup"><button type="submit">지금 백업</button></form>
 </section>
 {% endblock %}

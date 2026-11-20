@@ -54,25 +54,38 @@ def fail_stale_running(db: Session) -> int:
     return result.rowcount
 
 
+def _may_claim(db: Session, kind: str, job_input: dict) -> bool:
+    guard = tasks.CLAIM_GUARDS.get(kind)
+    if guard is None:
+        return True
+    try:
+        return bool(guard(db, job_input))
+    except Exception:  # noqa: BLE001 - 검사가 깨져도 작업을 막지 않는다
+        log.exception("작업 집기 검사 오류 (%s)", kind)
+        return True
+
+
 def _claim_next(session_factory: sessionmaker[Session]) -> tuple[int, str, dict] | None:
-    """가장 앞선 pending 작업을 조건부 UPDATE 로 집는다. 다른 워커가 먼저 집으면 다음 것을 시도한다."""
+    """가장 앞선 pending 작업을 조건부 UPDATE 로 집는다. 다른 워커가 먼저 집으면 다음 것을 시도한다.
+    `CLAIM_GUARDS` 가 지금은 안 된다고 한 작업(예: 다른 워커가 받아쓰는 중이라 기다릴 음성 정리)은 건너뛰고 뒤의 작업을 집는다."""
     with session_factory() as db:
-        while True:
-            row = db.execute(
-                select(AIJob.id, AIJob.kind, AIJob.input)
-                .where(AIJob.status == "pending")
-                .order_by(AIJob.priority, AIJob.id)
-                .limit(1)
-            ).first()
-            if row is None:
-                return None
+        rows = db.execute(
+            select(AIJob.id, AIJob.kind, AIJob.input).where(AIJob.status == "pending").order_by(AIJob.priority, AIJob.id)
+        ).all()
+        for row in rows:
+            job_input = dict(row.input or {})
+            if not _may_claim(db, row.kind, job_input):
+                db.rollback()
+                continue
             claimed = db.execute(
                 update(AIJob).where(AIJob.id == row.id, AIJob.status == "pending")
                 .values(status="running", started_at=datetime.now())
             )
             db.commit()
             if claimed.rowcount == 1:
-                return row.id, row.kind, dict(row.input or {})
+                return row.id, row.kind, job_input
+        db.rollback()
+        return None
 
 
 def _finish_once(session_factory: sessionmaker[Session], job_id: int, **values) -> None:
@@ -160,6 +173,7 @@ def stop_workers(app, join_timeout: float = 5.0) -> None:
         t.join(timeout=join_timeout)
 
 
+from app.ai import intake_tasks  # noqa: E402,F401  (처리기 등록용)
 from app.ai import proposal_tasks  # noqa: E402,F401  (처리기 등록용)
 from app.ai import research_tasks  # noqa: E402,F401  (처리기 등록용)
 from app.ai import system_tasks  # noqa: E402,F401  (처리기 등록용)

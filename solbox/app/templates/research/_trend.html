@@ -1,16 +1,21 @@
+{% from "_macros.html" import check_badge %}
 <li class="trend">
-  <strong>{{ t.headline }}</strong>
-  {% if t.summary %}<div>{{ t.summary }}</div>{% endif %}
-  {% if t.sources %}
-  <ul class="sources">
-    {% for s in t.sources %}
-    <li>{% if s.href %}<a href="{{ s.href }}" target="_blank" rel="noopener noreferrer">{{ s.title }}</a> <span class="muted">({{ s.host }})</span>{% else %}{{ s.title }}{% endif %}{% if not s.opened %} <span class="badge warn">검색 결과 링크 (본문 미확인)</span>{% endif %}</li>
-    {% endfor %}
-  </ul>
-  {% endif %}
-  {% for note in t.needs_check or [] %}<div><span class="badge warn">확인 필요</span> {{ note }}</div>{% endfor %}
-  <form method="post" action="/research/runs/{{ run.id }}/candidate" class="inline-form">
-    <input type="hidden" name="source" value="trend"><input type="hidden" name="report_id" value="{{ report.id }}"><input type="hidden" name="index" value="{{ t.index }}">
-    <button type="submit" class="secondary">후보 등록</button>
-  </form>
+  <details class="trend-card">
+    <summary><strong>{{ t.headline }}</strong> <span class="muted">· 링크 {{ t.sources | length }}개</span>{% set notes = check_items(t.needs_check) %}{% if notes %} {{ check_badge(notes[0].kind) }}{% endif %}</summary>
+    <div class="card-body">
+      {% if t.summary %}<div>{{ t.summary }}</div>{% endif %}
+      {% if t.sources %}
+      <ul class="sources">
+        {% for s in t.sources %}
+        <li>{% if s.href %}<a href="{{ s.href }}" target="_blank" rel="noopener noreferrer">{{ s.title }}</a> <span class="muted">({{ s.host }})</span>{% else %}{{ s.title }}{% endif %}{% if not s.opened %} <span class="badge warn">검색 결과 링크 (본문 미확인)</span>{% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% for it in notes %}<div>{{ check_badge(it.kind) }} {{ it.text }}</div>{% endfor %}
+      <form method="post" action="/research/runs/{{ run.id }}/candidate" class="inline-form">
+        <input type="hidden" name="source" value="trend"><input type="hidden" name="report_id" value="{{ report.id }}"><input type="hidden" name="index" value="{{ t.index }}">
+        <button type="submit" class="small">후보 등록</button>
+      </form>
+    </div>
+  </details>
 </li>

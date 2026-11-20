@@ -6,6 +6,8 @@ import tomllib
 from dataclasses import dataclass, field, fields
 from pathlib import Path
 
+from app.transcribe import MODEL_NAMES, TRANSCRIBERS, whisper_languages
+
 
 @dataclass
 class Settings:
@@ -24,6 +26,12 @@ class Settings:
     max_upload_mb: int = 100
     backup_dir: Path | None = None
     backup_keep_days: int = 14
+    transcriber: str = "none"
+    transcribe_model: str = "small"
+    transcribe_language: str = "ko"
+    transcribe_threads: int = 0
+    transcribe_max_minutes: int = 120
+    transcribe_chunk_minutes: int = 10
 
     def __post_init__(self) -> None:
         if self.backup_dir is None:
@@ -46,8 +54,52 @@ class Settings:
         return self.data_dir / "research_work"
 
     @property
+    def intake_work_dir(self) -> Path:
+        return self.data_dir / "intake_work"
+
+    @property
+    def models_dir(self) -> Path:
+        return self.data_dir / "models"
+
+    @property
     def decks_dir(self) -> Path:
         return self.data_dir / "decks"
+
+
+def _bad(key: str, why: str) -> SystemExit:
+    return SystemExit(f"설정 파일의 '{key}' 값이 올바르지 않습니다: {why}")
+
+
+def _check_transcribe_settings(raw: dict, config_path: Path, models_dir: Path) -> None:
+    """음성 받아쓰기 설정을 검사한다. 모델이 폴더 경로면 설정 파일 기준 절대 경로로 바꿔 둔다."""
+    if "transcribe_model" in raw:
+        model = raw["transcribe_model"]
+        if not isinstance(model, str) or not model.strip():
+            raise _bad("transcribe_model", f"{model!r} (모델 이름이나 모델 폴더 경로를 글로 적으세요)")
+        model = model.strip()
+        if model not in MODEL_NAMES:
+            if not any(c in model for c in "/\\") and not model.startswith((".", "~")):
+                raise _bad("transcribe_model", f"{model!r}\n쓸 수 있는 이름: {', '.join(MODEL_NAMES)} 또는 모델 폴더 경로")
+            folder = Path(model).expanduser()
+            if not folder.is_absolute():
+                folder = config_path.resolve().parent / folder
+            model = str(folder)
+        raw["transcribe_model"] = model
+    if "transcribe_language" in raw:
+        lang = raw["transcribe_language"]
+        if not isinstance(lang, str) or not lang.strip():
+            raise _bad("transcribe_language", f"{lang!r} (예: \"ko\", 자동 감지는 \"auto\")")
+        lang = lang.strip().lower()
+        # 받아쓰기를 켠 경우에만 설치된 라이브러리의 언어 목록을 본다 (아니면 내장 목록)
+        known = whisper_languages(models_dir if raw.get("transcriber") == "faster-whisper" else None)
+        if lang != "auto" and lang not in known:
+            raise _bad("transcribe_language", f"{lang!r} (Whisper 언어 코드가 아닙니다. 예: \"ko\", 자동 감지는 \"auto\")")
+        raw["transcribe_language"] = lang
+    for key, minimum in (("transcribe_threads", 0), ("transcribe_max_minutes", 1), ("transcribe_chunk_minutes", 1)):
+        if key in raw:
+            v = raw[key]
+            if isinstance(v, bool) or not isinstance(v, int) or v < minimum:
+                raise _bad(key, f"{v!r} ({minimum} 이상의 정수)")
 
 
 def load_settings(path: Path | None = None) -> Settings:
@@ -76,10 +128,17 @@ def load_settings(path: Path | None = None) -> Settings:
             f"설정 파일의 'secret_key' 를 길고 무작위한 값으로 바꾸세요: {path}\n"
             'python -c "import secrets; print(secrets.token_urlsafe(32))" 로 만들 수 있습니다.'
         )
+    transcriber = raw.get("transcriber", "none")
+    if transcriber not in TRANSCRIBERS:
+        raise SystemExit(
+            f"설정 파일의 'transcriber' 값이 올바르지 않습니다: {transcriber!r}\n"
+            f"쓸 수 있는 값: {', '.join(sorted(TRANSCRIBERS))}"
+        )
     data_dir = Path(raw["data_dir"])
     if not data_dir.is_absolute():
         data_dir = path.resolve().parent / data_dir
     raw["data_dir"] = data_dir
+    _check_transcribe_settings(raw, path, data_dir / "models")
     if "backup_dir" in raw:
         backup_dir = Path(raw["backup_dir"])
         if not backup_dir.is_absolute():

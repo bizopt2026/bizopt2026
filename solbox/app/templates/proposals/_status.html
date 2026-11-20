@@ -1,6 +1,6 @@
 {% set chat_running = job is defined and job.kind == "proposal_chat" and job.status == "running" %}
 <div id="proposal-status" class="job-status" role="status"
   hx-get="/proposals/{{ proposal.id }}/status" hx-trigger="every {{ '1s' if chat_running else '2s' }}" hx-swap="outerHTML">
-  {% if proposal.active_job.status == "pending" %}AI 대기 {{ position }}번째{% else %}AI가 작성 중입니다…{% endif %}
+  {% if proposal.active_job.status == "pending" %}AI 대기 {{ position }}번째 (앞 작업이 끝나면 시작합니다){% else %}AI가 작성 중입니다… {{ wait_detail(proposal.active_job) }}{% endif %}
   {% if chat_running and job.result %}<div class="chat-msg assistant"><div class="md">{{ job.result | md }}</div></div>{% endif %}
 </div>

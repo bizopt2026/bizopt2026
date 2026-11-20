@@ -6,26 +6,26 @@
   <title>{% block title %}{% endblock %} · 솔루션 박스</title>
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/htmx.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
 </head>
 <body>
 {% if user %}
 <header class="topbar">
   <a class="brand" href="/">솔루션 박스</a>
+  {% set path = request.url.path if request else "/" %}
+  {% set section = path.split("/")[1] %}
+  {% set ready_n = nav_ready_count() if nav_ready_count else 0 %}
   <nav>
-    <a href="/">홈</a>
-    <a href="/solutions">솔루션</a>
-    <a href="/customers">고객</a>
-    <a href="/businesses">기존 사업</a>
-    <a href="/partners">파트너</a>
-    <a href="/proposals">제안</a>
-    <a href="/activities">활동 기록</a>
-    <a href="/research">리서치</a>
+    {% for href, name in (("intake", "올리기"), ("", "홈"), ("solutions", "솔루션"), ("customers", "고객"), ("businesses", "기존 사업"), ("partners", "파트너"), ("proposals", "제안"), ("activities", "활동 기록"), ("research", "리서치")) %}
+    <a href="/{{ href }}"{% if section == href %} aria-current="page"{% endif %}>{{ name }}{% if href == "intake" and ready_n %} <span class="nav-badge" role="img" aria-label="확인 대기 {{ ready_n }}건">{{ ready_n }}</span>{% endif %}</a>
+    {% endfor %}
     {% if user.role == "admin" %}
-    <details class="menu"><summary>관리</summary>
-      <a href="/admin/users">사용자</a>
-      <a href="/admin/jobs">AI 작업</a>
-      <a href="/admin/research">리서치 설정</a>
-      <a href="/admin/system">시스템</a>
+    <details class="menu"><summary{% if section == "admin" %} aria-current="page"{% endif %}>관리</summary>
+      <div class="menu-list">
+      {% for href, name in (("users", "사용자"), ("jobs", "AI 작업"), ("research", "리서치 설정"), ("system", "시스템")) %}
+      <a href="/admin/{{ href }}"{% if path == "/admin/" ~ href %} aria-current="page"{% endif %}>{{ name }}</a>
+      {% endfor %}
+      </div>
     </details>
     {% endif %}
   </nav>
@@ -38,5 +38,14 @@
 <main>
 {% block content %}{% endblock %}
 </main>
+<script>
+(function () {
+  function closeMenus(except) {
+    document.querySelectorAll("details.menu[open]").forEach(function (d) { if (d !== except) d.removeAttribute("open"); });
+  }
+  document.addEventListener("click", function (e) { closeMenus(e.target.closest("details.menu")); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenus(null); });
+})();
+</script>
 </body>
 </html>

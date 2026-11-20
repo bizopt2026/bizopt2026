@@ -1,0 +1,12 @@
+{# 정리하지 못한 파일 카드 (저장하지 않는다). 컨텍스트: card #}
+{% from "_macros.html" import plan_head, plan_meta %}
+<section class="card plan-item" id="item-{{ card.item.key }}">
+  {{ plan_head(card) }}
+  {% if card.item.reason %}<p class="plan-reason"><strong>이렇게 정리한 이유</strong> {{ card.item.reason }}</p>{% endif %}
+  <p class="muted">이 파일들은 저장되지 않습니다. 올린 원본은 남아 있어요. 필요하면 직접 등록에 쓰세요.</p>
+  <ul>
+    {% for n, name in card.files %}
+    <li>{{ name }} <span class="badge read-{{ card.file_status[n] }}">{{ labels.READ_STATUSES.get(card.file_status[n], card.file_status[n]) }}</span> — <a href="/solutions/new">솔루션 직접 등록</a> · <a href="/activities/new">활동 기록 직접 등록</a> · <a href="/intake/files/{{ card.file_ids[n] }}/download">내려받기</a></li>
+    {% endfor %}
+  </ul>
+</section>

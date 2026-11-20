@@ -1,14 +1,19 @@
+{% from "_macros.html" import source_chip %}
 <li class="trend">
-  <span class="badge">{{ labels.SUGGESTION_KINDS.get(s.kind, s.kind) }}</span> <strong>{{ s.title }}</strong>
-  {% if s.detail %}<div>{{ s.detail }}</div>{% endif %}
-  {% if s.reason %}<div class="muted">근거: {{ s.reason }}</div>{% endif %}
-  {% if s.sources %}<div class="muted">참고: {% for p in s.sources %}{{ p }}{{ ", " if not loop.last }}{% endfor %}</div>{% endif %}
-  {% if s.kind == "push" %}
-    {% for sol in s.solutions %}<div>솔루션: <a href="/solutions/{{ sol.id }}">{{ sol.name }}</a></div>{% endfor %}
-  {% else %}
-  <form method="post" action="/research/runs/{{ run.id }}/candidate" class="inline-form">
-    <input type="hidden" name="source" value="suggestion"><input type="hidden" name="report_id" value="{{ suggest.id }}"><input type="hidden" name="index" value="{{ s.index }}">
-    <button type="submit" class="secondary">후보 등록</button>
-  </form>
-  {% endif %}
+  <details class="trend-card suggestion"{% if s.index < 3 %} open{% endif %}>
+    <summary><span class="badge">{{ labels.SUGGESTION_KINDS.get(s.kind, s.kind) }}</span> <strong>{{ s.title }}</strong></summary>
+    <div class="card-body">
+      {% if s.detail %}<div>{{ s.detail }}</div>{% endif %}
+      {% if s.reason %}<div class="muted">근거: {{ s.reason }}</div>{% endif %}
+      {% if s.sources %}<div><span class="muted">참고:</span> <span class="chips">{% for p in s.sources %}{{ source_chip(src, p) }}{% endfor %}</span></div>{% endif %}
+      {% if s.kind == "push" %}
+        {% for sol in s.solutions %}<div>솔루션: <a href="/solutions/{{ sol.id }}">{{ sol.name }}</a></div>{% endfor %}
+      {% else %}
+      <form method="post" action="/research/runs/{{ run.id }}/candidate" class="inline-form">
+        <input type="hidden" name="source" value="suggestion"><input type="hidden" name="report_id" value="{{ suggest.id }}"><input type="hidden" name="index" value="{{ s.index }}">
+        <button type="submit" class="small">후보 등록</button>
+      </form>
+      {% endif %}
+    </div>
+  </details>
 </li>

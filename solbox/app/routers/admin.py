@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
-from app import backup, scheduler
+from app import backup, scheduler, transcribe
 from app.ai.queue import enqueue
 from app.db import get_db
 from app.main import render
@@ -252,6 +252,7 @@ def _system_page(request: Request, db: Session, error: str | None = None, status
         last_failed=last_failed,
         failed_text=ERROR_KINDS.get(last_failed.error_kind, ERROR_KINDS["unknown"]) if last_failed else None,
         ping=_ping_state(db),
+        transcriber=transcribe.label(s),
         error=error,
     )
 

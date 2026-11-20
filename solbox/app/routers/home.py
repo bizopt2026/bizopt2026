@@ -7,10 +7,11 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app import labels
+from app import labels, transcribe
 from app.db import get_db
 from app.main import render
-from app.models import AIJob, Activity, Proposal, ResearchRun, Solution, User
+from app import intake as intake_lib
+from app.models import AIJob, Activity, Intake, Proposal, ResearchRun, Solution, User
 from app.routers._common import newest_first
 from app.security import require_user
 
@@ -19,6 +20,7 @@ RECENT_LIMIT = 10
 OPEN_PROPOSAL_LIMIT = 5
 FOLLOW_UP_DAYS = 14
 LATEST_INSIGHTS, LATEST_SUGGESTIONS = 5, 3
+INTAKE_LINK_LIMIT = 5
 AI_PROBLEMS = ("not_installed", "auth", "limit", "network")
 
 
@@ -79,11 +81,26 @@ def latest_research(db: Session) -> dict | None:
     return {"run": run, "insights": insights[:LATEST_INSIGHTS], "suggestions": suggestions[:LATEST_SUGGESTIONS]}
 
 
+def intake_summary(db: Session, user: User) -> dict:
+    """올리기 묶음 중 확인 대기(최대 5개 목록과 전체 수)와 정리 중 수. 관리자도 내 것만 (남의 묶음은 올리기 목록에서 본다)."""
+    def scoped(status: str):
+        return select(Intake).where(Intake.status == status, Intake.created_by_id == user.id)
+
+    def count(status: str) -> int:
+        return db.scalar(select(func.count()).select_from(scoped(status).subquery())) or 0
+
+    ready = list(db.scalars(scoped("ready").order_by(Intake.id.desc()).limit(INTAKE_LINK_LIMIT)))
+    return {"ready": ready, "ready_count": count("ready"), "analyzing_count": count("analyzing")}
+
+
 @router.get("/")
 def home(request: Request, user: User = Depends(require_user), db: Session = Depends(get_db)):
     recent = newest_first(db.scalars(select(Activity)))[:RECENT_LIMIT]
     return render(
         request, "home.html",
         recent=recent, follow_ups=upcoming_follow_ups(db, date.today()),
+        intake=intake_summary(db, user), max_files=intake_lib.MAX_FILES,
+        max_mb=request.app.state.settings.max_upload_mb, max_note=intake_lib.MAX_NOTE,
+        transcriber_ready=transcribe.get(request.app.state.settings).available(),
         stages=stage_counts(db), research=latest_research(db), proposals=open_proposals(db), ai_problem=ai_problem(db),
     )

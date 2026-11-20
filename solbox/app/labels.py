@@ -1,4 +1,5 @@
 """코드값과 화면에 보일 한국어 이름."""
+from datetime import datetime
 
 STAGES = {
     "intake": "아이템 접수",
@@ -18,6 +19,36 @@ ACTIVITY_KINDS = {
 
 FILE_KINDS = {"intro": "소개", "spec": "스펙", "related": "관련"}
 
+INTAKE_STATUSES = {
+    "uploaded": "올림",
+    "analyzing": "정리 중",
+    "ready": "확인 대기",
+    "applying": "저장 중",
+    "applied": "저장 완료",
+    "failed": "실패",
+    "discarded": "버림",
+}
+
+INTAKE_FILE_KINDS = {"document": "문서", "image": "사진", "audio": "음성", "other": "기타"}
+
+INTAKE_ITEM_KINDS = {
+    "new_solution": "새 솔루션",
+    "add_to_solution": "솔루션에 자료 추가",
+    "add_contact": "연락처 추가",
+    "activity": "활동 기록",
+    "new_customer": "새 고객",
+    "new_partner": "새 파트너",
+    "unplaced": "정리하지 못한 파일",
+}
+
+READ_STATUSES = {
+    "ok": "읽음",
+    "failed": "읽지 못함",
+    "unsupported": "보관만 함",
+    "needs_transcript": "받아쓰기 필요",
+    "pending_transcript": "받아쓰기 대기",
+}
+
 JOB_STATUSES = {
     "pending": "대기",
     "running": "진행",
@@ -33,7 +64,21 @@ JOB_KINDS = {
     "proposal_outline": "제안서 구성안 만들기",
     "research_area": "리서치 분야 조사",
     "research_suggest": "리서치 발굴 방향 제안",
+    "intake_analyze": "올린 파일 정리",
     "ai_ping": "AI 연결 확인",
+}
+
+# AI 작업 종류별 예상 시간 (대기 안내에 쓴다)
+JOB_EXPECTED = {
+    "activity_structure": "보통 20초 안에",
+    "solution_draft": "보통 30초 안에",
+    "proposal_directions": "보통 1분 안에",
+    "proposal_chat": "보통 1분 안에",
+    "proposal_outline": "보통 1분 안에",
+    "research_area": "분야마다 1~2분",
+    "research_suggest": "보통 1분 안에",
+    "intake_analyze": "보통 1분 안에",
+    "ai_ping": "보통 10초 안에",
 }
 
 ERROR_KINDS = {
@@ -70,3 +115,22 @@ SUGGESTION_KINDS = {"new": "새로 찾을 솔루션", "push": "기존 솔루션 
 RUN_STATUSES = {"running": "진행", "done": "완료", "partial": "일부 실패", "failed": "실패"}
 
 WEEKDAYS = {0: "월", 1: "화", 2: "수", 3: "목", 4: "금", 5: "토", 6: "일"}
+
+
+def elapsed_text(started_at: datetime, now: datetime | None = None) -> str:
+    """"35초 경과", "1분 35초 경과" 처럼 시작 뒤 지난 시간."""
+    seconds = max(0, int(((now or datetime.now()) - started_at).total_seconds()))
+    minutes, rest = divmod(seconds, 60)
+    return (f"{minutes}분 {rest}초" if minutes and rest else f"{minutes}분" if minutes else f"{rest}초") + " 경과"
+
+
+def wait_detail(job, now: datetime | None = None, expected: bool = True) -> str:
+    """진행 중인 작업 옆에 붙일 안내: "(보통 1분 안에 끝납니다 · 35초 경과)". 시작 전이면 빈 글."""
+    if job.started_at is None:
+        return ""
+    hint = JOB_EXPECTED.get(job.kind, "") if expected else ""
+    parts = []
+    if hint:
+        parts.append(hint + " 끝납니다" if hint.endswith("안에") else hint)
+    parts.append(elapsed_text(job.started_at, now))
+    return "(" + " · ".join(parts) + ")"

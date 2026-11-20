@@ -1,20 +1,32 @@
 {# 정리 폼 필드. 컨텍스트: f (값 묶음: kind, date, title, raw_text, summary_md, follow_ups, demand_signals,
    selected{solution,customer,business,partner: id 목록}, new_names{solutions,customers,partners: 이름 목록}),
    choices (연결 후보: solution, customer, business, partner 목록). #}
+{% from "_macros.html" import check_picker %}
 {% set fus = f.follow_ups or [] %}
 {% set dss = f.demand_signals or [] %}
-<label>종류
-  <select name="kind">
-    {% for code, name in labels.ACTIVITY_KINDS.items() %}<option value="{{ code }}" {{ "selected" if f.kind == code }}>{{ name }}</option>{% endfor %}
-  </select>
-</label>
-<label>일자 <input type="date" name="date" value="{{ f.date }}"></label>
-<label>제목 <input name="title" value="{{ f.title }}"></label>
-<label>원문 메모 (필수) <textarea name="raw_text" rows="10">{{ f.raw_text }}</textarea></label>
-<label>정리본 <textarea name="summary_md" rows="10">{{ f.summary_md }}</textarea></label>
+<section class="formsec">
+  <h2>기본 정보</h2>
+  <div class="row">
+    <label>종류
+      <select name="kind">
+        {% for code, name in labels.ACTIVITY_KINDS.items() %}<option value="{{ code }}" {{ "selected" if f.kind == code }}>{{ name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>일자 <input type="date" name="date" value="{{ f.date }}"></label>
+    <label class="grow">제목 <input name="title" value="{{ f.title }}"></label>
+  </div>
+</section>
+<details class="formsec" id="raw-memo"{% if not raw_collapsed %} open{% endif %}>
+  <summary><h2>원문 메모 (필수)</h2></summary>
+  <textarea name="raw_text" rows="10" aria-label="원문 메모">{{ f.raw_text }}</textarea>
+</details>
+<section class="formsec">
+  <h2>정리본</h2>
+  <textarea name="summary_md" rows="10" aria-label="정리본">{{ f.summary_md }}</textarea>
+</section>
 
-<fieldset>
-  <legend>후속 조치</legend>
+<section class="formsec">
+  <h2>후속 조치</h2>
   <div id="fu-rows">
     {% for fu in fus %}
     <div class="row fu-row">
@@ -32,10 +44,10 @@
     </div>
   </div>
   <button type="button" data-add-row="fu-rows">+ 후속 조치 추가</button>
-</fieldset>
+</section>
 
-<fieldset>
-  <legend>수요 단서</legend>
+<section class="formsec">
+  <h2>수요 단서</h2>
   <div id="ds-rows">
     {% for ds in dss %}
     <div class="row ds-row">
@@ -49,38 +61,33 @@
     </div>
   </div>
   <button type="button" data-add-row="ds-rows">+ 수요 단서 추가</button>
-</fieldset>
+</section>
 
-<fieldset>
-  <legend>연결</legend>
+<section class="formsec">
+  <h2>연결</h2>
   {% for key, title, field in (("solution", "솔루션", "solution_ids"), ("customer", "고객", "customer_ids"), ("business", "기존 사업", "business_ids"), ("partner", "파트너", "partner_ids")) %}
-  <label>{{ title }}
-    <select name="{{ field }}" multiple size="5">
-      {% for o in choices[key] %}<option value="{{ o.id }}" {{ "selected" if o.id in f.selected[key] }}>{{ o.name }}</option>{% endfor %}
-    </select>
-  </label>
+  {{ check_picker(field, title, choices[key], f.selected[key]) }}
   {% for amb in (f.ambiguous or {}).get(key, []) %}
   <p class="muted ambiguous-hint">“{{ amb.name }}”: 여러 항목과 비슷합니다: {{ amb.candidates | join(", ") }} — 위 목록에서 맞는 항목을 직접 선택하세요.</p>
   {% endfor %}
   {% endfor %}
-</fieldset>
-
-<fieldset>
-  <legend>새로 등록</legend>
-  <p class="muted">아직 등록되지 않은 이름은 이름만 가진 항목으로 만들어 연결합니다.</p>
-  {% for rel, title in (("solutions", "솔루션"), ("customers", "고객"), ("partners", "파트너")) %}
-  <div class="stack">
-    <strong>{{ title }}</strong>
-    {% for name in f.new_names[rel] %}
-    <label><input type="checkbox" name="new_{{ rel }}" value="{{ name }}" checked> {{ name }} 새로 등록</label>
+  <div class="newnames">
+    <h3>새로 등록</h3>
+    <p class="muted">아직 등록되지 않은 이름은 이름만 가진 항목으로 만들어 연결합니다.</p>
+    {% for rel, title in (("solutions", "솔루션"), ("customers", "고객"), ("partners", "파트너")) %}
+    <div class="stack">
+      <strong>{{ title }}</strong>
+      {% for name in f.new_names[rel] %}
+      <label><input type="checkbox" name="new_{{ rel }}" value="{{ name }}" checked> {{ name }} 새로 등록</label>
+      {% endfor %}
+      {% for name in (f.new_candidates or {}).get(rel, []) %}
+      <label><input type="checkbox" name="new_{{ rel }}" value="{{ name }}"> {{ name }} 새로 등록</label>
+      {% endfor %}
+      <label>직접 추가 <input name="new_{{ rel }}" placeholder="새로 등록할 {{ title }} 이름"></label>
+    </div>
     {% endfor %}
-    {% for name in (f.new_candidates or {}).get(rel, []) %}
-    <label><input type="checkbox" name="new_{{ rel }}" value="{{ name }}"> {{ name }} 새로 등록</label>
-    {% endfor %}
-    <label>직접 추가 <input name="new_{{ rel }}" placeholder="새로 등록할 {{ title }} 이름"></label>
   </div>
-  {% endfor %}
-</fieldset>
+</section>
 
 <script>
 document.querySelectorAll("[data-add-row]").forEach(function (btn) {

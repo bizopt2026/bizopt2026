@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% from "_macros.html" import activity_list, detail_actions, proposal_list %}
+{% from "_macros.html" import activity_list, detail_head, proposal_list, breadcrumb, val %}
 {% block title %}{{ customer.name }}{% endblock %}
 {% block content %}
-<h1>{{ customer.name }}</h1>
+{{ breadcrumb(("고객", "/customers"), (customer.name, None)) }}
+{{ detail_head(customer.name, "/customers", customer, can_delete) }}
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-{{ detail_actions("/customers", customer, can_delete) }}
-<section class="card"><dl><dt>업종</dt><dd>{{ customer.industry }}</dd><dt>연락처</dt><dd>{{ customer.contact }}</dd><dt>메모</dt><dd>{{ customer.memo }}</dd></dl></section>
+<section class="card"><dl><dt>업종</dt><dd>{{ val(customer.industry) }}</dd><dt>연락처</dt><dd>{{ val(customer.contact) }}</dd><dt>메모</dt><dd>{{ val(customer.memo) }}</dd></dl></section>
 <section class="card">
   <h2>기존 사업</h2>
   {% if businesses %}<ul>{% for b in businesses %}<li><a href="/businesses/{{ b.id }}">{{ b.name }}</a> {{ b.status }}</li>{% endfor %}</ul>
@@ -14,5 +14,4 @@
 </section>
 {{ proposal_list(proposals, "/proposals/new?customer_id=" ~ customer.id) }}
 {{ activity_list(activities) }}
-<p><a href="/customers">&larr; 목록</a></p>
 {% endblock %}

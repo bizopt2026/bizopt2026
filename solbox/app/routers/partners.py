@@ -11,7 +11,7 @@ from app.main import render
 from app.models import Activity, Partner, User
 from app.routers._common import (
     activities_linked_to, get_deletable_or_404, get_or_404, name_error, newest_first,
-    resync_activities, resync_related, search_by_name,
+    resync_activities, resync_related, search_by_name, paginate,
 )
 from app.security import can_delete, require_user
 
@@ -27,8 +27,11 @@ def _form_page(request: Request, form: dict, partner: Partner | None = None, err
 
 
 @router.get("")
-def list_partners(request: Request, q: str = "", user: User = Depends(require_user), db: Session = Depends(get_db)):
-    return render(request, "partners/list.html", partners=search_by_name(db, Partner, q), q=q.strip())
+def list_partners(
+    request: Request, q: str = "", page: str = "1",
+    user: User = Depends(require_user), db: Session = Depends(get_db),
+):
+    return render(request, "partners/list.html", pg=paginate(search_by_name(db, Partner, q), page), q=q.strip())
 
 
 @router.get("/new")
@@ -43,7 +46,7 @@ def create(
     user: User = Depends(require_user), db: Session = Depends(get_db),
     mirror: KnowledgeMirror = Depends(get_mirror),
 ):
-    values = dict(name=name.strip(), contact=contact.strip(), description=description.strip(), memo=memo.strip())
+    values = dict(name=name.strip(), contact=contact.replace("\r\n", "\n").strip(), description=description.strip(), memo=memo.strip())
     if error := name_error(name):
         return _form_page(request, values, error=error)
     partner = Partner(**values, created_by_id=user.id)
@@ -77,7 +80,7 @@ def update(
     mirror: KnowledgeMirror = Depends(get_mirror),
 ):
     partner = get_or_404(db, Partner, partner_id)
-    values = dict(name=name.strip(), contact=contact.strip(), description=description.strip(), memo=memo.strip())
+    values = dict(name=name.strip(), contact=contact.replace("\r\n", "\n").strip(), description=description.strip(), memo=memo.strip())
     if error := name_error(name):
         return _form_page(request, values, partner, error)
     for field, value in values.items():

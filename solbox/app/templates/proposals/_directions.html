@@ -1,43 +1,85 @@
+{% from "_macros.html" import source_chip, check_badge %}
 {% set job = proposal.active_job %}
 {% set busy = job is not none and job.status in ("pending", "running") %}
 {% set directions = proposal.directions or [] %}
 {% set confirm_change = "return confirm('방향을 바꾸면 만들어 둔 구성안과 제안서가 지워집니다. 계속할까요?')" if proposal.outline else "" %}
-{% if directions %}
-<div class="stack">
-  {% for d in directions %}
-  <article class="card{% if proposal.selected_index == loop.index0 %} selected{% endif %}">
-    <h3>{{ d.title }}{% if proposal.selected_index == loop.index0 %} <span class="badge">선택됨</span>{% endif %}</h3>
-    {% if d.summary %}<p>{{ d.summary }}</p>{% endif %}
-    <dl>
-      <dt>조합 솔루션</dt>
-      <dd>{% for s in d.solutions %}<a href="/solutions/{{ s.solution_id }}">{{ s.name }}</a>{% if s.role %} ({{ s.role }}){% endif %}{{ ", " if not loop.last }}{% endfor %}</dd>
-      {% if d.rationale %}
-      <dt>맞는 이유</dt>
-      <dd><ul>{% for ev in d.rationale %}<li>{{ ev.text }}{% if ev.sources %} <span class="muted">출처: {{ ev.sources | join(", ") }}</span>{% endif %}</li>{% endfor %}</ul></dd>
-      {% endif %}
-      {% if d.effects %}
-      <dt>기대 효과</dt>
-      <dd><ul>{% for e in d.effects %}<li>{{ e }}</li>{% endfor %}</ul></dd>
-      {% endif %}
-      {% if d.needs_check %}
-      <dt>확인이 필요한 점</dt>
-      <dd><ul>{% for n in d.needs_check %}<li>{{ n }}</li>{% endfor %}</ul></dd>
-      {% endif %}
-    </dl>
-    {% if proposal.selected_index != loop.index0 %}
+{% set FOLD = 5 %}
+{% macro rationale_li(ev, i) %}<li>{{ ev.text }}{% for n in ev.refs %}<sup><a href="#d{{ i }}-src-{{ n }}">{{ n }}</a></sup>{% endfor %}{% if not ev.refs %} <span class="badge evidence">출처 없음</span>{% endif %}</li>{% endmacro %}
+{% macro check_li(it) %}<li class="{{ it.kind }}">{{ check_badge(it.kind) }}<span class="check-text">{{ it.text }}</span></li>{% endmacro %}
+{% macro card(d, i, expanded=False) %}
+  {% set num = number_sources(d) %}
+  {% set checks = check_items(d.needs_check) %}
+  {% set bad = checks | selectattr("kind", "equalto", "evidence") | list | length %}
+  <article class="card dir-card{% if proposal.selected_index == i %} selected{% endif %}">
+    <h3>{{ d.title }}{% if proposal.selected_index == i %} <span class="badge">선택됨</span>{% endif %}</h3>
+    {% if d.summary %}<p class="dir-summary" title="{{ d.summary }}">{{ d.summary }}</p>{% endif %}
+    <ul class="dir-solutions" aria-label="조합 솔루션">{% for s in d.solutions %}<li><a href="/solutions/{{ s.solution_id }}">{{ s.name }}</a>{% if s.role %} <span class="muted dir-role" title="{{ s.role }}">{{ s.role }}</span>{% endif %}</li>{% endfor %}</ul>
+    <p class="dir-count muted">근거 {{ num.rationale | length }}건 · 확인할 점 {{ checks | length }}건{% if bad %} <span class="badge evidence">근거 문제 {{ bad }}건</span>{% endif %}</p>
+    <details class="dir-more"{% if expanded %} open{% endif %}>
+      <summary>근거와 확인할 점 보기</summary>
+      <dl>
+        {% if d.summary %}
+        <dt>요약</dt>
+        <dd>{{ d.summary }}</dd>
+        {% endif %}
+        {% if d.solutions %}
+        <dt>조합 솔루션</dt>
+        <dd><ul>{% for s in d.solutions %}<li><a href="/solutions/{{ s.solution_id }}">{{ s.name }}</a>{% if s.role %} — {{ s.role }}{% endif %}</li>{% endfor %}</ul></dd>
+        {% endif %}
+        {% if num.rationale %}
+        <dt>맞는 이유</dt>
+        <dd>
+          <ul>{% for ev in num.rationale[:FOLD] %}{{ rationale_li(ev, i) }}{% endfor %}</ul>
+          {% if num.rationale | length > FOLD %}<details class="dir-rest"><summary>나머지 {{ num.rationale | length - FOLD }}개 더 보기</summary><ul>{% for ev in num.rationale[FOLD:] %}{{ rationale_li(ev, i) }}{% endfor %}</ul></details>{% endif %}
+        </dd>
+        {% endif %}
+        {% if d.effects %}
+        <dt>기대 효과</dt>
+        <dd><ul>{% for e in d.effects %}<li>{{ e }}</li>{% endfor %}</ul></dd>
+        {% endif %}
+        {% if checks %}
+        <dt>확인이 필요한 점</dt>
+        <dd>
+          <ul class="checklist">{% for it in checks[:FOLD] %}{{ check_li(it) }}{% endfor %}</ul>
+          {% if checks | length > FOLD %}<details class="dir-rest"><summary>나머지 {{ checks | length - FOLD }}개 더 보기</summary><ul class="checklist">{% for it in checks[FOLD:] %}{{ check_li(it) }}{% endfor %}</ul></details>{% endif %}
+        </dd>
+        {% endif %}
+        {% if num.sources %}
+        <dt>출처</dt>
+        <dd><ol class="source-list">{% for path in num.sources %}<li id="d{{ i }}-src-{{ loop.index }}">{{ source_chip(src, path) }}</li>{% endfor %}</ol></dd>
+        {% endif %}
+      </dl>
+    </details>
+    {% if proposal.selected_index != i %}
     <form method="post" action="/proposals/{{ proposal.id }}/select"{% if confirm_change and proposal.selected_index is not none %} onsubmit="{{ confirm_change }}"{% endif %}>
-      <input type="hidden" name="index" value="{{ loop.index0 }}">
-      <button type="submit">이 방향으로 구체화</button>
+      <input type="hidden" name="index" value="{{ i }}">
+      <button type="submit" class="primary">이 방향으로 구체화</button>
     </form>
     {% endif %}
   </article>
-  {% endfor %}
+{% endmacro %}
+{% set picked = proposal.selected_index is not none and 0 <= proposal.selected_index < directions | length %}
+{% if directions %}
+<div class="stack">
+  {% if picked %}
+  {{ card(directions[proposal.selected_index], proposal.selected_index, true) }}
+  {% if directions | length > 1 %}
+  <details class="more">
+    <summary>다른 방향 {{ directions | length - 1 }}개 보기</summary>
+    <div class="stack">
+      {% for d in directions %}{% if loop.index0 != proposal.selected_index %}{{ card(d, loop.index0) }}{% endif %}{% endfor %}
+    </div>
+  </details>
+  {% endif %}
+  {% else %}
+  <div class="dir-grid" style="--cols:{{ [directions | length, 3] | min }}">{% for d in directions %}{{ card(d, loop.index0) }}{% endfor %}</div>
+  {% endif %}
 </div>
 {% else %}
 <p class="muted">아직 만든 방향이 없습니다.</p>
 {% endif %}
 {% if not busy %}
-<form method="post" action="/proposals/{{ proposal.id }}/directions"{% if confirm_change %} onsubmit="{{ confirm_change }}"{% endif %}>
+<form method="post" action="/proposals/{{ proposal.id }}/directions" {% if directions %}class="dir-rebuild"{% endif %}{% if confirm_change %} onsubmit="{{ confirm_change }}"{% endif %}>
   <button type="submit">{% if directions %}방향 다시 만들기{% else %}방향 만들기{% endif %}</button>
 </form>
 {% endif %}

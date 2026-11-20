@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% from "_macros.html" import breadcrumb %}
 {% block title %}활동 기록 AI 초안{% endblock %}
 {% block content %}
+{{ breadcrumb(("활동 기록", "/activities"), ("등록", None)) }}
 <h1>활동 기록 AI 초안</h1>
 {% if f is none %}
 <p class="muted">AI가 메모를 정리하는 중입니다. 이 화면을 열어 두면 끝나는 대로 초안이 나타납니다.</p>
@@ -24,9 +26,10 @@
 <p class="muted">AI가 만든 초안입니다. 내용을 확인하고 고친 뒤 저장하세요. 저장하기 전에는 아무것도 기록되지 않습니다. 새로 등록할 이름은 직접 체크하세요.</p>
 {% endif %}
 <form method="post" action="/activities" class="card stack">
+  {% set raw_collapsed = not error_kind %}
   {% include "activities/_form_fields.html" %}
-  <div class="row">
-    <button type="submit">저장</button>
+  <div class="row savebar">
+    <button type="submit" class="primary">저장</button>
     <a href="/activities">취소</a>
   </div>
 </form>

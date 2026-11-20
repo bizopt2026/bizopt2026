@@ -1,17 +1,18 @@
 {% extends "base.html" %}
-{% from "_macros.html" import search_box %}
+{% from "_macros.html" import search_box, list_head, empty_list, pager %}
 {% block title %}기존 사업{% endblock %}
 {% block content %}
-<h1>기존 사업</h1>
+{{ list_head("기존 사업", pg, q, "/businesses/new") }}
 {{ search_box("/businesses", q) }}
-{% if businesses %}
-<table>
+{% if pg.items %}
+<div class="tablewrap"><table>
   <thead><tr><th>사업명</th><th>고객</th><th>기간</th><th>상태</th></tr></thead>
   <tbody>
-  {% for b in businesses %}
+  {% for b in pg.items %}
     <tr><td><a href="/businesses/{{ b.id }}">{{ b.name }}</a></td><td><a href="/customers/{{ b.customer_id }}">{{ b.customer.name }}</a></td><td>{{ b.period }}</td><td>{{ b.status }}</td></tr>
   {% endfor %}
   </tbody>
-</table>
-{% else %}<p class="muted">{{ "검색 결과가 없습니다." if q else "등록된 항목이 없습니다." }}</p>{% endif %}
+</table></div>
+{{ pager(pg, request) }}
+{% else %}{{ empty_list(q, "아직 등록된 기존 사업이 없습니다.", "/businesses/new") }}{% endif %}
 {% endblock %}

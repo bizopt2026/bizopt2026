@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import or_, select, update
 from sqlalchemy.orm import Session
 
+from app import checks
+from app.checks import NO_EVIDENCE_NOTE as NO_SOURCE_NOTE, check_kind  # noqa: F401  (다른 곳에서 여기서 불러다 쓴다)
 from app.models import AIJob, Proposal, Solution, User
 
 if TYPE_CHECKING:
@@ -18,7 +20,6 @@ SLIDE_KINDS = ("cover", "bullets", "two_column", "table", "steps", "closing")
 MAX_STEPS = 5
 MAX_SLIDES = 14
 NO_COLUMNS = "표의 열 이름을 입력하세요."
-NO_SOURCE_NOTE = "근거 자료 없음: 내용 확인 필요"
 
 
 def candidate_solutions(db: Session, p: Proposal) -> list[Solution]:
@@ -75,18 +76,18 @@ def clean_directions(db: Session, p: Proposal, out: "DirectionsOut", knowledge_d
             elif all(x["solution_id"] != sol.solution_id for x in solutions):
                 solutions.append({"solution_id": sol.solution_id, "name": names[sol.solution_id], "role": sol.role})
         if unknown:
-            needs_check.append("후보에 없는 솔루션이 언급됨")
+            needs_check.append(checks.UNKNOWN_SOLUTION_NOTE)
         if not solutions:
             continue
         rationale: list[dict] = []
         for ev in d.rationale:
             found, missing = check_sources(knowledge_dir, ev.sources)
-            needs_check.extend(f"출처 확인 불가: {m}" for m in missing)
+            needs_check.extend(checks.source_unverified(m) for m in missing)
             if not found:
-                needs_check.append(f"근거 자료 없음: {ev.text}")
+                needs_check.append(checks.no_evidence(ev.text))
             rationale.append({"text": ev.text, "sources": found})
         if not d.rationale:
-            needs_check.append("근거 자료 없음")
+            needs_check.append(checks.no_evidence())
         cleaned.append({
             "title": d.title, "summary": d.summary, "solutions": solutions, "rationale": rationale,
             "effects": list(d.effects), "needs_check": needs_check,
@@ -94,8 +95,38 @@ def clean_directions(db: Session, p: Proposal, out: "DirectionsOut", knowledge_d
     return cleaned[:MAX_DIRECTIONS]
 
 
+def number_sources(direction: dict) -> dict:
+    """방향 카드의 출처에 번호를 붙인다. 같은 경로는 카드 안에서 같은 번호(처음 나온 순서).
+    `{"rationale": [{"text", "refs": [1, 2]}], "sources": [경로, ...]}` — 출처 없는 근거는 refs 가 빈 목록."""
+    order: list[str] = []
+    rationale = []
+    for ev in direction.get("rationale") or []:
+        if not isinstance(ev, dict):
+            continue
+        refs: list[int] = []
+        for path in ev.get("sources") or []:
+            if not isinstance(path, str):
+                continue
+            if path not in order:
+                order.append(path)
+            n = order.index(path) + 1
+            if n not in refs:
+                refs.append(n)
+        rationale.append({"text": ev.get("text") or "", "refs": refs})
+    return {"rationale": rationale, "sources": order}
+
+
+def slide_sources(slide: dict) -> list[str]:
+    """한 장의 출처 경로. 같은 경로는 한 번만, 처음 나온 순서대로. 장 카드의 출처 번호가 이 순서를 따른다."""
+    return list(dict.fromkeys(x for x in slide.get("sources") or [] if isinstance(x, str)))
+
+
 def _strip_list(items: list[str]) -> list[str]:
     return [x for x in (i.strip() for i in items) if x]
+
+
+def _unique(items: list[str]) -> list[str]:
+    return list(dict.fromkeys(items))
 
 
 def clean_outline(out: "Outline", knowledge_dir: Path) -> dict:
@@ -125,9 +156,10 @@ def clean_outline(out: "Outline", knowledge_dir: Path) -> dict:
             s["columns"], s["rows"] = [], []
         steps = [{"name": st["name"].strip(), "detail": st["detail"].strip()} for st in s["steps"]]
         s["steps"] = [st for st in steps if st["name"]][:MAX_STEPS]
+        s["checked"] = []  # AI 가 새로 만든 구성안은 확인한 항목이 없다
         found, missing = check_sources(knowledge_dir, _strip_list(s["sources"]))
         s["sources"] = found
-        s["needs_check"] = s["needs_check"] + [f"출처 확인 불가: {m}" for m in missing]
+        s["needs_check"] = _unique(s["needs_check"] + [checks.source_unverified(m) for m in missing])
         if s["kind"] not in ("cover", "closing") and not s["sources"] and not s["needs_check"]:
             s["needs_check"] = [NO_SOURCE_NOTE]
         slides.append(s)
@@ -157,7 +189,7 @@ def slide_from_form(kind: str, form) -> dict:
 
     s = Slide(kind=kind).model_dump()
     s["title"], s["key_message"] = text("title"), text("key_message")
-    s["sources"], s["needs_check"] = _lines(form.get("sources")), _lines(form.get("needs_check"))
+    s["sources"], s["needs_check"] = _lines(form.get("sources")), _unique(_lines(form.get("needs_check")))
     if kind == "cover":
         s["subtitle"] = text("subtitle")
     elif kind == "bullets":
@@ -192,6 +224,42 @@ def slide_to_form(slide: dict) -> dict:
     out["rows"] = "\n".join(" | ".join(row) for row in slide.get("rows") or [])
     out["steps"] = "\n".join(f"{st['name']}: {st['detail']}" if st["detail"] else st["name"] for st in slide.get("steps") or [])
     return out
+
+
+def check_items(texts: list[str] | None, checked: list[str] | None = None) -> list[dict]:
+    """"확인 필요" 문구를 화면용으로 바꾼다: 확인 안 한 근거 문제 → 확인 안 한 정할 값 → 확인한 것 순서(각각 원래 순서)."""
+    done = set(checked or [])
+    items = [{"index": n, "text": t, "kind": check_kind(t), "checked": t in done} for n, t in enumerate(texts or []) if isinstance(t, str)]
+    return sorted(items, key=lambda i: (i["checked"], i["kind"] != "evidence"))
+
+
+def slide_check_state(slide: dict) -> dict:
+    """한 장의 확인 현황: 안 한 근거 문제·정할 값 개수, 확인한 개수, 카드에 쓸 단계(evidence / decide / clear)."""
+    items = check_items(slide.get("needs_check"), slide.get("checked"))
+    evidence = sum(1 for i in items if not i["checked"] and i["kind"] == "evidence")
+    decide = sum(1 for i in items if not i["checked"] and i["kind"] == "decide")
+    level = "evidence" if evidence else "decide" if decide else "clear"
+    return {"evidence": evidence, "decide": decide, "done": sum(1 for i in items if i["checked"]), "level": level}
+
+
+def outline_check_summary(outline: dict | None) -> dict:
+    """구성안 전체의 장 수: evidence(근거 확인이 남은 장), decide(정할 값만 남은 장), done(확인을 끝낸 장), open(남은 장 전체)."""
+    states = [slide_check_state(s) for s in (outline or {}).get("slides") or [] if isinstance(s, dict)]
+    evidence = sum(1 for s in states if s["level"] == "evidence")
+    decide = sum(1 for s in states if s["level"] == "decide")
+    done = sum(1 for s in states if s["level"] == "clear" and s["done"])
+    return {"evidence": evidence, "decide": decide, "done": done, "open": evidence + decide}
+
+
+def check_summary_text(cs: dict) -> str:
+    """"근거 문제 1장 · 확인할 점 2장" (0장인 부분은 뺀다). 남은 게 없으면 빈 글."""
+    return " · ".join(p for p in (f"근거 문제 {cs['evidence']}장" if cs["evidence"] else "", f"확인할 점 {cs['decide']}장" if cs["decide"] else "") if p)
+
+
+def keep_checked(old: dict, new: dict) -> dict:
+    """고친 장에서 더 이상 없는 문구는 확인 목록에서도 뺀다."""
+    wanted = new.get("needs_check") or []
+    return {**new, "checked": [t for t in old.get("checked") or [] if t in wanted]}
 
 
 def save_outline(db: Session, p: Proposal, slides: list[dict]) -> None:
@@ -240,3 +308,76 @@ def start_job(db: Session, p: Proposal, kind: str, user: User, extra: dict | Non
     db.commit()
     db.refresh(p)
     return job
+
+
+STEPS = (("target", "대상"), ("directions", "방향"), ("chat", "구체화"), ("outline", "구성안"), ("deck", "제안서"))
+_STATUS_STEP = {"new": "directions", "directions": "directions", "refining": "chat", "outlined": "outline", "deck": "deck"}
+_JOB_STEP = {"proposal_directions": "directions", "proposal_chat": "chat", "proposal_outline": "outline"}
+RECENT_MESSAGES = 6
+
+
+def _has_selection(p: Proposal) -> bool:
+    return p.selected_index is not None and 0 <= p.selected_index < len(p.directions or [])
+
+
+def _has_outline(p: Proposal) -> bool:
+    return bool(p.outline and p.outline.get("slides"))
+
+
+def step_states(p: Proposal) -> list[dict]:
+    """단계 표시줄의 칸. state: done(끝남) / current(지금 할 단계) / todo(갈 수 있음) / locked(아직 못 감, 링크 없음).
+
+    지금 단계가 아닌 단계의 AI 작업이 돌고 있으면 그 칸은 busy(진행 중)이고, 아직 못 가는 단계여도 링크가 걸린다."""
+    keys = [k for k, _ in STEPS]
+    current = keys.index(_STATUS_STEP.get(p.status, "directions"))
+    reachable = {"target": True, "directions": True, "chat": _has_selection(p), "outline": _has_outline(p), "deck": _has_outline(p)}
+    working = open_section(p) if _job_running(p) else None
+    steps = []
+    for i, (key, label) in enumerate(STEPS):
+        state = "done" if i < current else "current" if i == current else "todo" if reachable[key] else "locked"
+        busy = working == key and i != current
+        steps.append({
+            "key": key, "label": label, "state": state, "busy": busy,
+            "href": None if state == "locked" and not busy else f"#{key}",
+        })
+    return steps
+
+
+def _job_running(p: Proposal) -> bool:
+    job = p.active_job
+    return job is not None and job.status in ("pending", "running") and job.kind in _JOB_STEP
+
+
+def open_section(p: Proposal) -> str:
+    """처음부터 펼쳐 둘 구역. 진행 중인 AI 작업이 있으면 그 작업의 구역, 아니면 상태가 가리키는 구역."""
+    job = p.active_job
+    if job is not None and job.status in ("pending", "running") and job.kind in _JOB_STEP:
+        return _JOB_STEP[job.kind]
+    return _STATUS_STEP.get(p.status, "directions")
+
+
+def section_summaries(p: Proposal, candidates: list[Solution]) -> dict[str, str]:
+    """접힌 구역에 보이는 한 줄 요약."""
+    who = p.customer.name + (f" · {p.business.name}" if p.business is not None else "")
+    names = [s.name for s in candidates]
+    shown = ", ".join(names[:3]) + (f" 외 {len(names) - 3}개" if len(names) > 3 else "")
+    target = f"{who} — 조합 솔루션 {shown}" if names else who
+    directions = p.directions or []
+    if _has_selection(p):
+        direction = f"선택한 방향: {directions[p.selected_index]['title']}"
+    else:
+        direction = f"방향 {len(directions)}개" if directions else "아직 만들지 않음"
+    if not _has_selection(p):
+        chat = "방향을 선택하면 시작할 수 있습니다"
+    elif p.messages:
+        chat = f"대화 {len(p.messages)}개 · 마지막 메시지 {p.messages[-1].created_at:%Y-%m-%d %H:%M}"
+    else:
+        chat = "대화 없음"
+    if _has_outline(p):
+        slides = p.outline["slides"]
+        left = check_summary_text(outline_check_summary(p.outline))
+        outline = f"{len(slides)}장" + (f" · {left}" if left else "")
+    else:
+        outline = "아직 만들지 않음"
+    deck = f"마지막 생성 {p.deck_built_at:%Y-%m-%d %H:%M}" if p.deck_name and p.deck_built_at else "아직 만들지 않음"
+    return {"target": target, "directions": direction, "chat": chat, "outline": outline, "deck": deck}

@@ -1,0 +1,22 @@
+{# 새 고객 · 새 파트너 카드. 컨텍스트: card #}
+{% from "_macros.html" import plan_head, plan_meta %}
+{% set k = card.item.key %}{% set v = card.v %}{% set b = card.brief %}
+<section class="card plan-item" id="item-{{ k }}">
+  {{ plan_head(card) }}
+  <p class="plan-facts">연락처 <span data-sum="contact" data-empty="없음">{{ b.contact or "없음" }}</span>{% if b.industry %} · 업종 <span data-sum="industry">{{ b.industry }}</span>{% endif %}</p>
+  {{ plan_meta(card) }}
+  <details class="plan-edit"{% if card.open %} open{% endif %}>
+    <summary aria-label="{{ card.brief.title }} 고치기">고치기</summary>
+    <div class="plan-edit-body">
+      <label>이름 <input name="{{ k }}__name" value="{{ v.name }}"></label>
+      {% if card.item.kind == "new_customer" %}
+      <label>업종 <input name="{{ k }}__industry" value="{{ v.industry }}"></label>
+      <label>연락처 <input name="{{ k }}__contact" value="{{ v.contact }}"></label>
+      {% else %}
+      <label>연락처 <input name="{{ k }}__contact" value="{{ v.contact }}"></label>
+      <label>소개 <textarea name="{{ k }}__description" rows="3">{{ v.description }}</textarea></label>
+      {% endif %}
+      <label>메모 <textarea name="{{ k }}__memo" rows="3">{{ v.memo }}</textarea></label>
+    </div>
+  </details>
+</section>

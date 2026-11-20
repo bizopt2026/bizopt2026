@@ -1,17 +1,18 @@
 {% extends "base.html" %}
-{% from "_macros.html" import search_box %}
+{% from "_macros.html" import search_box, list_head, empty_list, pager %}
 {% block title %}파트너{% endblock %}
 {% block content %}
-<h1>파트너</h1>
+{{ list_head("파트너", pg, q, "/partners/new") }}
 {{ search_box("/partners", q) }}
-{% if partners %}
-<table>
+{% if pg.items %}
+<div class="tablewrap"><table>
   <thead><tr><th>이름</th><th>연락처</th><th>솔루션 수</th></tr></thead>
   <tbody>
-  {% for p in partners %}
-    <tr><td><a href="/partners/{{ p.id }}">{{ p.name }}</a></td><td>{{ p.contact }}</td><td>{{ p.solutions | length }}</td></tr>
+  {% for p in pg.items %}
+    <tr><td><a href="/partners/{{ p.id }}">{{ p.name }}</a></td><td>{% set lines = (p.contact or "").splitlines() | map("trim") | select | list %}{{ lines[0] if lines }}{% if lines | length > 1 %} <span class="muted">외 {{ lines | length - 1 }}줄</span>{% endif %}</td><td>{{ p.solutions | length }}</td></tr>
   {% endfor %}
   </tbody>
-</table>
-{% else %}<p class="muted">{{ "검색 결과가 없습니다." if q else "등록된 항목이 없습니다." }}</p>{% endif %}
+</table></div>
+{{ pager(pg, request) }}
+{% else %}{{ empty_list(q, "아직 등록된 파트너가 없습니다.", "/partners/new") }}{% endif %}
 {% endblock %}

@@ -1,0 +1,20 @@
+{# 올리기 입력: 영역 전체가 파일 입력칸의 label 이라 어디를 눌러도 파일 선택이 열린다. 스크립트 없이는 파일 입력칸이 그대로 보이고, 스크립트가 끌어다 놓기와 선택 목록을 더한다.
+   부모가 <form action="/intake" enctype="multipart/form-data"> 를 연다. 컨텍스트: zone_id, max_files, max_mb, max_note, note, transcriber_ready, ai_problem #}
+<div class="dropzone{% if zone_id == 'home' %} dropzone-compact{% endif %}" data-dropzone data-max-files="{{ max_files }}" data-max-mb="{{ max_mb }}">
+  <label class="dropzone-area" for="{{ zone_id }}-files">
+    <span class="dropzone-main">파일을 여기에 끌어다 놓거나 눌러서 선택</span>
+    <span class="dropzone-types">문서(pptx, pdf, docx, xlsx, txt, md, csv) · 사진 · 음성</span>
+    <span class="dropzone-types">{% if transcriber_ready %}음성 파일은 받아써서 정리합니다 (길면 오래 걸려요){% else %}음성 파일은 보관만 됩니다 (받아쓰기 준비 중){% endif %}</span>
+    <input id="{{ zone_id }}-files" type="file" name="files" multiple required>
+  </label>
+  <p class="dropzone-summary" aria-live="polite" hidden></p>
+  <ul class="dropzone-list"></ul>
+  <p class="error dropzone-warn" role="alert" hidden></p>
+</div>
+{% if ai_problem %}
+<p class="notice ai-down" role="note">지금은 AI 정리를 쓸 수 없어요. 파일은 올려 둘 수 있고, 급하면 직접 입력을 써 주세요.
+  <a href="/solutions/new">솔루션 직접 입력</a> · <a href="/activities/new">활동 기록 직접 입력</a></p>
+{% endif %}
+<label><span>메모 (선택, {{ max_note }}자까지)</span>
+  <input type="text" name="note" value="{{ note | default('') }}" maxlength="{{ max_note }}" placeholder="예: 신규 솔루션 후보 자료">
+</label>

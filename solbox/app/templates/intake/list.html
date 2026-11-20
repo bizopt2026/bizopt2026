@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import list_head, empty_list, pager %}
+{% block title %}올리기 목록{% endblock %}
+{% block content %}
+{{ list_head("올리기", pg, status, "/intake/new", "+ 올리기") }}
+<form method="get" action="/intake" class="row">
+  <label>상태
+    <select name="status">
+      <option value="">전체</option>
+      {% for code, name in labels.INTAKE_STATUSES.items() %}<option value="{{ code }}" {{ "selected" if status == code }}>{{ name }}</option>{% endfor %}
+    </select>
+  </label>
+  <button type="submit">보기</button>
+</form>
+{% if pg.items %}
+<div class="tablewrap"><table>
+  <thead><tr><th>올린 때</th>{% if user.role == "admin" %}<th>올린 사람</th>{% endif %}<th>메모</th><th>파일</th><th>상태</th></tr></thead>
+  <tbody>
+  {% for it in pg.items %}
+    <tr>
+      <td><a href="/intake/{{ it.id }}">{{ it.created_at.strftime("%Y-%m-%d %H:%M") }}</a></td>
+      {% if user.role == "admin" %}<td>{{ owners.get(it.created_by_id, "") }}</td>{% endif %}
+      <td>{{ it.note or "" }}</td>
+      <td>{{ it.files | length }}개</td>
+      <td><span class="badge intake-{{ it.status }}">{{ labels.INTAKE_STATUSES.get(it.status, it.status) }}</span></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{{ pager(pg, request) }}
+{% else %}{{ empty_list(status, "아직 올린 파일이 없습니다. 문서·사진을 올려 보세요.", "/intake/new", "+ 올리기") }}{% endif %}
+{% endblock %}

@@ -10,11 +10,46 @@ from fastapi import Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session, object_session
 
-from app import labels
+from app import checks, labels
 from app.extract import extract_text
 from app.models import Activity, Business, Customer, Partner, ResearchReport, Solution, SolutionFile
 
 _UNSAFE = re.compile(r'[\\/:*?"<>|\x00-\x1f\x7f]')
+
+
+# 사본 경로 형식. 경로를 쓰는 `_rel` 과 읽는 `parse_rel` 이 같은 표를 쓴다.
+REL_FORMATS = {
+    "solution": "solutions/{id}/card.md",
+    "customer": "customers/{id}.md",
+    "business": "businesses/{id}.md",
+    "partner": "partners/{id}.md",
+    "activity": "activities/{year}/{id}.md",
+    "file": "solutions/{solution_id}/files/{id}-{name}.md",
+    "report": "research/{day}-{tag}-{id}.md",
+}
+_REL_FIELDS = {
+    "id": r"[0-9]{1,18}", "solution_id": r"[0-9]{1,18}", "year": r"[0-9]{4}|undated", "day": r"[0-9]{4}-[0-9]{2}-[0-9]{2}",
+    "tag": r"[^/-]+", "name": r"[^/]+",
+}
+
+
+def _rel_regex(fmt: str) -> re.Pattern:
+    parts = re.split(r"\{(\w+)\}", fmt)
+    body = "".join(re.escape(x) if i % 2 == 0 else f"(?P<{x}>{_REL_FIELDS[x]})" for i, x in enumerate(parts))
+    return re.compile(body + r"\Z")
+
+
+_REL_PATTERNS = {kind: _rel_regex(fmt) for kind, fmt in REL_FORMATS.items()}
+
+
+def parse_rel(path: str) -> tuple[str, dict[str, str]] | None:
+    """사본 경로를 (항목 종류, 경로 안의 값들) 로 읽는다. 형식이 맞지 않으면 None."""
+    path = str(path or "").strip().replace("\\", "/")
+    for kind, pattern in _REL_PATTERNS.items():
+        m = pattern.match(path)
+        if m:
+            return kind, m.groupdict()
+    return None
 
 
 def safe_name(name: str) -> str:
@@ -30,7 +65,7 @@ def file_markdown(f: SolutionFile, text: str) -> str:
 
 def _item(label: str, value) -> str | None:
     text = "" if value is None else str(value).strip()
-    return f"- {label}: {text}" if text else None
+    return f"- {label}: " + text.replace("\n", "\n  ") if text else None
 
 
 def _inline(text) -> str:
@@ -59,21 +94,20 @@ class KnowledgeMirror:
     # ----- 경로 -----
     def _rel(self, obj) -> str:
         if isinstance(obj, Solution):
-            return f"solutions/{obj.id}/card.md"
+            return REL_FORMATS["solution"].format(id=obj.id)
         if isinstance(obj, Customer):
-            return f"customers/{obj.id}.md"
+            return REL_FORMATS["customer"].format(id=obj.id)
         if isinstance(obj, Business):
-            return f"businesses/{obj.id}.md"
+            return REL_FORMATS["business"].format(id=obj.id)
         if isinstance(obj, Partner):
-            return f"partners/{obj.id}.md"
+            return REL_FORMATS["partner"].format(id=obj.id)
         if isinstance(obj, Activity):
-            year = obj.date.year if obj.date else "undated"
-            return f"activities/{year}/{obj.id}.md"
+            return REL_FORMATS["activity"].format(year=obj.date.year if obj.date else "undated", id=obj.id)
         if isinstance(obj, SolutionFile):
-            return f"solutions/{obj.solution_id}/files/{obj.id}-{safe_name(obj.original_name)}.md"
+            return REL_FORMATS["file"].format(solution_id=obj.solution_id, id=obj.id, name=safe_name(obj.original_name))
         if isinstance(obj, ResearchReport):
             day = (obj.created_at or datetime.now()).date().isoformat()
-            return f"research/{day}-{obj.area if obj.kind == 'area' else 'suggest'}-{obj.id}.md"
+            return REL_FORMATS["report"].format(day=day, tag=obj.area if obj.kind == "area" else "suggest", id=obj.id)
         raise TypeError(f"지원하지 않는 항목: {type(obj).__name__}")
 
     def rel_path(self, obj) -> str:
@@ -252,7 +286,7 @@ class KnowledgeMirror:
                     + ("" if s.get("opened", True) else " (검색 결과 링크, 본문 미확인)")
                     for s in t.get("sources", [])
                 ]
-                out += ([""] + links) if links else ["", "- 출처 링크 없음, 확인 필요"]
+                out += ([""] + links) if links else ["", f"- {checks.NO_LINK_NOTE}"]
         else:
             out += ["", "## 발굴 방향 제안"]
             for sug in r.suggestions or []:

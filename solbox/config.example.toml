@@ -1,6 +1,6 @@
 # 솔루션 박스 설정 예시. config.toml 로 복사해서 사용한다.
 
-# 운영 데이터(app.db, uploads/, knowledge/, decks/)를 저장할 폴더.
+# 운영 데이터(app.db, uploads/, knowledge/, decks/, intake_work/)를 저장할 폴더.
 # 상대 경로는 이 설정 파일이 있는 폴더 기준이다.
 # Windows 경로는 "C:/solbox/data" 처럼 / 로 쓰거나 'C:\solbox\data' 처럼 작은따옴표로 감싼다.
 data_dir = "data"
@@ -44,5 +44,26 @@ scheduler_enabled = true
 # 백업을 보관할 일수 (가장 최근 백업 하나는 이보다 오래돼도 남긴다)
 backup_keep_days = 14
 
-# 업로드 파일 최대 크기(MB)
+# 업로드 파일 최대 크기(MB). 파일 하나마다 적용되고, 올리기 묶음은 한 번에 20개까지 받는다.
 max_upload_mb = 100
+
+# 음성 받아쓰기 엔진: "none"(사용 안 함) 또는 "faster-whisper"(이 PC 안에서 받아쓴다, 음성은 밖으로 나가지 않는다).
+# faster-whisper 는 선택 설치다: pip install -e ".[stt]" 후 python -m app.cli stt-setup 으로 모델을 한 번 받는다 (인터넷 필요).
+# GPU 없이 CPU 로만 돈다. 긴 녹음은 오래 걸린다 (운영 가이드 참고).
+transcriber = "none"
+
+# 모델 크기: tiny, base, small, medium, large-v3, large-v3-turbo 또는 받아 둔 모델 폴더 경로.
+# 클수록 정확하지만 느리고 디스크를 더 쓴다. 모델은 data_dir/models/ 에 저장된다.
+transcribe_model = "small"
+
+# 말하는 언어 코드("ko" 한국어). 자동으로 알아내려면 "auto".
+transcribe_language = "ko"
+
+# 받아쓸 때 쓰는 CPU 스레드 수. 0 이면 라이브러리 기본값.
+transcribe_threads = 0
+
+# 이보다 긴 음성은 받아쓰지 않고 실패로 둔다(분). 모델을 부르기 전에 길이만 먼저 확인한다.
+transcribe_max_minutes = 120
+
+# 음성을 이 길이(분)씩 나눠 받아쓴다. 작게 할수록 메모리를 덜 쓴다 (운영 가이드 12번).
+transcribe_chunk_minutes = 10

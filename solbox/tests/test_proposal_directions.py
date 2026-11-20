@@ -43,7 +43,8 @@ def test_directions_flow(app, user_client, db, settings, fake_claude):
     assert "AI 에너지 절감" in prompt and "안전 관제" not in prompt
     assert f"customers/{c.id}.md" in prompt and "에너지 절감 쪽으로" in prompt
     page = user_client.get(f"/proposals/{p.id}").text
-    assert "전력비 절감 패키지" in page and f"solutions/{s1.id}/card.md" in page and "이 방향으로 구체화" in page
+    assert "전력비 절감 패키지" in page and "이 방향으로 구체화" in page
+    assert f"solutions/{s1.id}/card.md" not in page  # 경로 대신 자료 이름(C2)
 
 
 def test_extra_solution_becomes_candidate(app, user_client, db, settings, fake_claude):

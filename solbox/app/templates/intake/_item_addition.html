@@ -1,0 +1,21 @@
+{# 기존 솔루션에 자료 추가 카드. 컨텍스트: card, choices #}
+{% from "_macros.html" import plan_head, plan_meta, file_kind_pickers %}
+{% set k = card.item.key %}{% set v = card.v %}
+{% set known = choices.solution | selectattr("id", "equalto", v.solution | int) | list %}
+<section class="card plan-item" id="item-{{ k }}">
+  {{ plan_head(card) }}
+  <p class="plan-facts">대상 솔루션 <strong>{{ card.brief.title }}</strong>{% if card.item.note %} · AI 메모: {{ card.item.note }}{% endif %}</p>
+  {{ plan_meta(card) }}
+  <details class="plan-edit"{% if card.open %} open{% endif %}>
+    <summary aria-label="{{ card.brief.title }} 고치기">고치기</summary>
+    <div class="plan-edit-body">
+      <label>대상 솔루션
+        <select name="{{ k }}__solution">
+          {% if not known %}<option value="" selected>(선택하세요 — 정리안의 솔루션이 삭제되었습니다)</option>{% endif %}
+          {% for s in choices.solution %}<option value="{{ s.id }}"{% if s.id == v.solution | int %} selected{% endif %}>{{ s.name }}</option>{% endfor %}
+        </select>
+      </label>
+      {{ file_kind_pickers(card) }}
+    </div>
+  </details>
+</section>

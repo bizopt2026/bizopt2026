@@ -1,7 +1,25 @@
 {% extends "base.html" %}
+{% from "_macros.html" import breadcrumb %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<h1>{{ title }}</h1>
+{{ breadcrumb(("제안", "/proposals"), (title, None)) }}
+<div class="page-head">
+  <h1>{{ title }}</h1>
+  {% if can_delete %}
+  <div class="actions">
+    <form method="post" action="/proposals/{{ proposal.id }}/delete" onsubmit="return confirm('삭제할까요? 만든 제안서 파일도 함께 지워집니다.')">
+      <button type="submit" class="danger">삭제</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+<nav class="stepbar" aria-label="제안 진행 단계">
+  <ol>
+    {% for st in steps %}
+    <li class="step {{ st.state }}{{ ' busy' if st.busy }}">{% if st.href %}<a href="{{ st.href }}"{% if st.state == "current" %} aria-current="step"{% endif %}>{% if st.state == "done" %}<span aria-hidden="true">✓ </span><span class="sr-only">끝남: </span>{% endif %}{{ st.label }}{% if st.busy %}<span class="busy-label">진행 중</span>{% endif %}</a>{% else %}<span aria-disabled="true">{{ st.label }}</span>{% endif %}</li>
+    {% endfor %}
+  </ol>
+</nav>
 {% if notice %}<p class="error" role="alert">{{ notice }}</p>{% endif %}
 {% set job = proposal.active_job %}
 <div id="ai-status">
@@ -19,18 +37,18 @@
 </div>
 <div class="row status-row">
   <span>상태: <strong>{{ labels.PROPOSAL_STATUSES.get(proposal.status, proposal.status) }}</strong></span>
-  {% if can_delete %}
-  <form method="post" action="/proposals/{{ proposal.id }}/delete" onsubmit="return confirm('삭제할까요? 만든 제안서 파일도 함께 지워집니다.')">
-    <button type="submit">삭제</button>
-  </form>
-  {% endif %}
 </div>
-<section class="card">
-  <h2>대상</h2>
+{% macro section(key, title, rebuild=False) %}
+<details class="card section" id="{{ key }}"{% if open_key == key %} open{% endif %}{% if rebuild %} data-rebuild{% endif %}>
+  <summary><h2>{{ title }}</h2><span class="summary-line muted">{{ summaries[key] }}</span></summary>
+  {{ caller() }}
+</details>
+{% endmacro %}
+{% call section("target", "대상") %}
   <dl>
     <dt>고객</dt><dd><a href="/customers/{{ proposal.customer_id }}">{{ proposal.customer.name }}</a></dd>
-    <dt>기존 사업</dt><dd>{% if proposal.business %}<a href="/businesses/{{ proposal.business_id }}">{{ proposal.business.name }}</a>{% endif %}</dd>
-    <dt>요청 메모</dt><dd>{{ proposal.request_memo }}</dd>
+    <dt>기존 사업</dt><dd>{% if proposal.business %}<a href="/businesses/{{ proposal.business_id }}">{{ proposal.business.name }}</a>{% else %}<span class="muted">없음</span>{% endif %}</dd>
+    <dt>요청 메모</dt><dd>{% if proposal.request_memo %}{{ proposal.request_memo }}{% else %}<span class="muted">없음</span>{% endif %}</dd>
     <dt>조합 솔루션</dt><dd>{% for s in candidates %}<a href="/solutions/{{ s.id }}">{{ s.name }}</a>{{ ", " if not loop.last }}{% else %}<span class="muted">박스에 등록된 솔루션이 없습니다.</span>{% endfor %}</dd>
   </dl>
   <details>
@@ -38,25 +56,20 @@
     <form method="post" action="/proposals/{{ proposal.id }}/target" class="stack">
       {% set memo = proposal.request_memo %}{% set selected_ids = proposal.extra_solution_ids %}
       {% include "proposals/_target_fields.html" %}
-      <div><button type="submit">저장</button></div>
+      <div><button type="submit" class="primary">저장</button></div>
     </form>
   </details>
-</section>
-<section class="card" id="directions">
-  <h2>제안 방향</h2>
+{% endcall %}
+{% call section("directions", "제안 방향", proposal.directions) %}
   {% include "proposals/_directions.html" ignore missing %}
-</section>
-<section class="card" id="chat">
-  <h2>대화로 구체화</h2>
+{% endcall %}
+{% call section("chat", "대화로 구체화") %}
   {% include "proposals/_chat.html" ignore missing %}
-</section>
-<section class="card" id="outline">
-  <h2>슬라이드 구성안</h2>
+{% endcall %}
+{% call section("outline", "슬라이드 구성안") %}
   {% include "proposals/_outline.html" ignore missing %}
-</section>
-<section class="card" id="deck">
-  <h2>제안서</h2>
+{% endcall %}
+{% call section("deck", "제안서") %}
   {% include "proposals/_deck.html" %}
-</section>
-<p><a href="/proposals">&larr; 목록</a></p>
+{% endcall %}
 {% endblock %}

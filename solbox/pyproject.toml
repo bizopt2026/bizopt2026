@@ -19,12 +19,16 @@ dependencies = [
     "python-pptx",
     "python-docx",
     "openpyxl",
+    "Pillow>=10",
     "itsdangerous",
     "cryptography>=42",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "httpx"]
+dev = ["pytest", "httpx", "numpy"]
+# PyAV 19 는 faster-whisper 1.2.1 이 쓰는 av.open(metadata_errors=...) 를 받지 않아 받아쓰기가 모두 실패한다.
+# faster-whisper 가 PyAV 19 를 지원하면 이 핀을 푼다.
+stt = ["faster-whisper>=1.1", "av<19"]
 
 [tool.setuptools.packages.find]
 include = ["app*"]

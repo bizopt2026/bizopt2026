@@ -117,6 +117,27 @@ python -m pip install -e ".[dev]"
 ```
 - 성공: `Successfully installed solbox-...` 로 끝난다. 실패 시: 오류 문구를 읽고 해당 패키지 설치 문제를 해결한다. 회사 프록시가 막으면 사람에게 알린다.
 
+### 2-1. 음성 받아쓰기 (사람이 원할 때만, 선택)
+
+받아쓰기를 쓰기로 한 경우에만 한다. **이 기능은 개발 환경에서 실제로 돌려 보지 못했으므로 여기서 처음 검증된다.** 결과를 그대로 사람에게 보고한다.
+
+```powershell
+python -m pip install -e ".[stt]"
+```
+- 성공: `faster-whisper` 가 설치된다. 실패 시: 오류 문구를 사람에게 보여 준다 (회사 프록시 등).
+
+`config.toml` 작성(3번) 뒤에 `transcriber = "faster-whisper"` 와 `transcribe_model`(기본 small)을 적고, 서버를 멈춘 상태에서:
+
+```powershell
+python -m app.cli stt-setup
+```
+- 성공: 모델이 `data\models\` 에 받아지고 "자체 점검 통과". 인터넷 접속이 필요하다 (모델 저장소). 실패 시: 한국어 오류 문구를 사람에게 보여 준다. 인터넷이 막혔으면 임의로 우회하지 말고 사람에게 묻는다.
+
+```powershell
+python -m app.cli stt-test <사람이 준 녹음 파일 경로>
+```
+- 성공: 받아쓴 글, 걸린 시간, 속도가 나온다. 이 값을 사람에게 보고한다 (모델 크기를 정할 근거). 녹음 파일이 없으면 사람에게 요청한다.
+
 ## 3. config.toml 작성
 
 먼저 `config.toml` 이 이미 있는지 확인한다 (이미 있는 복제본이면 있을 수 있다).
@@ -259,6 +280,7 @@ python -m app.cli check
 ```powershell
 python -m pytest -q -W error
 ```
+- (받아쓰기를 켠 경우 `check` 의 "음성 받아쓰기" 줄이 "정상 (faster-whisper, …, CPU)" 여야 한다.)
 - 성공: 마지막 줄이 `N passed` 이고 failed·error·warning 이 없다. 실패 시: 실패한 테스트 이름과 메시지를 사람에게 보고하고 임의로 테스트를 고치지 않는다.
 
 관리자 계정이 없으면 만든다 (옮긴 `data` 에 이미 있으면 건너뛴다). 이 명령은 비밀번호를 입력창(getpass)으로 두 번 받는데, 에이전트의 셸은 그 입력창에 답할 수 없다. **사람에게 자기 터미널(서버 PC의 PowerShell)에서 `cd $Repo` 후 아래 명령을 직접 실행하도록 요청한다.** `--password` 를 명령줄에 붙이거나 비밀번호를 파일에 적지 않는다.

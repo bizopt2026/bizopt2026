@@ -1,0 +1,31 @@
+{# 새 솔루션 카드. 컨텍스트: card, choices #}
+{% from "_macros.html" import plan_head, plan_meta, file_kind_pickers %}
+{% set k = card.item.key %}{% set v = card.v %}{% set b = card.brief %}
+<section class="card plan-item" id="item-{{ k }}">
+  {{ plan_head(card) }}
+  <p class="plan-facts">
+    <span data-sum="summary" data-empty="한 줄 소개 없음">{{ b.summary or "한 줄 소개 없음" }}</span>
+    · 파트너 {{ b.partner or "없음" }}
+    {% if b.tags %}<span class="chips">{% for t in b.tags %}<span class="chip">{{ t }}</span>{% endfor %}</span>{% endif %}
+  </p>
+  {{ plan_meta(card) }}
+  <details class="plan-edit"{% if card.open %} open{% endif %}>
+    <summary aria-label="{{ card.brief.title }} 고치기">고치기</summary>
+    <div class="plan-edit-body">
+      <label>이름 <input name="{{ k }}__name" value="{{ v.name }}"></label>
+      <label>한 줄 소개 <input name="{{ k }}__summary" value="{{ v.summary }}"></label>
+      <label>설명 <textarea name="{{ k }}__description" rows="4">{{ v.description }}</textarea></label>
+      <label>태그 (쉼표로 구분) <input name="{{ k }}__tags" value="{{ v.tags }}"></label>
+      <div class="row">
+        <label>파트너 (등록된 파트너에서 고르기)
+          <select name="{{ k }}__partner">
+            <option value="">선택 안 함</option>
+            {% for p in choices.partner %}<option value="{{ p.id }}"{% if v.partner | string == p.id | string %} selected{% endif %}>{{ p.name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="grow">또는 새 파트너 이름 <input name="{{ k }}__partner_new" value="{{ v.partner_new }}"></label>
+      </div>
+      {{ file_kind_pickers(card) }}
+    </div>
+  </details>
+</section>

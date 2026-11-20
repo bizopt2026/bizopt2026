@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "_macros.html" import stage_badge, list_head, empty_list, pager %}
 {% block title %}솔루션{% endblock %}
 {% block content %}
-<h1>솔루션</h1>
+{{ list_head("솔루션", pg, q or stage, "/intake/new", "올리기", "/solutions/new") }}
 <form method="get" action="/solutions" class="row">
   <label>검색 <input type="search" name="q" value="{{ q }}"></label>
   <label>단계
@@ -11,20 +12,20 @@
     </select>
   </label>
   <button type="submit">검색</button>
-  <a href="/solutions/new">+ 등록</a>
 </form>
-{% if solutions %}
-<table>
+{% if pg.items %}
+<div class="tablewrap"><table>
   <thead><tr><th>이름</th><th>한 줄 소개</th><th>단계</th><th>파트너</th><th>태그</th></tr></thead>
   <tbody>
-  {% for s in solutions %}
+  {% for s in pg.items %}
     <tr>
       <td><a href="/solutions/{{ s.id }}">{{ s.name }}</a></td><td>{{ s.summary }}</td>
-      <td>{{ labels.STAGES.get(s.stage, s.stage) }}</td>
+      <td>{{ stage_badge(s.stage) }}</td>
       <td>{{ s.partner.name if s.partner }}</td><td>{{ s.tags }}</td>
     </tr>
   {% endfor %}
   </tbody>
-</table>
-{% else %}<p class="muted">{{ "검색 결과가 없습니다." if q or stage else "등록된 항목이 없습니다." }}</p>{% endif %}
+</table></div>
+{{ pager(pg, request) }}
+{% else %}{{ empty_list(q or stage, "아직 등록된 솔루션이 없습니다. 소개서·스펙 파일을 올리면 AI가 정리해 드려요.", "/intake/new", "올리기", "/solutions/new") }}{% endif %}
 {% endblock %}

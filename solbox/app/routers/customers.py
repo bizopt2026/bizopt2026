@@ -11,7 +11,7 @@ from app.main import render
 from app.models import Activity, Customer, User
 from app.routers._common import (
     activities_linked_to, get_deletable_or_404, get_or_404, name_error, newest_first,
-    resync_activities, resync_related, search_by_name,
+    resync_activities, resync_related, search_by_name, paginate,
 )
 from app.security import can_delete, require_user
 
@@ -41,9 +41,12 @@ def _detail_page(request: Request, db: Session, user: User, customer: Customer, 
 
 
 @router.get("")
-def list_customers(request: Request, q: str = "", user: User = Depends(require_user), db: Session = Depends(get_db)):
+def list_customers(
+    request: Request, q: str = "", page: str = "1",
+    user: User = Depends(require_user), db: Session = Depends(get_db),
+):
     return render(
-        request, "customers/list.html", customers=search_by_name(db, Customer, q), q=q.strip()
+        request, "customers/list.html", pg=paginate(search_by_name(db, Customer, q), page), q=q.strip()
     )
 
 
@@ -59,7 +62,7 @@ def create(
     user: User = Depends(require_user), db: Session = Depends(get_db),
     mirror: KnowledgeMirror = Depends(get_mirror),
 ):
-    values = dict(name=name.strip(), industry=industry.strip(), contact=contact.strip(), memo=memo.strip())
+    values = dict(name=name.strip(), industry=industry.strip(), contact=contact.replace("\r\n", "\n").strip(), memo=memo.strip())
     if error := name_error(name):
         return _form_page(request, values, error=error)
     customer = Customer(**values, created_by_id=user.id)
@@ -88,7 +91,7 @@ def update(
     mirror: KnowledgeMirror = Depends(get_mirror),
 ):
     customer = get_or_404(db, Customer, customer_id)
-    values = dict(name=name.strip(), industry=industry.strip(), contact=contact.strip(), memo=memo.strip())
+    values = dict(name=name.strip(), industry=industry.strip(), contact=contact.replace("\r\n", "\n").strip(), memo=memo.strip())
     if error := name_error(name):
         return _form_page(request, values, customer, error)
     for field, value in values.items():

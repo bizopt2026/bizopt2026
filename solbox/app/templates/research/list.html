@@ -1,7 +1,8 @@
 {% extends "base.html" %}
+{% from "_macros.html" import list_head, pager %}
 {% block title %}리서치{% endblock %}
 {% block content %}
-<h1>리서치</h1>
+{{ list_head("리서치", pg, q or area) }}
 <form method="get" action="/research" class="row">
   <label>검색 <input type="search" name="q" value="{{ q }}"></label>
   <label>분야
@@ -12,11 +13,11 @@
   </label>
   <button type="submit">검색</button>
 </form>
-{% if items %}
-<table>
+{% if pg.items %}
+<div class="tablewrap"><table>
   <thead><tr><th>조사 일자</th><th>상태</th><th>분야별 동향</th><th>대표 시사점</th></tr></thead>
   <tbody>
-  {% for item in items %}
+  {% for item in pg.items %}
     {% set run = item.run %}
     <tr>
       <td><a href="/research/runs/{{ run.id }}">{{ run.started_at.strftime("%Y-%m-%d") }}</a></td>
@@ -29,6 +30,7 @@
     </tr>
   {% endfor %}
   </tbody>
-</table>
-{% else %}<p class="muted">{{ "검색 결과가 없습니다." if q or area else "아직 리서치 결과가 없습니다." }}</p>{% endif %}
+</table></div>
+{{ pager(pg, request) }}
+{% else %}<p class="muted">{{ "조건에 맞는 항목이 없습니다." if q or area else "아직 리서치 결과가 없습니다." }}</p>{% endif %}
 {% endblock %}

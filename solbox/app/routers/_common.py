@@ -1,7 +1,8 @@
 """항목 화면(파트너·고객·사업·솔루션 …)이 함께 쓰는 도우미."""
 from __future__ import annotations
 
-from typing import TypeVar
+from dataclasses import dataclass
+from typing import Sequence, TypeVar
 
 from fastapi import HTTPException
 from sqlalchemy import or_, select
@@ -85,3 +86,33 @@ def newest_first(activities) -> list[Activity]:
         key=lambda a: (a.date is not None, a.date.toordinal() if a.date else 0, a.id),
         reverse=True,
     )
+
+
+PER_PAGE = 50
+
+
+@dataclass(frozen=True)
+class Page:
+    """목록 한 쪽. `items` 는 이 쪽의 항목, `total` 은 전체 건수."""
+    items: list
+    page: int
+    pages: int
+    total: int
+
+    @property
+    def has_pages(self) -> bool:
+        return self.pages > 1
+
+
+def paginate(items: Sequence, page, per_page: int = PER_PAGE) -> Page:
+    """`items` 를 `per_page` 건씩 나눈 `page` 쪽 (1부터). 범위 밖이거나 숫자가 아니면 1쪽."""
+    items = list(items)
+    pages = max(1, -(-len(items) // per_page))
+    try:
+        number = int(page)
+    except (TypeError, ValueError):
+        number = 1
+    if not 1 <= number <= pages:
+        number = 1
+    start = (number - 1) * per_page
+    return Page(items=items[start:start + per_page], page=number, pages=pages, total=len(items))
