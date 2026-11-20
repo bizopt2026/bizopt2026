@@ -6,7 +6,7 @@
 <title>밑줄 — 긋고, 되묻고, 건네다</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   /* 밤의 서재: 깊은 남색 + 형광펜 노랑 */
@@ -3342,13 +3342,75 @@ body[data-theme="dark"] .dn-hero{background:linear-gradient(160deg,#20253D,#1519
 /* 화면을 바꿔도 폭이 흔들리지 않게: 스크롤바 자리를 늘 비워 둠 */
 html{scrollbar-gutter:stable}
 #ov{scrollbar-width:none}#ov::-webkit-scrollbar{display:none}
+/* ===== 첫 화면 개편: 종이 위의 형광펜 (밝은 헤더 · 작은 표지 줄 · 선명이 질문 · 명조 밑줄 · 하단 밑줄 긋기) ===== */
+:root{--f-quote:"Noto Serif KR","Nanum Myeongjo","AppleMyungjo",serif;--ul:rgba(247,220,111,.95)}
+body[data-theme="dark"]{--ul:rgba(247,220,111,.5)}
+#app{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
+/* 헤더: 어두운 띠 대신 종이색 */
+.top,body.scrolled .top{background:var(--paper)!important;color:var(--ink)!important;box-shadow:0 0 0 100vmax var(--paper)!important;clip-path:inset(0 -100vmax)}
+body.scrolled .top{box-shadow:0 0 0 100vmax var(--paper),0 1px 0 100vmax var(--line)!important;clip-path:inset(0 -100vmax -1px)}
+.top .brand,.top .brand span,.top .brand .bsec,.top .htl{color:var(--ink)!important}
+.top .brand .bsec,.top .motto{color:var(--muted)!important}
+.top .gear,.top .hback{color:var(--ink)!important}
+.top .gear{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;border:0!important;margin-left:0!important}
+.top .gear svg{width:21px;height:21px}
+.top .gear:active,.top .hback:active{background:var(--soft)}
+.topr{gap:0!important}
+/* 작은 표지 줄 */
+.hx{padding-top:4px}
+.hx-shelf{display:flex;align-items:flex-end;gap:12px;overflow-x:auto;scrollbar-width:none;margin:0 -20px -12px;padding:10px 20px 24px}
+.hx-shelf::-webkit-scrollbar{display:none}
+.hx-cv{flex:none;padding:0;border-radius:3px 8px 8px 3px;opacity:.7;transition:opacity .2s}
+.hx-cv .cover{--w:46px;box-shadow:0 3px 8px rgba(20,26,46,.16)}
+.hx-cv .cover .cv-t{font-size:8px!important;-webkit-line-clamp:3}
+.hx-cv .cover .cv-a{display:none}
+.hx-cv.on{opacity:1}
+.hx-cv.on .cover{--w:64px;box-shadow:0 8px 18px rgba(20,26,46,.22)}
+.hx-cv.on{outline:2px solid var(--ink);outline-offset:3px}
+.hx-add{flex:none;width:46px;height:69px;border:1.5px dashed color-mix(in srgb,var(--ink) 28%,transparent);border-radius:6px;color:var(--muted);display:grid;place-items:center}
+.hx-info{display:flex;flex-direction:column;align-items:flex-start;padding-top:10px}
+.hx-st{display:inline-flex;align-items:center;gap:6px;font-size:var(--t4);color:var(--muted)}
+.hx-st::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--d)}
+.hx-t{display:inline-flex;align-items:center;flex-wrap:wrap;gap:2px 6px;padding:0;text-align:left;color:var(--ink);max-width:100%}
+.hx-t b{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.35;word-break:keep-all}
+.hx-t small{font-size:var(--t4);color:var(--muted);flex-basis:100%;order:3}
+.hx-t svg{color:var(--muted)}
+.hx-a{font-size:var(--t4);color:var(--muted)}
+.hx-go{margin-top:10px;height:40px;padding:0 18px;border-radius:99px;background:var(--inkbg);color:var(--onink);font-size:var(--t4);font-weight:700}
+/* 선명이 질문 카드 */
+.hx-ask{margin-top:18px;padding:16px;border-radius:var(--r);background:var(--card);border:1px solid var(--line)}
+.hx-ask-h{display:flex;align-items:center;gap:7px;font-size:var(--t4);color:var(--muted)}
+.hx-ask-h b{color:var(--accent);font-weight:700;flex:none}
+.hx-ask-h span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-ask-x{flex:none;font-size:var(--t4);color:var(--muted);padding:8px 10px;margin:-8px -10px -8px 0;border-radius:99px}
+.hx-ask-x:active{background:var(--soft)}
+.hx-ask-q{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;width:100%;text-align:left;padding:0;margin:10px 0 0;font-family:var(--f-quote);font-size:var(--t4);line-height:1.75;color:var(--ink2);word-break:keep-all}
+.hx-ask .askbox{gap:12px;margin-top:8px}
+.hx-ask .ab-q{font-family:var(--f-quote);font-weight:600;font-size:var(--t2);line-height:1.6}
+.hx-ask .ab-o button{padding:8px 12px;background:var(--paper);border-color:transparent}
+.hx-ask .ab-r textarea{min-height:44px;border-radius:12px;background:var(--paper);border-color:transparent;font-size:var(--t4)}
+.hx-ask .ab-go{width:44px;height:44px;border-radius:12px;background:var(--inkbg);color:var(--onink)}
+/* 밑줄 목록: 명조 + 얇은 형광 밑줄, 걸러 보기 */
+.bkq{margin-top:4px!important}
+.bkq-h{display:flex!important;align-items:center!important;justify-content:space-between;gap:8px;margin:22px 2px 10px!important;min-height:36px}
+.bkq-h b{font-size:var(--t3)!important}
+.bkq-h b em{font-style:normal;font-weight:500;color:var(--muted);margin-left:3px}
+.bkq-seg{display:flex;padding:3px;border-radius:99px;background:var(--soft2)}
+.bkq-seg button{min-height:30px;padding:0 12px;border-radius:99px;font-size:var(--t4);color:var(--muted)}
+.bkq-seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(20,26,46,.08)}
+.bq-q{font-family:var(--f-quote)!important;font-weight:500!important;line-height:1.85!important;letter-spacing:0!important}
+.bq-q mark,body[data-theme="dark"] .bq-q mark{background:none!important;padding:0!important;text-decoration:underline;text-decoration-color:var(--ul);text-decoration-thickness:.3em;text-underline-offset:-.1em;text-decoration-skip-ink:none}
+/* 하단 고정 '밑줄 긋기' */
+.fabq{left:0!important;right:0!important;margin:0 auto!important;width:min(600px,calc(100% - 40px))!important;height:54px!important;border-radius:16px!important;display:flex!important;align-items:center;justify-content:center;gap:10px!important;padding:0 20px!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;font-size:var(--t3)}
+.fabq[hidden]{display:none!important}
+.fabq .fq-t{color:#fff;font-weight:700}
 </style>
 </head>
 <body>
 <div id="app">
   <header class="top">
     <div class="brand" data-action="tab" data-view="journey"><span>밑줄</span></div>
-    <div class="hdt" id="hdTitle"></div><div class="topr"><button id="sync" class="syncdot" data-action="syncInfo" aria-label="저장 상태"></button><button class="gear" data-action="search" aria-label="찾기"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button><button class="gear" data-action="doneShelf" aria-label="다 읽은 책"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M10 4h4.5A1.5 1.5 0 0 1 16 5.5V20h-6"/><path d="M16 7.5l2.6-.9a1.3 1.3 0 0 1 1.6.8l2 6.3"/><path d="M6.5 8h1M12.5 8h1"/></svg></button><button class="gear" data-action="stats" aria-label="밑줄 현황"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20v-6M12 20V5M19 20v-10"/></svg></button><button class="gear" data-action="more" aria-label="더보기"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div>
+    <div class="hdt" id="hdTitle"></div><div class="topr"><button id="sync" class="syncdot" data-action="syncInfo" aria-label="저장 상태"></button><button class="gear" data-action="search" aria-label="찾기"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button><button class="gear" data-action="doneShelf" aria-label="다 읽은 책"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M10 4h4.5A1.5 1.5 0 0 1 16 5.5V20h-6"/><path d="M16 7.5l2.6-.9a1.3 1.3 0 0 1 1.6.8l2 6.3"/><path d="M6.5 8h1M12.5 8h1"/></svg></button><button class="gear" data-action="more" aria-label="더보기"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div>
   </header>
   <main id="main"></main>
   <div id="ov" class="ov" hidden></div>
@@ -3363,7 +3425,7 @@ html{scrollbar-gutter:stable}
 <div class="fabs" id="fabs">
   <button class="fab" data-action="photo" aria-label="책 페이지 찍고 밑줄 긋기"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>채집하기</span></button>
 </div>
-<button class="fabq" id="fabq" data-action="photo" aria-label="밑줄 긋기" title="밑줄 긋기"><svg class="fq-ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 4.2l4.6 4.6-7.4 7.4H6.8v-4.6z" stroke="currentColor" stroke-width="1.7"/><path d="M7.4 11l4.6 4.6" stroke="currentColor" stroke-width="1.7"/><path class="fq-line" d="M4.5 20.2h15" stroke="#F7DC6F" stroke-width="2.6" pathLength="1"/></svg></button>
+<button class="fabq" id="fabq" data-action="photo" aria-label="밑줄 긋기" title="밑줄 긋기"><svg class="fq-ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 4.2l4.6 4.6-7.4 7.4H6.8v-4.6z" stroke="currentColor" stroke-width="1.7"/><path d="M7.4 11l4.6 4.6" stroke="currentColor" stroke-width="1.7"/><path class="fq-line" d="M4.5 20.2h15" stroke="#F7DC6F" stroke-width="2.6" pathLength="1"/></svg><span class="fq-t">밑줄 긋기</span></button>
 <div id="sheet" class="sheet hidden"></div>
 <input type="file" id="photoIn" accept="image/*" hidden>
 <input type="file" id="camIn" accept="image/*" capture="environment" hidden>
@@ -5930,7 +5992,7 @@ const SM_ACTIONS = {
   askGo: el => { const box = el.closest('.askbox'), q = S.docs[el.dataset.id]; if (!q || !box) return; const ta = box.querySelector('textarea'), t = (ta.value || '').trim(); if (!t) { ta.focus(); return; }
     openChat(q.id, null, { seed: [{ role: 'assistant', content: askText(q) }, { role: 'user', content: t }] }); },
   askPick: el => { const q = S.docs[el.dataset.id]; if (!q) return; openChat(q.id, null, { seed: [{ role: 'assistant', content: askText(q) }, { role: 'user', content: el.dataset.t }] }); },
-  askSkip: el => { smPut({ askSkip: [...(smDoc().askSkip || []), el.dataset.id].slice(-40) }); },
+  askSkip: el => { smPut({ askSkip: [...(smDoc().askSkip || []), el.dataset.id].slice(-40) }).then(() => { if (S.view === 'home') render(); }); },
   nudgeOff: () => { SM.nudgeOff = true; render(); },
   chatGive: () => { const c = S.chat; if (c && c.quoteId) giftSheet(c.quoteId); }
 };
@@ -5969,20 +6031,35 @@ function bqRow(q, askHere){
   return `<article class="bq${t ? ' talked' : ''}">
     ${stampsHTML(q)}
     <button class="bq-q" data-action="openQuote" data-id="${esc(q.id)}"><mark>${esc(q.text)}</mark></button>
-    <div class="bq-m">${meta.join('<i></i>')}${!t && !d && !askHere ? '<span class="bq-pre">사유 전</span>' : ''}</div>
+    <div class="bq-m">${meta.join('<i></i>')}</div>
     ${body}
   </article>`;
 }
+function homeAskQ(bid){   /* 첫 화면 위에서 선명이가 물어볼 밑줄 하나 */
+  if (!sample) return null;   /* 선명이를 부를 수 없으면 질문도 묻지 않음 */
+  const talked = new Set(all('talk').map(t => t.quoteId)), skip = new Set(smDoc().askSkip || []);
+  const q = quotesOf(bid).slice(0, 12).find(q => !talked.has(q.id) && !skip.has(q.id) && !draftOf(q.id));
+  if (q && smAuto() && !(q.ask && q.ask.text) && !SM.askFail.has(q.id)) setTimeout(() => genAsk(q), 0);
+  return q || null;
+}
+function homeAskHTML(bid){
+  const q = homeAskQ(bid); if (!q) return '';
+  return `<section class="hx-ask" id="hmAsk">
+    <div class="hx-ask-h">${SM_AVATAR(22)}<b>${AI_NAME}이가 물어요</b><span>${q.page ? `p.${esc(q.page)}의 밑줄` : '최근 밑줄'}</span><button class="hx-ask-x" data-action="askSkip" data-id="${esc(q.id)}">다음에</button></div>
+    <button class="hx-ask-q" data-action="openQuote" data-id="${esc(q.id)}">${esc(q.text)}</button>
+    ${askBox(q, { wait: smAuto() && !(q.ask && q.ask.text) })}
+  </section>`;
+}
 function bookQuotesHTML(bid){
   const b = S.docs[bid]; if (!b) return '';
-  const qs = quotesOf(bid), lim = (S.bqLimit && S.bqBook === bid) ? S.bqLimit : 8;
-  const talked = new Set(all('talk').map(t => t.quoteId)), skip = new Set(smDoc().askSkip || []);
-  const askQ = sample ? qs.slice(0, 12).find(q => !talked.has(q.id) && !skip.has(q.id)) : null;   /* 선명이를 부를 수 없으면 질문도 묻지 않음 */
-  if (askQ && sample && smAuto() && !(askQ.ask && askQ.ask.text) && !SM.askFail.has(askQ.id)) setTimeout(() => genAsk(askQ), 0);
-  const nT = qs.filter(q => talked.has(q.id)).length;
-  return `<div class="bkq-h"><b>이 책의 밑줄</b><span>${qs.length}줄${nT ? ` · 사유 ${nT}` : ''}</span></div>
-    ${qs.length ? qs.slice(0, lim).map(q => bqRow(q, askQ && q.id === askQ.id)).join('') + (qs.length > lim ? `<button class="morebtn bq-moreb" data-action="bqMore">더 보기 · ${qs.length - lim}줄 남음</button>` : '')
-      : `<div class="bkq-empty">아직 그은 밑줄이 없어요.<br>표지 아래 「밑줄 긋기」로 첫 밑줄을 그어 보세요.</div>`}`;
+  const qsAll = quotesOf(bid), lim = (S.bqLimit && S.bqBook === bid) ? S.bqLimit : 8;
+  const talked = new Set(all('talk').map(t => t.quoteId));
+  const nT = qsAll.filter(q => talked.has(q.id)).length, only = S.bqOnly === 'talked' && nT > 0;
+  const qs = only ? qsAll.filter(q => talked.has(q.id)) : qsAll;
+  const seg = nT ? `<div class="bkq-seg" role="group" aria-label="밑줄 걸러 보기"><button data-action="bqOnly" data-v="all" aria-pressed="${!only}">전체</button><button data-action="bqOnly" data-v="talked" aria-pressed="${only}">사유 있음 ${nT}</button></div>` : '';
+  return `<div class="bkq-h"><b>이 책의 밑줄 <em>${qsAll.length}</em></b>${seg}</div>
+    ${qs.length ? qs.slice(0, lim).map(q => bqRow(q, false)).join('') + (qs.length > lim ? `<button class="morebtn bq-moreb" data-action="bqMore">더 보기 · ${qs.length - lim}줄 남음</button>` : '')
+      : `<div class="bkq-empty">아직 그은 밑줄이 없어요.<br>아래 「밑줄 긋기」로 첫 밑줄을 그어 보세요.</div>`}`;
 }
 const ST_DOT = { reading: 'var(--accent)', paused: 'var(--muted)', want: '#E0B83A', done: '#3E9B74' };
 function bookInfoHTML(bid){
@@ -6003,15 +6080,25 @@ function coverSlide(b, on, i, k){
 function homeView(){
   const bs = homeBooks();
   if (!books().length) return `<section id="st-library">${libraryView()}</section>`;
-  const cur = homeBookId(), qsAll = quotesOf();
-  setTimeout(carouselSync, 0);
-  return `<section class="bkh" id="st-library" style="--c:${spineColor((S.docs[cur] || {}).title || '')}">
-      <div class="bkc" id="bkc">${carouselSlides(bs, cur)}</div>
-      <div class="bkd" id="bkd">${bs.length + 1 > 9 ? `<span class="bkd-n"><b>${bs.findIndex(b => b.id === cur) + 1}</b> / ${bs.length}</span>` : bs.map(b => `<i class="${b.id === cur ? 'on' : ''}"></i>`).join('') + '<i class="add"></i>'}</div>
-      <div class="bki" id="bki">${bookInfoHTML(cur)}</div>
+  const cur = homeBookId();
+  return `<section class="hx" id="st-library">
+      <div class="hx-row">
+        <div class="hx-shelf" id="hmShelf">${bs.map(b => `<button class="hx-cv${b.id === cur ? ' on' : ''}" data-action="pickBookHome" data-id="${esc(b.id)}" aria-pressed="${b.id === cur}" aria-label="『${esc(splitTitle(b.title).main)}』">${coverHTML(b, 'md')}</button>`).join('')}<button class="hx-add" data-action="bookForm" data-status="reading" aria-label="책 추가"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+      </div>
+      <div class="hx-info">${homeInfoHTML(cur)}</div>
     </section>
+    ${bs.length ? homeAskHTML(cur) : ''}
     <section class="bkq" id="bkq">${bs.length ? bookQuotesHTML(cur) : `<button class="dn-nudge" data-action="doneShelf">지금 읽는 책은 없어요. 다 읽은 책 ${books().length}권은 <b>다 읽은 책</b> 서가에 있어요 ›</button>`}</section>
     ${(n => n ? `<div class="smf">${n}</div>` : '')(nudgeCard())}`;
+}
+function homeInfoHTML(bid){
+  const b = S.docs[bid]; if (!b) return '';
+  const st = b.status || 'reading', { main, sub } = splitTitle(b.title);
+  const where = st === 'reading' && b.currentPage ? ` · p.${esc(b.currentPage)}까지` : '';
+  return `<span class="hx-st" style="--d:${ST_DOT[st] || 'var(--muted)'}">${STATUS[st]}${where}</span>
+    <button class="hx-t" data-action="openBook" data-id="${esc(b.id)}" aria-label="『${esc(main)}』 책 정보 보기"><b>${esc(main)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+    <span class="hx-a">${esc(authorShort(b) || '작가 미상')}</span>
+    ${st === 'want' ? `<button class="hx-go" data-action="startRead" data-id="${esc(b.id)}">읽기 시작</button>` : ''}`;
 }
 /* 표지 줄: 앞뒤로 한 벌씩 더 깔아 끝없이 이어지게 (가운데 벌이 진짜) */
 const addSlide = (i, k) => `<div class="bks add" data-b="" data-i="${i}" data-k="${k}"><button class="bks-c bks-add" data-action="bookForm" data-status="reading"><span>＋</span>책 추가</button></div>`;
@@ -6176,6 +6263,7 @@ const STATS_ACTIONS = {
 const COVER_ACTIONS = {
   coverTap: el => { const id = el.dataset.id, s = el.closest('.bks'); if (s && !s.classList.contains('on')) { carouselCenter(s, true); return; } go('book', { bookId: id }); },   /* 가운데 표지 = 책 정보 */
   coverPen: el => { const id = el.dataset.id, s = el.closest('.bks'); if (s && !s.classList.contains('on')) { carouselCenter(s, true); return; } A.photo({ dataset: { book: id } }); },   /* 표지 아래 버튼 = 밑줄 긋기 */
+  bqOnly: el => { S.bqOnly = el.dataset.v; S.bqLimit = 0; const bq = $('#bkq'); if (bq) bq.innerHTML = bookQuotesHTML(S.homeBook); },
   bqMore: () => { S.bqBook = S.homeBook; S.bqLimit = (S.bqLimit && S.bqBook === S.homeBook ? S.bqLimit : 8) + 20; const bq = $('#bkq'); if (bq) bq.innerHTML = bookQuotesHTML(S.homeBook); },
   openTalk: el => go('talk', { talkId: el.dataset.id }),
   shelfManage: () => shelfSheet()
@@ -6371,10 +6459,11 @@ function moreSheet(){
     <div class="sp-g">
     ${row('mrG', '<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5a2.4 2.4 0 1 1 3.3 2.2c-.6.3-.9.8-.9 1.4M12 16.5h.01"/>', '이용 안내', `긋고, 되묻고, 건네는 법 · ${AI_NAME}이 소개`)}
     ${row('mrS', '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', '환경설정', `화면 ${theme} · ${AI_NAME}이 말 걸기 ${PREF.smAuto === 'off' ? '끔' : '켬'}`)}
+    ${row('mrT', '<path d="M5 20v-6M12 20V5M19 20v-10"/>', '밑줄 현황', '달마다 긋고 나눈 기록')}
     ${row('mrB', '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>', '백업 · 복원', last ? `마지막 백업 ${fmtDate(last)}` : '아직 따로 백업한 적이 없어요')}</div>
     <p class="mr2-v">밑줄 · 긋고, 되묻고, 건네다</p>`);
   $('#fx').onclick = closeSheet;
-  $('#mrG').onclick = guideSheet; $('#mrS').onclick = settingsSheet; $('#mrB').onclick = backupSheet;
+  $('#mrG').onclick = guideSheet; $('#mrS').onclick = settingsSheet; $('#mrT').onclick = () => { closeSheet(); A.stats(); }; $('#mrB').onclick = backupSheet;
 }
 function backupSheet(){
   openSheet(`${sheetHead('백업 · 복원', '기록은 계정에 자동으로 저장돼요. 만일을 위해 따로 남겨 둘 수 있어요.')}${backupBlock()}`);
