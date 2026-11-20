@@ -3927,6 +3927,17 @@ body[data-theme="dark"] .panel:has(.gf2-prev) #gtLetter{color:#EDE6D8!important}
 .panel:has(.gf2-prev) #gtSend{background:var(--inkbg)!important;color:var(--onink)!important}
 .gf2-who .sh-in input::placeholder{font-weight:400;color:color-mix(in srgb,var(--muted) 75%,transparent)}
 body[data-theme="dark"] .gf2-prev .gs3-th i{border-color:rgba(255,255,255,.45)}
+
+/* 선물하기: 카드·편지 미리보기 나란히, 카톡 글 복사는 작게 */
+.gf2-pair{display:flex;align-items:flex-start;justify-content:center;gap:14px}
+.gf2-prev .gf2-pair .gs3-cv{width:136px!important}
+.gf2-prev .gf2-pair .gs3-cv img{width:136px!important}
+.gf2-prev .gf2-lt img{aspect-ratio:auto!important;max-height:242px;object-fit:cover;object-position:top}
+.gf2-cap{display:flex;justify-content:center;gap:14px;margin-top:-4px;font-size:11.5px;color:var(--muted)}
+.gf2-cap span{width:136px;text-align:center}
+.panel:has(.gf2-prev) .gs3-bar{grid-template-columns:1fr 1fr!important;row-gap:4px!important}
+.panel:has(.gf2-prev) #gtLetterImg{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.gf2-copy{grid-column:1/-1;justify-self:center;min-height:32px;padding:0 10px;font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:3px;background:none;border:0}
 </style>
 </head>
 <body>
@@ -6088,6 +6099,59 @@ ${q.mood ? `[그때 마음] ${q.mood}\n` : ''}${q.feeling ? `[독자 메모] ${q
   return String((v && v.letter) || '').replace(/\r/g, '').trim().slice(0, 600);
 }
 const giftFallback = () => `${GIFT.to ? `${GIFT.to}, ` : ''}책을 읽다가 이 문장에서 오래 멈췄어요. 읽는 동안 당신이 떠올라서, 이 한 줄을 보내요.`;
+/* 편지 한 장을 이미지로: 편지지 바탕에 명조, 길이에 따라 세로로 늘어남 */
+async function drawLetterImage(q, st){
+  const b = S.docs[q.bookId] || {}, night = st.theme === 'night';
+  const C = night ? { bg: '#161B33', ink: '#ECEAF4', mute: '#A3A8C3', line: 'rgba(255,255,255,.07)', soft: 'rgba(255,255,255,.14)', mark: 'rgba(247,220,111,.55)' }
+                  : { bg: '#FBF8F1', ink: '#2A2622', mute: '#8A8375', line: 'rgba(120,100,60,.10)', soft: '#E9E3D6', mark: 'rgba(247,220,111,.85)' };
+  const W = 1080, P = 120, FW = W - P * 2;
+  const SERIF = '"Hahmlet", "Gowun Batang", serif', HAND = '"Gowun Batang", "Hahmlet", serif';
+  const sf = (w, px) => `${w} ${px}px ${SERIF}`, hf = (px) => `700 ${px}px ${HAND}`;
+  const to = (st.to || '').trim(), from = (st.from || '').trim();
+  const paras = String(st.letter || '').replace(/\r/g, '').split(/\n+/).map(t => t.trim()).filter(Boolean);
+  const title = splitTitle(b.title || '').main, au = authorShort(b);
+  const all = [to, from, paras.join(' '), q.text, title, au, '편지 To From 밑줄로 쓴 편지 0123456789.'].join(' ');
+  try { await Promise.all([document.fonts.load(`500 44px "Hahmlet"`, all), document.fonts.load(`700 60px "Gowun Batang"`, all), document.fonts.load(`500 30px "IBM Plex Sans KR"`, all)]); } catch {}
+  const m = document.createElement('canvas').getContext('2d');
+  const BS = 44, BL = BS * 1.95, QS = 36, QL = QS * 1.75;
+  m.font = sf(500, BS); const body = paras.map(t => wrapLines(m, t, FW));
+  m.font = sf(500, QS); const ql = wrapLines(m, `“${q.text}”`, FW - 40).slice(0, 6);
+  const head = 150 + (to ? 110 : 0), bodyH = body.reduce((h, ls) => h + ls.length * BL, 0) + Math.max(0, body.length - 1) * 30;
+  const fromH = from ? 120 : 40, quoteH = 70 + ql.length * QL + 70, foot = 170;
+  const H = Math.max(1080, Math.ceil(head + bodyH + fromH + quoteH + foot));
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
+  /* 편지지 줄 */
+  if (!night) { const gg = x.createLinearGradient(0, 0, 70, 0); gg.addColorStop(0, 'rgba(90,70,40,.08)'); gg.addColorStop(1, 'rgba(90,70,40,0)'); x.fillStyle = gg; x.fillRect(0, 0, 70, H); }
+  x.textBaseline = 'alphabetic';
+  x.fillStyle = C.mute; x.font = `500 28px "IBM Plex Sans KR", sans-serif`; x.fillText('편지', P, 112);
+  let y = 150;
+  if (to) { x.fillStyle = C.ink; x.font = hf(58); x.fillText(`To. ${to}`, P, y + 52); y += 110; }
+  x.fillStyle = C.ink; x.font = sf(500, BS);
+  body.forEach((ls, i) => { ls.forEach(l => { x.fillStyle = C.line; x.fillRect(P, y + BS + 22, FW, 2); x.fillStyle = C.ink; x.fillText(l, P, y + BS); y += BL; }); if (i < body.length - 1) y += 30; });
+  if (from) { y += 40; x.font = hf(48); x.textAlign = 'right'; x.fillText(`From. ${from}`, W - P, y + 48); x.textAlign = 'left'; y += 80; } else y += 40;
+  /* 함께 건네는 한 줄 */
+  y += 30; x.fillStyle = C.soft; x.fillRect(P, y, FW, 2); y += 60;
+  x.font = sf(500, QS);
+  ql.forEach(l => { const w = x.measureText(l).width; x.fillStyle = C.mark; x.fillRect(P + 20, y + QS * .55, w, QS * .42); x.fillStyle = C.ink; x.fillText(l, P + 20, y + QS); y += QL; });
+  x.fillStyle = C.mute; x.font = `500 28px "IBM Plex Sans KR", sans-serif`; x.fillText(`${title ? `『${title}』` : ''}${au ? ` ${au}` : ''}${q.page ? `  ·  p.${q.page}` : ''}`, P + 20, y + 30);
+  /* 날짜와 앱 이름 */
+  x.font = `500 26px "IBM Plex Sans KR", sans-serif`; x.fillStyle = C.mute; x.fillText(fmtDate(Date.now()), P, H - 90);
+  x.textAlign = 'right'; x.font = `700 30px "IBM Plex Sans KR", sans-serif`; const bw = x.measureText('밑줄').width;
+  x.fillStyle = 'rgba(247,220,111,.9)'; x.fillRect(W - P - bw - 2, H - 100, bw + 4, 12); x.fillStyle = night ? '#ECEAF4' : '#1E2235'; x.fillText('밑줄', W - P, H - 90); x.textAlign = 'left';
+  return c;
+}
+/* 이미지 한 장을 보내기(공유)하거나 저장 */
+async function giftOut(cv, name, q, say){
+  const blob = await new Promise(r => cv.toBlob(r, 'image/png')); const file = new File([blob], name, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); await giftMark(q); say('보냈어요.'); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  if (!downloads) { say('미리보기를 눌러 크게 연 뒤 길게 눌러 사진에 저장해 주세요.'); await giftMark(q); return; }
+  try { await downloads.save({ filename: name, data: blob }); await giftMark(q); say(`‘${name}’으로 저장했어요.`); }
+  catch (e) { if (!(e && e.code === 'declined')) say('저장하지 못했어요. 미리보기를 길게 눌러 저장해 주세요.'); }
+}
 function giftLetterText(q){
   const b = S.docs[q.bookId] || {}, from = ($('#gtFrom') || {}).value || (S.docs.settings || {}).giftNick || '';
   return [GIFT.letter.trim(), from ? `— ${from.trim()}` : '', '', `“${q.text}”`, `『${splitTitle(b.title || '').main}』 ${authorShort(b) || ''}${q.page ? ` · p.${q.page}` : ''}`].filter((x, i) => x || i === 2).join('\n').replace(/\n{3,}/g, '\n\n').trim();
@@ -6106,7 +6170,7 @@ async function giftSheet(qid){
   if (GIFT.qid !== qid) Object.assign(GIFT, { qid, to: '', letter: '', ai: false });
   const nick = (S.docs.settings || {}).giftNick || '';
   openSheet(`${sheetHead('선물하기', '이 한 줄에 편지를 담아 소중한 사람에게 보내요')}
-    <div class="gf2-prev"><button class="gs3-cv" id="shP" aria-label="카드 크게 보기"><img id="shImg" alt="선물 카드 미리보기"><div class="shp-l" id="shLoad"><span class="typing"><i></i><i></i><i></i></span></div><span class="gs3-zoom"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 4h5v5M9 20H4v-5M20 4l-6 6M4 20l6-6"/></svg></span></button>
+    <div class="gf2-prev"><div class="gf2-pair"><button class="gs3-cv" id="shP" aria-label="카드 크게 보기"><img id="shImg" alt="선물 카드 미리보기"><div class="shp-l" id="shLoad"><span class="typing"><i></i><i></i><i></i></span></div><span class="gs3-zoom"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 4h5v5M9 20H4v-5M20 4l-6 6M4 20l6-6"/></svg></span></button><button class="gs3-cv gf2-lt" id="ltP" aria-label="편지 크게 보기"><img id="ltImg" alt="편지 미리보기"><span class="gs3-zoom"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 4h5v5M9 20H4v-5M20 4l-6 6M4 20l6-6"/></svg></span></button></div><div class="gf2-cap"><span>카드</span><span>편지</span></div>
       <div class="gs3-th">${[['page', '책 페이지', '#FBF8F1'], ['night', '밤의 서재', '#161B33']].map(([v, l, c]) => `<button data-gk="theme" data-gv="${v}" class="${GIFT.theme === v ? 'on' : ''}"><i style="background:${c}"></i>${l}</button>`).join('')}</div></div>
     <div class="gf2-who">
           <label class="sh-in"><span>받는 사람</span><input id="gtTo" maxlength="20" placeholder="예: 엄마" value="${esc(GIFT.to)}"></label>
@@ -6116,16 +6180,19 @@ async function giftSheet(qid){
     <div class="sp-g gs2-letter"><textarea id="gtLetter" rows="5" maxlength="600" placeholder="왜 이 한 줄이 떠올랐는지 적어 보세요">${esc(GIFT.letter)}</textarea>
       <div class="gs2-need">편지를 한 줄이라도 적어 주세요</div>
       <div class="gs2-busy" id="gtBusy" hidden><span class="typing"><i></i><i></i><i></i></span> ${AI_NAME}이가 편지를 쓰고 있어요</div></div>
-    <p class="gs3-hint">카드엔 편지 앞부분만 들어가요. 전체 편지는 「편지 글 복사」로 함께 보내 주세요.</p>
+    <p class="gs3-hint">카드엔 편지 앞부분만 들어가요. 편지 전체는 「편지 저장」으로 이미지 한 장에 담겨요.</p>
     <p class="sh-msg" id="shMsg" role="status"></p>
-    <div class="gs3-bar"><button class="btn ghost" id="gtCopy">편지 글 복사</button><button class="btn accent" id="gtSend"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5"/><path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/></svg>카드 보내기</button></div>`);
-  let cv = null, ver = 0, pt = 0;
+    <div class="gs3-bar"><button class="btn ghost" id="gtLetterImg"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>편지 저장</button><button class="btn accent" id="gtSend"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5"/><path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/></svg>카드 보내기</button><button class="gf2-copy" id="gtCopy">카톡에 붙일 글 복사</button></div>`);
+  let cv = null, lv = null, ver = 0, pt = 0;
   const say = t => { const m = $('#shMsg'); if (m) m.textContent = t; };
+  $('#ltP').onclick = () => { const src = $('#ltImg').src; if (!src) return; const lb = document.createElement('div'); lb.className = 'gs3-lb'; lb.innerHTML = `<img src="${src}" alt="편지"><span>눌러서 닫기</span>`; lb.onclick = () => lb.remove(); document.body.appendChild(lb); };
   $('#shP').onclick = () => { const src = $('#shImg').src; if (!src) return; const lb = document.createElement('div'); lb.className = 'gs3-lb'; lb.innerHTML = `<img src="${src}" alt="선물 카드"><span>눌러서 닫기</span>`; lb.onclick = () => lb.remove(); document.body.appendChild(lb); };
   const paint = async () => {
     const my = ++ver; const ld = $('#shLoad'); if (ld) ld.hidden = false;
     const c = await drawShareCard(q, { fmt: GIFT.fmt, theme: GIFT.theme, letter: { to: GIFT.to.trim(), from: ($('#gtFrom') || {}).value ? $('#gtFrom').value.trim() : nick, line: GIFT.letter } });
     if (my !== ver || !$('#shImg')) return; cv = c; $('#shImg').src = c.toDataURL('image/png'); $('#shP').dataset.fmt = GIFT.fmt; if (ld) ld.hidden = true;
+    const l = await drawLetterImage(q, { theme: GIFT.theme, to: GIFT.to, from: ($('#gtFrom') || {}).value ? $('#gtFrom').value.trim() : nick, letter: GIFT.letter });
+    if (my !== ver || !$('#ltImg')) return; lv = l; $('#ltImg').src = l.toDataURL('image/png');
   };
   const later = () => { clearTimeout(pt); pt = setTimeout(paint, 450); };
   const write = async () => {
@@ -6142,18 +6209,10 @@ async function giftSheet(qid){
   const re = $('#gtRe'); if (re) re.onclick = write;
   sheet.querySelectorAll('[data-gk]').forEach(b => b.onclick = () => { GIFT[b.dataset.gk] = b.dataset.gv; sheet.querySelectorAll(`[data-gk="${b.dataset.gk}"]`).forEach(y => y.classList.toggle('on', y === b)); paint(); });
   const fname = () => `밑줄-선물-${shortTitle((S.docs[q.bookId] || {}).title || 'quote', 12).replace(/[\\/:*?"<>|…]/g, '')}.png`;
-  $('#gtSend').onclick = async () => {
-    if (!cv) return; if (!GIFT.letter.trim()) { const lb = sheet.querySelector('.gs2-letter'); lb.classList.remove('need'); void lb.offsetWidth; lb.classList.add('need'); say(''); $('#gtLetter').focus(); return; }
-    const blob = await new Promise(r => cv.toBlob(r, 'image/png')); const file = new File([blob], fname(), { type: 'image/png' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], text: giftLetterText(q) }); await giftMark(q); say('선물을 보냈어요. 편지 글도 함께 붙여 주면 더 좋아요.'); return; }
-      catch (e) { if (e && e.name === 'AbortError') return; }
-    }
-    if (!downloads) { say('미리보기 카드를 길게 눌러 사진에 저장한 뒤 보내 주세요.'); await giftMark(q); return; }
-    try { await downloads.save({ filename: fname(), data: blob }); await giftMark(q); say('카드를 저장했어요. 카톡에서 사진과 편지 글을 함께 보내 주세요.'); }
-    catch (e) { if (!(e && e.code === 'declined')) say('저장하지 못했어요. 미리보기 카드를 길게 눌러 저장해 주세요.'); }
-  };
-  $('#gtCopy').onclick = async () => { if (!GIFT.letter.trim()) { const lb = sheet.querySelector('.gs2-letter'); lb.classList.remove('need'); void lb.offsetWidth; lb.classList.add('need'); $('#gtLetter').focus(); return; } await giftCopyText(giftLetterText(q), '편지 글을 복사했어요. 카드와 함께 붙여 넣으세요.'); giftMark(q); };
+  const needLetter = () => { if (GIFT.letter.trim()) return false; const lb = sheet.querySelector('.gs2-letter'); lb.classList.remove('need'); void lb.offsetWidth; lb.classList.add('need'); say(''); $('#gtLetter').focus(); return true; };
+  $('#gtSend').onclick = async () => { if (!cv || needLetter()) return; await giftOut(cv, fname(), q, say); };
+  $('#gtLetterImg').onclick = async () => { if (needLetter()) return; if (!lv) { clearTimeout(pt); await paint(); } if (lv) await giftOut(lv, fname().replace('선물', '편지'), q, say); };
+  $('#gtCopy').onclick = async () => { if (!GIFT.letter.trim()) { const lb = sheet.querySelector('.gs2-letter'); lb.classList.remove('need'); void lb.offsetWidth; lb.classList.add('need'); $('#gtLetter').focus(); return; } await giftCopyText(giftLetterText(q), '카톡에 붙일 글을 복사했어요.'); giftMark(q); };
   if (GIFT.letter) paint(); else { paint(); write(); }
 }
 /* ---------- AI가 읽어 준 문장에서 고르기 ---------- */
