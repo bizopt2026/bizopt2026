@@ -3758,6 +3758,84 @@ body[data-theme="dark"] .bx-bar>i{background:#F7DC6F}
 .bx-bar2{margin-top:28px}
 .bx-ul{background:linear-gradient(transparent 72%,rgba(247,220,111,.9) 72%);padding:0 1px}
 body[data-theme="dark"] .bx-ul{background:linear-gradient(transparent 86%,#F7DC6F 86%)}
+/* ===== 밑줄 현황 + 다 읽은 책: 한 화면 ===== */
+.sx{display:grid;gap:0;padding-bottom:12px}
+.sx-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 2px 12px}
+.sx-h b{font-size:var(--t3);font-weight:700;color:var(--ink)}
+.sx-h span{font-size:var(--t4);color:var(--muted)}
+/* 이달의 기록 */
+.sx-hero{padding:6px 2px 0;text-align:center}
+.sx-mn{display:inline-flex;align-items:center;gap:4px}
+.sx-mn b{font-size:var(--t3);font-weight:700;min-width:104px;font-variant-numeric:tabular-nums}
+.sx-mn button{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
+.sx-mn button:disabled{opacity:.25}
+.sx-mn button:not(:disabled):active{background:var(--soft)}
+.sx-sum{margin:14px 0 0;font-family:var(--f-quote);font-size:20px;font-weight:500;line-height:1.7;letter-spacing:-.01em;color:var(--ink);word-break:keep-all}
+.sx-sum b{font-weight:600;background:linear-gradient(transparent 62%,var(--ul) 62%);padding:0 1px}
+.sx-ex{display:flex;justify-content:center;gap:6px;margin-top:12px}
+.sx-ex span{font-size:12px;color:var(--ink2);padding:3px 10px;border-radius:99px;background:var(--soft)}
+.sx-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:22px}
+.sx-tile{position:relative;display:grid;justify-items:start;gap:2px;padding:14px 12px 12px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:left;color:var(--ink)}
+.sx-tile strong{font-size:24px;font-weight:700;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.sx-tile strong small{font-size:12px;font-weight:500;color:var(--muted);margin-left:2px}
+.sx-tile>span{font-size:12px;color:var(--muted);white-space:nowrap}
+.sx-tile em{position:absolute;top:10px;right:10px;font-style:normal;font-size:11px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.sx-tile em.up{color:#2F8A63}
+.sx-tile em.dn{color:#B4564F}
+body[data-theme="dark"] .sx-tile em.up{color:#7FD3A8}
+body[data-theme="dark"] .sx-tile em.dn{color:#F0A29B}
+.sx-tile:disabled{opacity:.55}
+.sx-tile.on{background:var(--inkbg);border-color:var(--inkbg);color:var(--onink)}
+.sx-tile.on strong small,.sx-tile.on>span,.sx-tile.on em{color:color-mix(in srgb,var(--onink) 70%,transparent)}
+.sx-tile:not(:disabled):active{transform:scale(.97)}
+.sx-list{margin-top:8px;padding:12px 16px 8px;border-radius:14px;background:var(--card);border:1px solid var(--line);animation:bkiIn .22s ease}
+.sx-lh{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:4px}
+.sx-lh b{font-size:var(--t4);font-weight:700}
+.sx-lh span{font-size:12px;color:var(--muted)}
+.sx .s6-i b{font-family:var(--f-quote)}
+.sx .s6-ib b{font-family:var(--f-body)}
+.sx .cal{margin-top:16px}
+.sx-card{margin-top:16px;padding:18px 16px 14px;border-radius:var(--r);background:var(--card);border:1px solid var(--line)}
+.sx .sv-m{gap:6px!important}
+.sx .sv-m>button{gap:6px!important}
+.sx .sv-m>button>b{font-size:12px!important;color:var(--muted)!important;min-height:16px;font-weight:500!important}
+.sx .sv-m>button.on>b{color:var(--ink)!important;font-weight:700!important}
+.sx .sv-mb{height:84px!important}
+.sx .sv-mb i{width:20px!important;border-radius:6px 6px 2px 2px!important;background:color-mix(in srgb,var(--ink) 12%,transparent)!important}
+.sx .sv-m>button.on .sv-mb i{background:var(--ink)!important}
+body[data-theme="dark"] .sx .sv-m>button.on .sv-mb i{background:#F7DC6F!important}
+.sx .sv-m small{font-size:12px!important}
+/* 다 읽은 책 */
+.sx-done{margin-top:34px}
+.sx-shelf{margin:0!important;padding:0 16px!important;height:156px!important;border-radius:var(--r);background:var(--card)!important;border:1px solid var(--line);overflow:hidden;--dnbg:var(--card)}
+.sx-shelf::after{height:9px!important;background:color-mix(in srgb,var(--ink) 10%,var(--card))!important;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ink) 8%,transparent)!important}
+.sx-shelf .dn-row{padding-top:16px}
+.sx-shelf .dn-sp{box-shadow:0 2px 4px rgba(20,26,46,.14)}
+.sx-shelf .dn-end{background:color-mix(in srgb,var(--ink) 22%,var(--card))!important;box-shadow:none!important}
+.sx-shelf .dn-end::after{background:color-mix(in srgb,var(--ink) 22%,var(--card))!important}
+.sx-seg{display:flex;gap:6px;margin:14px 0 4px;overflow-x:auto;scrollbar-width:none}
+.sx-seg button{flex:none;min-height:34px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:var(--t4);color:var(--muted)}
+.sx-seg button[aria-pressed="true"]{background:var(--inkbg);border-color:var(--inkbg);color:var(--onink);font-weight:500}
+.sx-done .dn-y{margin-top:18px}
+.sx-done .dn-yh{margin-bottom:12px}
+.sx-done .dn-yh b{font-family:var(--f-body);font-size:var(--t3);font-weight:700}
+.sx-more{display:block;width:100%;margin-top:18px;min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:var(--t4);font-weight:500;color:var(--ink)}
+.sx-done .dn-tip{margin:16px 0 0;text-align:center;font-size:12px;color:var(--muted)}
+.sx-dempty{padding:22px 16px;border:1px dashed var(--line);border-radius:var(--r);text-align:center}
+.sx-dempty p{margin:10px 0 0;font-size:var(--t4);color:var(--muted);line-height:1.7}
+/* 지금까지 */
+.sx-tot{margin-top:34px;padding-top:20px;border-top:1px solid var(--line)}
+.sx-tn{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));text-align:center}
+.sx-tn span{display:grid;gap:2px;font-size:12px;color:var(--muted)}
+.sx-tn span+span{border-left:1px solid var(--line)}
+.sx-tn b{font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.sx-gifts{margin-top:16px}
+.sx-gifts summary{display:flex;align-items:center;justify-content:center;gap:4px;min-height:40px;list-style:none;cursor:pointer;font-size:var(--t4);color:var(--ink2)}
+.sx-gifts summary::-webkit-details-marker{display:none}
+.sx-gifts[open] summary svg{transform:rotate(180deg)}
+.sx-gifts .pg-list{margin-top:6px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.sx-gifts .pg-rt{font-family:var(--f-quote)}
+body[data-theme="dark"] .sx-sum b,body[data-theme="dark"] .pq-q mark{background:linear-gradient(transparent 88%,#F7DC6F 88%,#F7DC6F 96%,transparent 96%)!important}
 </style>
 </head>
 <body>
@@ -3933,7 +4011,7 @@ function render(){
   const homeHTML = () => { const q0 = S.q; S.q = ''; try { return homeView(); } finally { S.q = q0; } };
   if (isOv) {
     if (m.dataset.v !== 'home') { m.dataset.v = 'home'; m.innerHTML = homeHTML(); }
-    const key = [S.view, S.bookId || '', S.quoteId || '', S.talkId || '', S.view === 'work' ? S.workId : S.view === 'stats' ? S.stTab || '' : ''].join(':'), fresh = ov.hidden || ov.dataset.v !== key, y = ov.scrollTop;
+    const key = [S.view, S.bookId || '', S.quoteId || '', S.talkId || '', S.view === 'work' ? S.workId : ''].join(':'), fresh = ov.hidden || ov.dataset.v !== key, y = ov.scrollTop;
     ov.hidden = false; ov.dataset.v = key;
     const fk = $('#pqFeel') ? { v: $('#pqFeel').value, f: document.activeElement && document.activeElement.id === 'pqFeel' } : null;
     ov.innerHTML = `<div class="ov-in">${({ book: bookView, search: searchView, talk: talkView, quote: quoteView, stats: statsView, write: writerHome, work: workView }[S.view])()}</div>`;
@@ -6610,52 +6688,52 @@ function statsDaySheet(dk){
         <div class="cds-l">${it.q.map(q => `<button class="cds-q" data-action="openQuote" data-id="${esc(q.id)}"><span><mark>${esc(q.text)}</mark></span>${q.page ? `<small>p.${esc(q.page)}</small>` : ''}</button>`).join('')}${it.t.map(t => `<button class="cds-q cds-t" data-action="openTalk" data-id="${esc(t.id)}"><i>사유</i><span>${esc((t.summary || {}).title || '이름 없는 사유')}</span></button>`).join('')}</div></section>`; }).join('')}</div>
     <button class="cds-go" data-action="wDiary" data-k="${dk}">${WK_IC.feather}<span><b>여백이에게 이 날의 일기 맡기기</b><small>그날의 밑줄과 사유로 일기를 써 드려요</small></span></button>`);
 }
-/* 밑줄 현황: [이달의 현황 | 다 읽은 책] 두 갈래 */
+/* 밑줄 현황: 이달의 기록 → 캘린더 → 달마다 → 다 읽은 책 → 지금까지, 한 화면 */
 function statsView(){
-  const n = books().filter(b => b.status === 'done').length;
-  const tabs = `<div class="sp-seg dn-tabs"><button data-action="stTab" data-v="month" class="${S.stTab !== 'done' ? 'on' : ''}">밑줄 현황</button><button data-action="stTab" data-v="done" class="${S.stTab === 'done' ? 'on' : ''}">다 읽은 책${n ? ` <em>${n}</em>` : ''}</button></div>`;
-  return tabs + (S.stTab === 'done' ? doneShelfView() : statsMonthView());
-}
-function statsMonthView(){
-  const qsAll = quotesOf(), now = Date.now(), cur = monKey(now);
   if (!books().length) return `<div class="empty">아직 기록이 없어요. 첫 책을 꽂고 밑줄을 그어 보세요.</div>`;
+  return `<div class="sx">${statsMonthSec()}${doneSec()}${statsTotalSec()}</div>`;
+}
+function statsMonthSec(){
+  const qsAll = quotesOf(), now = Date.now(), cur = monKey(now);
   const firstT = Math.min(now, ...all('quote').map(q => q.createdAt || now), ...savedTalks().map(t => t.savedAt || now)), first = monKey(firstT);
   let k = S.stMonth || cur; if (k > cur) k = cur; if (k < first) k = first; S.stMonth = k;
   const [y, m] = k.split('-').map(Number), d = statsMonth(k), pv = statsMonth(monShift(k, -1)), open = S.stOpen || '';
   const nb = d.bookIds.length, nq = d.mine.length, nt = d.talks.length, ng = d.given.length;
   const lead = !nq && !nt && !ng ? `${k === cur ? '이번 달은' : '이 달은'} 아직 남긴 기록이 없어요.`
     : [nq ? `<b>${nb}권</b>의 책에서 <b>${nq}개</b>의 밑줄을 찾고` : '', nt ? `<b>${nt}번</b>의 사유를 즐기고` : '', ng ? `<b>${ng}개</b>의 밑줄을 나눴어요` : ''].filter(Boolean).join(',<br>').replace(/고$/, '었어요').replace(/찾었어요$/, '찾았어요').replace(/즐기었어요$/, '즐겼어요') + '.';
-  const delta = (a, b) => k > first ? `<em class="${a > b ? 'up' : a < b ? 'dn' : ''}">지난달 ${b}</em>` : '';
-  const chev = '<svg class="s6-cv" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  const delta = (a, b) => { if (k <= first) return ''; const dd = a - b; return `<em class="${dd > 0 ? 'up' : dd < 0 ? 'dn' : ''}" aria-label="지난달 ${b}">${dd > 0 ? `+${dd}` : dd < 0 ? `−${-dd}` : '±0'}</em>`; };
   const qrow = (q, t, extra) => `<button class="s6-i" data-action="openQuote" data-id="${esc(q.id)}"><b>${esc(q.text)}</b><small>${extra ? `${esc(extra)} · ` : ''}『${esc(shortTitle((S.docs[q.bookId] || {}).title || '', 14))}』 · ${fmtDate(t)}</small></button>`;
   const bookRows = d.bookIds.map(id => ({ b: S.docs[id], n: d.mine.filter(q => q.bookId === id).length })).sort((a, b) => b.n - a.n);
   const giftTo = q => ((q.gifts || []).slice(-1)[0] || {}).to;
-  const steps = [
-    { k: 'b', n: nb, u: '권', l: '책을 펼치고', d: delta(nb, pv.bookIds.length),
-      pre: bookRows.length ? `<span class="s6-cvs">${bookRows.slice(0, 5).map(x => coverHTML(x.b, 'sm')).join('')}</span>` : '',
-      list: bookRows.map(x => `<button class="s6-i s6-ib" data-action="pickBookHome" data-id="${esc(x.b.id)}">${coverHTML(x.b, 'sm')}<b>${esc(splitTitle(x.b.title).main)}</b><small>밑줄 ${x.n}</small></button>`).join('') },
-    { k: 'q', n: nq, u: '개', l: '밑줄을 찾고', d: delta(nq, pv.mine.length), pre: d.mine[0] ? `<span class="s6-pre">${esc(d.mine[0].text)}</span>` : '', list: d.mine.slice(0, 60).map(q => qrow(q, q.createdAt)).join('') },
-    { k: 't', n: nt, u: '번', l: '사유를 즐기고', d: delta(nt, pv.talks.length), pre: d.talks[0] ? `<span class="s6-pre">${esc((d.talks[0].summary || {}).title || '이름 없는 사유')}</span>` : '',
-      list: d.talks.map(t => `<button class="s6-i" data-action="openTalk" data-id="${esc(t.id)}"><b>${esc((t.summary || {}).title || '이름 없는 사유')}</b><small>『${esc(shortTitle((S.docs[t.bookId] || {}).title || t.bookTitle || '', 14))}』 · ${fmtDate(t.savedAt)}</small></button>`).join('') },
-    { k: 'g', n: ng, u: '개', l: '밑줄을 나눴어요', d: delta(ng, pv.given.length), pre: d.given[0] ? `<span class="s6-pre">${giftTo(d.given[0]) ? `${esc(giftTo(d.given[0]))}에게 · ` : ''}${esc(d.given[0].text)}</span>` : '',
-      list: d.given.map(q => qrow(q, q.given || q.createdAt, giftTo(q) ? `${giftTo(q)}에게` : '')).join('') }];
+  const tiles = [
+    { k: 'b', n: nb, u: '권', l: '펼친 책', d: delta(nb, pv.bookIds.length), list: bookRows.map(x => `<button class="s6-i s6-ib" data-action="openBook" data-id="${esc(x.b.id)}">${coverHTML(x.b, 'sm')}<b>${esc(splitTitle(x.b.title).main)}</b><small>밑줄 ${x.n}</small></button>`) },
+    { k: 'q', n: nq, u: '줄', l: '찾은 밑줄', d: delta(nq, pv.mine.length), list: d.mine.slice(0, 60).map(q => qrow(q, q.createdAt)) },
+    { k: 't', n: nt, u: '번', l: '즐긴 사유', d: delta(nt, pv.talks.length), list: d.talks.map(t => `<button class="s6-i" data-action="openTalk" data-id="${esc(t.id)}"><b>${esc((t.summary || {}).title || '이름 없는 사유')}</b><small>『${esc(shortTitle((S.docs[t.bookId] || {}).title || t.bookTitle || '', 14))}』 · ${fmtDate(t.savedAt)}</small></button>`) },
+    { k: 'g', n: ng, u: '개', l: '나눈 밑줄', d: delta(ng, pv.given.length), list: d.given.map(q => qrow(q, q.given || q.createdAt, giftTo(q) ? `${giftTo(q)}에게` : '')) }];
+  const ot = tiles.find(t => t.k === open && t.n);
+  const list = ot ? `<div class="sx-list"><div class="sx-lh"><b>${m}월의 ${ot.l}</b><span>${ot.n}${ot.u}</span></div>${(S.stAll === ot.k ? ot.list : ot.list.slice(0, 5)).join('')}${S.stAll !== ot.k && ot.list.length > 5 ? `<button class="s6-all" data-action="stAll" data-k="${ot.k}">${ot.n}${ot.u} 모두 보기</button>` : ''}</div>` : '';
   const months = [...Array(6)].map((_, i) => monShift(cur, i - 5)).map(key => ({ key, m: +key.slice(5), n: qsAll.filter(q => !q.from && monKey(q.createdAt) === key).length }));
   const mMax = Math.max(1, ...months.map(x => x.n));
-  const tot = { b: new Set(qsAll.filter(q => !q.from).map(q => q.bookId)).size, q: qsAll.filter(q => !q.from).length, t: savedTalks().length, g: qsAll.filter(isGiven).length };
   const extra = [d.sealed.length ? `각인 ${d.sealed.length}` : '', d.got.length ? `받은 밑줄 ${d.got.length}` : ''].filter(Boolean);
-  return `<div class="sv s6">
-    <div class="sv-hero"><div class="sv-mn"><button data-action="stMon" data-d="-1" ${k <= first ? 'disabled' : ''} aria-label="이전 달">‹</button><b>${y}년 ${m}월</b><button data-action="stMon" data-d="1" ${k >= cur ? 'disabled' : ''} aria-label="다음 달">›</button></div>
-      <p class="sv-sum">${lead}</p>${extra.length ? `<div class="s6-ex">${extra.map(x => `<span>${x}</span>`).join('')}</div>` : ''}</div>
+  return `<section class="sx-hero">
+      <div class="sx-mn"><button data-action="stMon" data-d="-1" ${k <= first ? 'disabled' : ''} aria-label="이전 달"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><b>${y}년 ${m}월</b><button data-action="stMon" data-d="1" ${k >= cur ? 'disabled' : ''} aria-label="다음 달"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+      <p class="sx-sum">${lead}</p>
+      ${extra.length ? `<div class="sx-ex">${extra.map(x => `<span>${x}</span>`).join('')}</div>` : ''}
+    </section>
+    <div class="sx-tiles">${tiles.map(t => `<button class="sx-tile${ot && ot.k === t.k ? ' on' : ''}" ${t.n ? `data-action="stOpen" data-k="${t.k}" aria-expanded="${!!(ot && ot.k === t.k)}"` : 'disabled'}><strong>${t.n}<small>${t.u}</small></strong><span>${t.l}</span>${t.d}</button>`).join('')}</div>
+    ${list}
     ${statsCal(k, d)}
-    <ol class="s6-flow">${steps.map((st, i) => `<li class="s6-st${st.n ? '' : ' zero'}${open === st.k ? ' open' : ''}">
-      <button class="s6-h" ${st.n ? `data-action="stOpen" data-k="${st.k}"` : 'disabled'}><i class="s6-n">${i + 1}</i><span class="s6-l"><b>${st.l}</b>${st.pre || '<span class="s6-pre">이 달은 아직 없어요</span>'}</span><span class="s6-v"><strong>${st.n}<small>${st.u}</small></strong>${st.d}</span>${st.n ? chev : ''}</button>
-      ${open === st.k ? `<div class="s6-list">${S.stAll === st.k ? st.list : st.list.split('</button>').filter(Boolean).slice(0, 5).map(x => x + '</button>').join('')}${S.stAll !== st.k && st.list.split('</button>').filter(Boolean).length > 5 ? `<button class="s6-all" data-action="stAll" data-k="${st.k}">${st.n}${st.u} 모두 보기</button>` : ''}</div>` : ''}</li>`).join('')}</ol>
-    <section class="sv-s s6-chart"><div class="sv-h"><b>달마다 찾은 밑줄</b><span>최근 6개월</span></div>
-      <div class="sv-m">${months.map(x => `<button data-action="stMon" data-k="${x.key}" class="${x.key === k ? 'on' : ''}" ${x.key < first ? 'disabled' : ''}><b>${x.n || ''}</b><span class="sv-mb"><i style="height:${Math.max(4, Math.round(x.n / mMax * 100))}%"></i></span><small>${x.m}월</small></button>`).join('')}</div></section>
-    <div class="sp-lb">지금까지</div>
-    <div class="s6-tot"><div><b>${tot.b}</b><span>권</span></div><div><b>${tot.q}</b><span>밑줄</span></div><div><b>${tot.t}</b><span>사유</span></div><div><b>${tot.g}</b><span>선물</span></div></div>
-    ${(gs => gs.length ? `<div class="sp-lb">보낸 선물 <span>${gs.length}</span></div><div class="pg-list">${gs.slice(0, 12).map(x => `<button class="pg-row" data-action="openQuote" data-id="${esc(x.q.id)}"><span class="pg-rt">${esc(x.q.text)}</span><span class="pg-rs">${x.to ? `${esc(x.to)}에게 · ` : ''}${fmtDate(x.at)}</span></button>`).join('')}</div>` : '')(qsAll.flatMap(q => (q.gifts && q.gifts.length ? q.gifts : q.given ? [{ to: '', at: q.given }] : []).map(g => ({ q, to: g.to, at: g.at }))).sort((a, b) => b.at - a.at))}
-  </div>`;
+    <section class="sx-card sx-chart"><div class="sx-h"><b>달마다 찾은 밑줄</b><span>최근 6개월</span></div>
+      <div class="sv-m">${months.map(x => `<button data-action="stMon" data-k="${x.key}" class="${x.key === k ? 'on' : ''}" ${x.key < first ? 'disabled' : ''} aria-label="${x.m}월 밑줄 ${x.n}줄"><b>${x.n || ''}</b><span class="sv-mb"><i style="height:${Math.max(4, Math.round(x.n / mMax * 100))}%"></i></span><small>${x.m}월</small></button>`).join('')}</div></section>`;
+}
+function statsTotalSec(){
+  const qsAll = quotesOf();
+  const tot = { b: new Set(qsAll.filter(q => !q.from).map(q => q.bookId)).size, q: qsAll.filter(q => !q.from).length, t: savedTalks().length, g: qsAll.filter(isGiven).length };
+  const gs = qsAll.flatMap(q => (q.gifts && q.gifts.length ? q.gifts : q.given ? [{ to: '', at: q.given }] : []).map(g => ({ q, to: g.to, at: g.at }))).sort((a, b) => b.at - a.at);
+  return `<section class="sx-tot"><div class="sx-h"><b>지금까지</b></div>
+    <div class="sx-tn"><span><b>${tot.b}</b>권</span><span><b>${tot.q}</b>밑줄</span><span><b>${tot.t}</b>사유</span><span><b>${tot.g}</b>선물</span></div>
+    ${gs.length ? `<details class="sx-gifts"><summary>보낸 선물 ${gs.length}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><div class="pg-list">${gs.slice(0, 30).map(x => `<button class="pg-row" data-action="openQuote" data-id="${esc(x.q.id)}"><span class="pg-rt">${esc(x.q.text)}</span><span class="pg-rs">${x.to ? `${esc(x.to)}에게 · ` : ''}${fmtDate(x.at)}</span></button>`).join('')}</div></details>` : ''}
+  </section>`;
 }
 /* ===== 여백의 글방: 선명이와 나눈 사유를 모아 여백이가 일기·수필로 엮어 줌 (문서 kind 'work') ===== */
 const WK_TONE = { calm: ['담담하게', '감정을 과장하지 않고 차분하고 절제된 문장으로'], warm: ['따뜻하게', '스스로를 다독이는 따뜻하고 부드러운 문장으로'], letter: ['편지처럼', '미래의 나에게 보내는 편지처럼, 존댓말로'] };
@@ -6982,40 +7060,42 @@ const WRITER_ACTIONS = {
   wDel: async () => { const w = S.docs[S.workId]; if (!w) return; if (await confirmSheet('이 원고를 지울까요?')) { if (WR.id === w.id) WR = { id: '', run: false, text: '', abort: null, spec: null, err: '' }; back(); await del(w.id); toast('원고를 지웠어요'); } }
 };
 /* ===== 다 읽은 책 서가: 완독한 책을 해마다 모아 꽂아 둠 ===== */
-function doneShelfView(){
+function doneSec(){
   const fin = b => b.finishedAt || b.updatedAt || 0;
   const all0 = books().filter(b => b.status === 'done');
-  if (!all0.length) return `<div class="dn-empty"><div class="dn-eshelf"><i></i><i></i><i></i></div><b>아직 다 읽은 책이 없어요</b><p>책 화면에서 읽기 상태를 ‘다 읽었어요’로 바꾸면<br>첫 화면에서 이 서가로 옮겨 꽂아 드려요.</p></div>`;
-  const qc = {}; all('quote').forEach(q => { qc[q.bookId] = (qc[q.bookId] || 0) + 1; });   /* 책마다 밑줄 수를 한 번에 세어 둠 (기록이 많아도 빠르게) */
-  const nq = b => qc[b.id] || 0, ts = savedTalks();
+  const head = n => `<div class="sx-h"><b>다 읽은 책</b><span>${n}</span></div>`;
+  if (!all0.length) return `<section class="sx-done" id="st-done">${head('')}<div class="sx-dempty"><div class="dn-eshelf"><i></i><i></i><i></i></div><p>책 화면에서 읽기 상태를 ‘다 읽음’으로 바꾸면<br>이 서가에 꽂아 드려요.</p></div></section>`;
+  const qc = {}; all('quote').forEach(q => { qc[q.bookId] = (qc[q.bookId] || 0) + 1; });
+  const nq = b => qc[b.id] || 0;
   const srt = S.dnSort || 'recent';
   const bs = all0.slice().sort(srt === 'rating' ? (a, b) => (b.rating || 0) - (a.rating || 0) || fin(b) - fin(a) : srt === 'lines' ? (a, b) => nq(b) - nq(a) || fin(b) - fin(a) : (a, b) => fin(b) - fin(a));
   const yr = b => b.finishedAt ? new Date(b.finishedAt + KST).getUTCFullYear() : 0, thisY = new Date(Date.now() + KST).getUTCFullYear();
-  const totQ = all0.reduce((t, b) => t + nq(b), 0), totT = ts.filter(t => all0.some(b => b.id === t.bookId)).length, yN = all0.filter(b => yr(b) === thisY).length;
-  /* 책등: 쪽수에 따라 높이·두께가 조금씩 다르게 */
-  /* 책등: 최근에 다 읽은 책부터 왼쪽에. 쪽수에 따라 높이·두께가 조금씩 다르게, 제목은 책등 길이만큼만 */
+  const yN = all0.filter(b => yr(b) === thisY).length, totQ = all0.reduce((t, b) => t + nq(b), 0);
+  /* 책등: 최근에 다 읽은 책부터. 쪽수에 따라 높이·두께가 조금씩 다르게 */
   const spines = all0.slice().sort((a, b) => fin(b) - fin(a)).slice(0, 40).map(b => { const pg = b.totalPages || 260, h = Math.max(74, Math.min(100, 66 + pg / 12)), w = Math.max(20, Math.min(32, 15 + pg / 36));
     return `<button class="dn-sp" data-action="openBook" data-id="${esc(b.id)}" style="--c:${spineColor(b.title)};height:${Math.round(h)}%;width:${Math.round(w)}px" aria-label="${esc(splitTitle(b.title).main)}"><span${splitTitle(b.title).main.replace(/\s/g, '').length > 7 ? ' class="lg"' : ''}>${esc(splitTitle(b.title).main)}</span></button>`; }).join('') + '<i class="dn-end" aria-hidden="true"></i>';
   const card = b => { const n = nq(b);
     return `<button class="dn-c" data-action="openBook" data-id="${esc(b.id)}"><span class="dn-cv">${coverHTML(b, 'grid')}</span><span class="dn-t">${esc(splitTitle(b.title).main)}</span><span class="dn-a">${esc(authorShort(b) || '작가 미상')}</span><span class="dn-d">${b.finishedAt ? `<span>${fmtDate(b.finishedAt).replace(/^\d{4}\./, '')}</span>` : ''}${b.rating ? `<i class="dn-r">★${b.rating}</i>` : ''}${n ? `<em>밑줄 ${n}</em>` : ''}</span></button>`; };
+  const LIM = 6, shown = S.dnAll ? bs : bs.slice(0, LIM);
   let body;
-  if (srt === 'recent') { const by = {}; bs.forEach(b => (by[yr(b)] = by[yr(b)] || []).push(b));
-    body = Object.keys(by).sort((a, b) => b - a).map(y => `<section class="dn-y"><div class="dn-yh"><b>${+y ? y : '날짜 없음'}</b><span>${by[y].length}권${(q => q ? ` · 밑줄 ${q}` : '')(by[y].reduce((t, b) => t + nq(b), 0))}</span></div><div class="dn-g">${by[y].map(card).join('')}</div></section>`).join(''); }
-  else body = `<section class="dn-y"><div class="dn-g">${bs.map(card).join('')}</div></section>`;
-  return `<div class="dns">
-    <div class="dn-hero">
-      <div class="dn-hl"><span class="dn-k">끝까지 읽은 책</span><b>${all0.length}<small>권</small></b><span class="dn-s">${yN ? `올해 ${yN}권` : ''}${totQ ? `${yN ? ' · ' : ''}밑줄 ${totQ}줄` : ''}${totT ? ` · 사유 ${totT}` : ''}</span></div>
-      <div class="dn-shelf${all0.length > 9 ? ' dn-many' : ''}"><div class="dn-row">${spines}</div></div>
-    </div>
-    ${all0.length > 1 ? `<div class="sp-seg dn-seg">${[['recent', '최근 완독'], ['rating', '별점 순'], ['lines', '밑줄 많은 순']].map(([v, l]) => `<button data-action="dnSort" data-v="${v}" class="${srt === v ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}
+  if (srt === 'recent') { const by = {}; shown.forEach(b => (by[yr(b)] = by[yr(b)] || []).push(b));
+    const full = {}; bs.forEach(b => { full[yr(b)] = (full[yr(b)] || 0) + 1; });
+    body = Object.keys(by).sort((a, b) => b - a).map(y => `<section class="dn-y"><div class="dn-yh"><b>${+y ? y : '날짜 없음'}</b><span>${full[y]}권</span></div><div class="dn-g">${by[y].map(card).join('')}</div></section>`).join(''); }
+  else body = `<section class="dn-y"><div class="dn-g">${shown.map(card).join('')}</div></section>`;
+  return `<section class="sx-done" id="st-done">
+    ${head(`${all0.length}권${yN ? ` · 올해 ${yN}권` : ''}${totQ ? ` · 밑줄 ${totQ}줄` : ''}`)}
+    <div class="dn-shelf sx-shelf${all0.length > 9 ? ' dn-many' : ''}"><div class="dn-row">${spines}</div></div>
+    ${all0.length > 1 ? `<div class="sx-seg" role="group" aria-label="다 읽은 책 정렬">${[['recent', '최근 완독'], ['rating', '별점 순'], ['lines', '밑줄 많은 순']].map(([v, l]) => `<button data-action="dnSort" data-v="${v}" aria-pressed="${srt === v}">${l}</button>`).join('')}</div>` : ''}
     ${body}
-    <p class="dn-tip">다시 읽을 책은 책 화면에서 읽기 상태를 바꾸면<br>첫 화면으로 돌아가요.</p>
-  </div>`;
+    ${bs.length > LIM ? `<button class="sx-more" data-action="dnAll">${S.dnAll ? '접기' : `${bs.length}권 모두 보기`}</button>` : ''}
+    <p class="dn-tip">다시 읽을 책은 책 화면에서 읽기 상태를 바꾸면 첫 화면으로 돌아가요.</p>
+  </section>`;
 }
+function stScrollDone(){ setTimeout(() => { const o = $('#ov'), el = $('#st-done'); if (o && el) o.scrollTo({ top: el.getBoundingClientRect().top - o.getBoundingClientRect().top + o.scrollTop - 8, behavior: 'smooth' }); }, 60); }
 const STATS_ACTIONS = {
-  doneShelf: () => { S.stTab = 'done'; if (S.view === 'stats') { render(); return; } go('stats', {}); },
+  doneShelf: () => { if (S.view !== 'stats') { S.stMonth = ''; S.stOpen = ''; go('stats', {}); } stScrollDone(); },
+  dnAll: () => { S.dnAll = !S.dnAll; render(); },
   writer: () => { if (S.view === 'write') return; go('write', {}); },
-  stTab: el => { S.stTab = el.dataset.v; render(); const o = $('#ov'); if (o) o.scrollTop = 0; },
   dnSort: el => { S.dnSort = el.dataset.v; render(); },
   startRead: el => setStatus(el.dataset.id, 'reading'),
   bkRate: el => { const b = S.docs[el.dataset.id]; if (!b) return; const r = +el.dataset.r, nr = b.rating === r ? 0 : r; put(b.id, { ...stripId(b), rating: nr, updatedAt: Date.now() }); render(); toast(nr ? `별 ${nr}개를 남겼어요` : '별점을 지웠어요'); },
@@ -7026,7 +7106,7 @@ const STATS_ACTIONS = {
   bookEdit: el => bookForm(el.dataset.id),
   srMore: () => { S.srLim = (S.srLim || 40) + 80; refreshResults(); },
   srchSet: el => { S.srLim = 0; const i = $('#srch'); S.q = el.dataset.q; if (i) { i.value = S.q; } refreshResults(); },
-  stats: () => { if (S.view === 'stats') { if (S.stTab === 'done') { S.stTab = 'month'; render(); } return; } S.stMonth = ''; S.stOpen = ''; S.stTab = 'month'; go('stats', {}); },
+  stats: () => { if (S.view === 'stats') { const o = $('#ov'); if (o) o.scrollTo({ top: 0, behavior: 'smooth' }); return; } S.stMonth = ''; S.stOpen = ''; go('stats', {}); },
   stMon: el => { S.stMonth = el.dataset.k || monShift(S.stMonth || monKey(Date.now()), +el.dataset.d); S.stOpen = ''; render(); const o = $('#ov'); if (o) o.scrollTop = 0; },
   stDay: el => statsDaySheet(el.dataset.k),
   stOpen: el => { S.stOpen = S.stOpen === el.dataset.k ? '' : el.dataset.k; S.stAll = ''; render(); },
