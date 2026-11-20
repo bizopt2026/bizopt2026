@@ -3786,6 +3786,9 @@ body[data-theme="dark"] .chat{--accent:#C9D0F0;--accent-soft:#232A4A}
 .inputrow .send{background:var(--inkbg)!important;color:var(--onink)!important}
 .inputrow .send:disabled{background:var(--soft)!important;color:var(--muted)!important}
 body[data-theme="dark"] .chat-quote{background:var(--paper)!important}
+.ch-sep{align-self:center;display:flex;align-items:center;gap:10px;width:100%;margin:14px 0 6px;font-size:11px;color:var(--muted)}
+.ch-sep::before,.ch-sep::after{content:"";flex:1;height:1px;background:var(--line)}
+.ch-sep.past{margin-top:2px}
 </style>
 </head>
 <body>
@@ -4710,7 +4713,7 @@ function talkView(){
       <div class="nar-orn" aria-hidden="true"><i></i><i></i><i></i></div>
       ${paras.length ? `<div class="nar-end">${fmtDate(t.savedAt)}에 남긴 사유</div>` : ''}
     </article>
-    ${live ? `<div class="nar-acts"><button class="btn nar-cont" data-action="chat" data-id="${esc(t.quoteId)}">이어서 이야기하기</button><button class="btn ghost nar-gift" data-action="shareCard" data-id="${esc(t.quoteId)}">${gift}선물하기</button></div>` : ''}
+    ${live ? `<div class="nar-acts"><button class="btn nar-cont" data-action="chatCont" data-id="${esc(t.id)}">이어서 이야기하기</button><button class="btn ghost nar-gift" data-action="shareCard" data-id="${esc(t.quoteId)}">${gift}선물하기</button></div>` : ''}
     <div class="nar-tools">
       <button data-action="copyTalk" data-id="${esc(t.id)}">복사</button>
       ${sample && (t.messages || []).length ? `<button data-action="storyRe" data-id="${esc(t.id)}">다시 정리</button>` : ''}
@@ -5386,7 +5389,8 @@ function apiMessages(c){
   if (c.type === 'rec') return [{ role: 'user', content: recPrompt(c) + '\n\n이제 독자에게 먼저 말을 건네 주세요.' }, ...c.messages.map(m => ({ role: m.role, content: m.content }))];
   const q = S.docs[c.quoteId] || { text: c.quoteText }, b = S.docs[c.bookId] || { title: c.bookTitle };
   const pic = c.firstImage ? '\n\n첨부한 사진은 독자가 방금 찍은 이 책의 페이지입니다(형광펜이나 밑줄이 그어져 있을 수 있습니다). 독자가 고른 문장과 그 주변을 직접 보고, 바로 그 자리에 머문 독자의 마음을 알아차린 듯 이야기를 시작하세요.' : '';
-  const opener = systemPrompt(b, q) + (c.revisit ? revisitBlock(q) : '') + (q.mood ? `\n[독자가 채집할 때 남긴 마음 한 단어] ${q.mood}\n` : '') + pic + `\n\n이제 선명이로서 독자에게 먼저 말을 건네 주세요. 밑줄 그은 문장을 짧게 짚고, 되묻는 질문 하나로 시작하세요.${q.feeling ? ' 독자가 남긴 생각과 감정에서 출발하세요.' : ' 독자가 왜 이 문장에서 멈췄는지 궁금해해 주세요.'}`;
+  const contBlock = c.contOf ? `\n[이어서 나누는 대화]\n아래 대화는 독자와 ${c.contAt ? fmtDate(c.contAt) : '예전'}에 나눈 이야기이고, 독자가 그 이야기를 이어서 하려고 다시 왔습니다. 인사나 첫 질문을 되풀이하지 말고, 앞의 흐름과 독자가 한 말을 기억한 채 자연스럽게 이어 가세요.\n` : '';
+  const opener = systemPrompt(b, q) + contBlock + (c.revisit ? revisitBlock(q) : '') + (q.mood ? `\n[독자가 채집할 때 남긴 마음 한 단어] ${q.mood}\n` : '') + pic + `\n\n이제 선명이로서 독자에게 먼저 말을 건네 주세요. 밑줄 그은 문장을 짧게 짚고, 되묻는 질문 하나로 시작하세요.${q.feeling ? ' 독자가 남긴 생각과 감정에서 출발하세요.' : ' 독자가 왜 이 문장에서 멈췄는지 궁금해해 주세요.'}`;
   return [{ role: 'user', content: opener }, ...c.messages.map(m => ({ role: m.role, content: m.content }))];
 }
 
@@ -5394,9 +5398,13 @@ function openChat(quoteId, image, opts = {}){
   const q = S.docs[quoteId]; if (!q) return;
   const b = S.docs[q.bookId] || {};
   const d = draftOf(quoteId);
+  /* 남긴 사유를 이어서: 그 대화를 그대로 펼치고 마지막 말에서 이어 감 (다시 남기면 그 사유를 고쳐 씀) */
+  const ct = !d && opts.cont && S.docs[opts.cont] && (S.docs[opts.cont].messages || []).length ? S.docs[opts.cont] : null;
+  const cont = d && d.contOf ? { contOf: d.contOf, contN: d.contN || 0, contAt: d.contAt || 0 } : ct ? { contOf: ct.id, contN: ct.messages.length, contAt: ct.savedAt || ct.updatedAt || 0 } : {};
   S.chat = { talkId: d ? d.id : newId('talk'), quoteId, bookId: q.bookId, quoteText: q.text, bookTitle: b.title || '',
-             messages: d ? [...(d.messages || [])] : (opts.seed ? opts.seed.map(m => ({ ...m, ts: Date.now() })) : []), createdAt: d ? d.createdAt : Date.now(), busy: false, stream: '', writes: Promise.resolve(),
-             firstImage: (!d && image && canSeeImages) ? image : null, revisit: !d && !!opts.revisit };
+             messages: d ? [...(d.messages || [])] : ct ? ct.messages.map(m => ({ ...m })) : (opts.seed ? opts.seed.map(m => ({ ...m, ts: Date.now() })) : []), createdAt: d ? d.createdAt : ct ? ct.createdAt || Date.now() : Date.now(), busy: false, stream: '', writes: Promise.resolve(),
+             firstImage: (!d && !ct && image && canSeeImages) ? image : null, ...cont,
+             revisit: !d && !ct && (!!opts.revisit || savedTalks(quoteId).length > 0) };
   if (S.view !== 'chat') pushView();
   S.view = 'chat'; closeSheet(); render();
   if (opts.seed && !d) saveDraft(S.chat);
@@ -5431,8 +5439,10 @@ function renderChatMsgs(){
   let h = c.type === 'rec' ? `<p class="note">선명이가 당신의 서재와 밑줄을 보고 책을 추천해요. 추천된 책은 서점에서 한 번 확인해 주세요.</p>`
     : c.messages.length || c.busy ? `<p class="note">${AI_NAME}이가 묻고, 당신이 답해요</p>` : '';
   const av = `<span class="m-av">${SM_AVATAR(28)}</span>`;
-  h += c.messages.map((m, i) => { const first = m.role !== 'user' && (i === 0 || c.messages[i - 1].role === 'user');
-    return m.role === 'user' ? `<div class="msg u">${esc(m.content)}</div>` : `<div class="mrow${first ? ' first' : ''}">${first ? av : '<span class="m-av"></span>'}<div class="msg a">${esc(m.content)}</div></div>`; }).join('');
+  const cn = c.contOf ? c.contN || 0 : -1;
+  if (cn > 0) h += `<p class="ch-sep past">${c.contAt ? `${fmtDate(c.contAt)}에 나눈 이야기` : '지난 이야기'}</p>`;
+  h += c.messages.map((m, i) => { const first = m.role !== 'user' && (i === 0 || i === cn || c.messages[i - 1].role === 'user');
+    return (i === cn && cn > 0 ? '<p class="ch-sep">여기서부터 이어서</p>' : '') + (m.role === 'user' ? `<div class="msg u">${esc(m.content)}</div>` : `<div class="mrow${first ? ' first' : ''}">${first ? av : '<span class="m-av"></span>'}<div class="msg a">${esc(m.content)}</div></div>`); }).join('') + (cn > 0 && c.messages.length === cn && !c.busy ? '<p class="ch-sep">여기서부터 이어서</p>' : '');
   if (c.busy) h += `<div class="mrow${!c.messages.length || c.messages[c.messages.length - 1].role === 'user' ? ' first' : ''}">${av}<div class="msg a" id="stream">${c.stream ? esc(c.stream) : '<span class="typing"><i></i><i></i><i></i></span>'}</div></div><button class="link stopw" data-action="stopWait">그만 기다리기</button>`;
   else if (!sample) h += `<p class="note center">이 화면에서는 선명이를 불러올 수 없어요.</p>`;
   else if (!c.messages.length) h += `<div class="ch-start">${SM_AVATAR(44)}<b>${c.type === 'rec' ? '다음에 읽을 책을 함께 찾아볼까요?' : '이 밑줄을 두고 이야기해 볼까요?'}</b><p>${AI_NAME}이가 먼저 물어볼게요. 편하게 답하면 돼요.</p><button class="btn accent" data-action="retry">대화 시작하기</button></div>`;
@@ -5442,7 +5452,8 @@ function renderChatMsgs(){
     if (c.type !== 'rec' && ut >= 3 && ut - (c.offerAt || 0) >= 3)
       h += `<div class="offer2"><div class="of-h">${SM_AVATAR(22)}<b>오늘 나눈 마음을 사유로 남겨 둘까요?</b></div><p>${AI_NAME}이가 한 편의 글로 정리해 드려요.</p><div class="of-a"><button class="btn small ghost" data-action="offerLater">조금 더 이야기할게요</button><button class="btn small accent" data-action="saveEmpathy">사유로 남기기</button></div></div>`;
     const lastA = c.messages[c.messages.length - 1];
-    const qr = (lastA.sugg && lastA.sugg.length) ? lastA.sugg
+    const qr = cn > 0 && c.messages.length === cn ? ['그 뒤로 더 생각난 게 있어요', '지금 다시 읽으니 느낌이 달라요']
+      : (lastA.sugg && lastA.sugg.length) ? lastA.sugg
       : c.type === 'rec' ? (ut >= 2 ? ['이제 추천해 주세요', '조금 더 이야기할게요'] : [])
       : ut === 0 ? ['그 장면이 오래 남았어요', '왜 이렇게 쓰셨는지 궁금해요'] : [];
     if (qr.length) h += `<div class="quick">${qr.map(t => `<button data-action="quick" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>`;
@@ -5464,7 +5475,7 @@ function updateStream(){
 function saveDraft(c){
   if (c.type === 'rec') return Promise.resolve();
   const data = { kind: 'talk', status: 'draft', quoteId: c.quoteId, bookId: c.bookId, quoteText: c.quoteText, bookTitle: c.bookTitle,
-                 messages: c.messages.slice(), createdAt: c.createdAt, updatedAt: Date.now() };
+                 messages: c.messages.slice(), createdAt: c.createdAt, updatedAt: Date.now(), ...(c.contOf ? { contOf: c.contOf, contN: c.contN, contAt: c.contAt } : {}) };
   c.writes = c.writes.then(() => put(c.talkId, data));
   return c.writes;
 }
@@ -5597,8 +5608,9 @@ ${transcript}
     const data = { kind: 'talk', status: 'saved', quoteId: c.quoteId, bookId: c.bookId, quoteText: c.quoteText, bookTitle: c.bookTitle,
                    authorName: authorName(b), messages: c.messages.slice(), summary, ...(story ? { story: { text: story, at: Date.now() } } : {}), createdAt: c.createdAt, savedAt: Date.now(), updatedAt: Date.now() };
     closeSheet();
-    const id = c.talkId;
-    c.writes = c.writes.then(() => put(id, data));
+    const orig = c.contOf && S.docs[c.contOf] ? S.docs[c.contOf] : null, id = orig ? orig.id : c.talkId;
+    if (orig) data.createdAt = orig.createdAt || data.createdAt;
+    c.writes = c.writes.then(() => put(id, data)).then(() => orig && S.docs[c.talkId] ? del(c.talkId) : null);
     logActivity();
     S.chat = null; S.view = 'talk'; S.talkId = id; render();
     toast('사유를 남겼어요');
@@ -7639,6 +7651,7 @@ const A = {
     if (v === (q.feeling || '')) { S.feelEdit = ''; render(); return; }
     S.feelEdit = ''; await put(q.id, { ...stripId(q), feeling: v, updatedAt: Date.now() }); render(); toast(v ? '내 마음을 남겼어요' : '내 마음을 지웠어요'); },
   chat: el => openChat(el.dataset.id),
+  chatCont: el => { const t = S.docs[el.dataset.id]; if (t) openChat(t.quoteId, null, { cont: t.id }); },
   leaveChat, chatMenu, send, saveEmpathy,
   retry: () => askAuthor(),
   openTalk: el => go('talk', { talkId: el.dataset.id }),
