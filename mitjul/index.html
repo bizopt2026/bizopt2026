@@ -3699,6 +3699,65 @@ body.ov-open .top{box-shadow:0 0 0 100vmax var(--paper)!important}
 .pq-go .sm-av{flex:none;border-radius:50%}
 .pq-go.resume{background:var(--accent);color:var(--on-accent)}
 .pq-sb:active,.pq-go:active{transform:scale(.97)}
+/* ===== 책 상세 개편: 카드 대신 종이 위 · 숫자 한 줄 · 쪽 순서 색인 · 하단 밑줄 긋기 ===== */
+#ov .ov-in:has(>.bx){min-height:100%;display:flex;flex-direction:column;padding-bottom:0!important}
+.bx{flex:1;display:flex;flex-direction:column}
+#ov .bx>.pq-bar{margin-top:auto}
+.bx-hero{display:flex;gap:18px;align-items:flex-end;padding:4px 4px 0;position:relative}
+.bx-cv .cover{--w:88px;box-shadow:0 10px 22px rgba(20,26,46,.22),0 2px 5px rgba(20,26,46,.12)}
+.bx-cv .cover .cv-t{font-size:12px!important}
+.bx-info{flex:1;min-width:0;padding-right:28px}
+.bx-info h1{margin:0;font-size:22px;line-height:1.3;font-weight:700;letter-spacing:-.02em;word-break:keep-all}
+.bx-sub{font-size:var(--t4);color:var(--ink2);margin-top:2px;line-height:1.45}
+.bx-a{font-size:var(--t4);color:var(--muted);margin-top:4px}
+.bx-meta{font-size:12px;color:var(--muted);margin-top:1px}
+.bx-st{display:inline-flex;align-items:center;gap:6px;margin-top:10px;height:34px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:var(--t4);font-weight:500;color:var(--ink)}
+.bx-st i{width:7px;height:7px;border-radius:50%;background:var(--d)}
+.bx-st svg{color:var(--muted)}
+.bx-menu{position:absolute;top:-6px;right:-6px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.bx-menu:active{background:var(--soft)}
+.bx-rate{display:flex;align-items:center;gap:2px;margin:14px 4px 0}
+.bx-rate button{font-size:20px;line-height:1;width:32px;height:32px;color:color-mix(in srgb,var(--ink) 18%,transparent)}
+.bx-rate button.on{color:#E0B83A}
+.bx-rate em{font-style:normal;font-size:var(--t4);color:var(--muted);margin-left:6px}
+.bx-prog{margin:14px 4px 0}
+.bx-pg{display:grid;gap:6px;width:100%;text-align:left;padding:0}
+.bx-bar{display:block;height:4px;border-radius:99px;background:color-mix(in srgb,var(--ink) 10%,transparent);overflow:hidden}
+.bx-bar>i{display:block;height:100%;border-radius:99px;background:var(--ink)}
+body[data-theme="dark"] .bx-bar>i{background:#F7DC6F}
+.bx-pg em{font-style:normal;font-size:var(--t4);color:var(--muted)}
+.bx-pg em b{color:var(--ink)}
+.bx-done{display:inline-flex;align-items:center;gap:6px;font-size:var(--t4);color:var(--ink2)}
+.bx-done i{font-style:normal;width:18px;height:18px;border-radius:50%;background:#3E9B74;color:#fff;display:grid;place-items:center;font-size:11px}
+.bx-nums{display:flex;align-items:baseline;gap:20px;margin:18px 4px 0;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.bx-nums span{font-size:var(--t4);color:var(--muted)}
+.bx-nums b{font-size:20px;color:var(--ink);margin-right:4px;font-weight:700}
+.bx-nums button{margin-left:auto;font-size:var(--t4);font-weight:500;color:var(--accent);text-decoration:underline;text-underline-offset:3px;padding:8px 0}
+.bx-tabs{display:flex;align-items:center;justify-content:space-between;margin:14px 4px 0}
+.bx-tabs [role=tablist]{display:flex;gap:20px}
+.bx-tabs [role=tab]{min-height:40px;padding:0;font-size:var(--t3);color:var(--muted)}
+.bx-tabs [role=tab].on{color:var(--ink);font-weight:700;box-shadow:inset 0 -2px 0 var(--ink)}
+.bx-sort{display:inline-flex;align-items:center;gap:4px;min-height:40px;font-size:var(--t4);color:var(--muted)}
+.bx-body{margin-top:4px}
+.bx-list{display:grid}
+.bx-q{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px;width:100%;text-align:left;padding:16px 4px;border-bottom:1px solid var(--line);color:var(--ink)}
+.bx-q:last-child{border-bottom:0}
+.bx-q:active{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.bx-p{font-size:12px;color:var(--muted);padding-top:4px;font-variant-numeric:tabular-nums}
+.bx-qb{display:grid;gap:6px;position:relative;min-width:0}
+.bx-qb .stps{position:static;justify-self:start;order:9}
+.bx-qb .stp{width:26px!important;height:26px!important;font-size:9px!important}
+.bx-qt{font-family:var(--f-quote);font-weight:500;font-size:var(--t3);line-height:1.85;word-break:keep-all}
+.bx-qt mark{background:none;color:inherit;text-decoration:underline;text-decoration-color:var(--ul);text-decoration-thickness:.3em;text-underline-offset:-.1em;text-decoration-skip-ink:none}
+.bx-qf{font-size:var(--t4);color:var(--ink2);line-height:1.6}
+.bx-chip{justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:500;color:var(--accent);background:var(--accent-soft);border-radius:99px;padding:2px 10px}
+.bx-qd{font-size:12px;color:var(--muted)}
+.bx-more{display:block;width:100%;margin-top:6px;min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:var(--t4);color:var(--ink2)}
+.bx .pb-empty{margin-top:10px}
+.bx-talks{margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.bx-bar2{margin-top:28px}
+.bx-ul{background:linear-gradient(transparent 72%,rgba(247,220,111,.9) 72%);padding:0 1px}
+body[data-theme="dark"] .bx-ul{background:linear-gradient(transparent 86%,#F7DC6F 86%)}
 </style>
 </head>
 <body>
@@ -4339,42 +4398,54 @@ function readingCard(b){
 function bookView(){
   const b = S.docs[S.bookId];
   if (!b) { S.view = 'home'; return homeView(); }
-  const qs = quotesOf(b.id), ts = savedTalks().filter(t => t.bookId === b.id), st = b.status || 'reading';
+  const qsNew = quotesOf(b.id), ts = savedTalks().filter(t => t.bookId === b.id), st = b.status || 'reading';
   const { main, sub } = splitTitle(b.title), au = splitAuthor(b.author);
   const meta = [b.publisher, b.totalPages ? `${b.totalPages}쪽` : ''].filter(Boolean);
   const p = b.totalPages ? pct(b) : 0;
-  const pen = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 4.2l4.6 4.6-7.4 7.4H6.8v-4.6z"/><path d="M7.4 11l4.6 4.6"/></svg>';
-  const chevD = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
-  const tabs = [['q', '밑줄', qs.length], ['t', '사유', ts.length]];
-  let tab = S.bkTab && S.bkBook === b.id && S.bkTab !== 'r' ? S.bkTab : 'q';
+  const pen = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.2 4.2l4.6 4.6-7.4 7.4H6.8v-4.6z"/><path d="M7.4 11l4.6 4.6"/></svg>';
+  const chevD = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  const tab = S.bkTab && S.bkBook === b.id && S.bkTab !== 'r' ? S.bkTab : 'q';
   const lim = S.bkLim && S.bkBook === b.id ? S.bkLim : 20;
-  const prog = st === 'done' ? `<span class="b4-pg done"><i class="b4-ck">✓</i>${b.finishedAt ? `${fmtDate(b.finishedAt)} 완독` : '다 읽었어요'}${b.startedAt && b.finishedAt ? ` · ${Math.max(1, Math.round((b.finishedAt - b.startedAt) / DAY))}일` : ''}</span>`
-    : st === 'want' ? '' : `<button class="b4-pg" data-action="progress" data-id="${esc(b.id)}"><span class="b4-bar"><i style="width:${p}%"></i></span><em>${b.totalPages ? `p.${b.currentPage || 0} / ${b.totalPages} · <b>${p}%</b>` : b.currentPage ? `p.${b.currentPage}까지` : '읽은 쪽 기록'}</em></button>`;
-  const qRow = x => `<button class="pg-row b4-q" data-action="openQuote" data-id="${esc(x.id)}">${stampsHTML(x)}<span class="pg-rt"><mark>${esc(x.text)}</mark></span><span class="pg-rs">${[x.page ? `p.${esc(x.page)}` : '', fmtDate(x.createdAt), x.mood ? esc(x.mood) : '', savedTalks(x.id).length ? `사유 ${savedTalks(x.id).length}` : ''].filter(Boolean).join(' · ')}</span></button>`;
-  const body = tab === 'q' ? (qs.length ? `<div class="pg-list">${qs.slice(0, lim).map(qRow).join('')}${qs.length > lim ? `<button class="pg-row pg-all" data-action="bkMore">더 보기 · ${qs.length - lim}개 남음</button>` : ''}</div>`
-        : `<div class="pb-empty">${st === 'want' ? '읽기 시작하면 이곳에 밑줄이 쌓여요.' : '아직 그은 밑줄이 없어요.'}${st !== 'want' ? `<button class="btn small accent" data-action="photo" data-book="${esc(b.id)}">${pen}밑줄 긋기</button>` : ''}</div>`)
-    : (ts.length ? `<div class="pg-list">${ts.map(storyRow).join('')}</div>` : `<div class="pb-empty">아직 나눈 사유가 없어요.<br>밑줄을 열어 ${AI_NAME}이와 이야기해 보세요.</div>`);
-  return `<div class="pb b4">
+  /* 쪽 순서(기본): 책의 색인처럼. 쪽이 없는 밑줄은 맨 뒤 */
+  const pg = x => { const n = parseInt(String(x.page || '').replace(/[^0-9]/g, ''), 10); return isNaN(n) ? Infinity : n; };
+  const byPage = (S.bkSort || 'page') === 'page';
+  const qs = byPage ? [...qsNew].sort((x, y) => (pg(x) - pg(y)) || (x.createdAt - y.createdAt)) : qsNew;
+  const nSeal = qsNew.filter(isSealed).length;
+  /* 읽은 정도: 기록이 있을 때만 막대, 없으면 한 줄 글자 버튼 */
+  const hasProg = st !== 'want' && st !== 'done' && (b.currentPage || 0) > 0;
+  const prog = st === 'done' ? `<span class="bx-done"><i>✓</i>${b.finishedAt ? `${fmtDate(b.finishedAt)} 완독` : '다 읽었어요'}${b.startedAt && b.finishedAt ? ` · ${Math.max(1, Math.round((b.finishedAt - b.startedAt) / DAY))}일` : ''}</span>`
+    : hasProg ? `<button class="bx-pg" data-action="progress" data-id="${esc(b.id)}">${b.totalPages ? `<span class="bx-bar"><i style="width:${p}%"></i></span>` : ''}<em>${b.totalPages ? `p.${b.currentPage} / ${b.totalPages} · <b>${p}%</b>` : `p.${b.currentPage}까지`}</em></button>` : '';
+  /* 별점: 매긴 별점이 있거나 다 읽은 책일 때만 */
+  const rate = b.rating || st === 'done' ? `<div class="bx-rate" role="radiogroup" aria-label="별점">${[1, 2, 3, 4, 5].map(r => `<button role="radio" aria-checked="${(b.rating || 0) === r}" aria-label="별 ${r}개" class="${(b.rating || 0) >= r ? 'on' : ''}" data-action="bkRate" data-id="${esc(b.id)}" data-r="${r}">★</button>`).join('')}${b.rating ? '' : '<em>별점 남기기</em>'}</div>` : '';
+  const qRow = x => { const n = savedTalks(x.id), t = n[0];
+    return `<button class="bx-q" data-action="openQuote" data-id="${esc(x.id)}">
+      <span class="bx-p">${x.page ? `p.${esc(x.page)}` : ''}</span>
+      <span class="bx-qb">${stampsHTML(x)}<span class="bx-qt"><mark>${esc(x.text)}</mark></span>
+        ${x.feeling ? `<span class="bx-qf">${esc(x.feeling)}</span>` : ''}
+        ${t ? `<span class="bx-chip">사유${n.length > 1 ? ` ${n.length}` : ''} · ${esc((t.summary || {}).title || '이름 없는 사유')}</span>` : ''}
+        ${byPage ? '' : `<span class="bx-qd">${fmtDate(x.createdAt)}</span>`}</span></button>`; };
+  const body = tab === 'q' ? (qs.length ? `<div class="bx-list">${qs.slice(0, lim).map(qRow).join('')}</div>${qs.length > lim ? `<button class="bx-more" data-action="bkMore">더 보기 · ${qs.length - lim}개 남음</button>` : ''}`
+        : `<div class="pb-empty">${st === 'want' ? '읽기 시작하면 이곳에 밑줄이 쌓여요.' : '아직 그은 밑줄이 없어요.<br>아래 「이 책에 밑줄 긋기」로 첫 밑줄을 그어 보세요.'}</div>`)
+    : (ts.length ? `<div class="pg-list bx-talks">${ts.map(storyRow).join('')}</div>` : `<div class="pb-empty">아직 나눈 사유가 없어요.<br>밑줄을 열어 ${AI_NAME}이와 이야기해 보세요.</div>`);
+  return `<div class="pb bx">
   ${backBtn(prevLabel())}
-  <section class="b4-hero" style="--c:${spineColor(b.title)}">
-    <button class="pb-more" data-action="bookMenu" data-id="${esc(b.id)}" aria-label="책 메뉴">⋯</button>
-    <div class="b4-cv">${coverHTML(b, 'md')}</div>
-    <div class="b4-info">
+  <section class="bx-hero">
+    <div class="bx-cv">${coverHTML(b, 'md')}</div>
+    <div class="bx-info">
       <h1>${esc(main)}</h1>
-      <div class="b4-rate" role="radiogroup" aria-label="별점">${[1, 2, 3, 4, 5].map(r => `<button role="radio" aria-checked="${(b.rating || 0) === r}" aria-label="별 ${r}개" class="${(b.rating || 0) >= r ? 'on' : ''}" data-action="bkRate" data-id="${esc(b.id)}" data-r="${r}">★</button>`).join('')}${b.rating ? '' : '<em>별점 남기기</em>'}</div>
-      ${sub ? `<div class="b4-sub">${esc(sub)}</div>` : ''}
-      <div class="b4-a">${esc(au.authors || '작가 미상')}${au.translators ? ` · ${esc(au.translators)} 옮김` : ''}</div>
-      ${meta.length ? `<div class="b4-meta">${meta.map(esc).join(' · ')}</div>` : ''}
-      ${prog}
+      ${sub ? `<div class="bx-sub">${esc(sub)}</div>` : ''}
+      <div class="bx-a">${esc(au.authors || '작가 미상')}${au.translators ? ` · ${esc(au.translators)} 옮김` : ''}</div>
+      ${meta.length ? `<div class="bx-meta">${meta.map(esc).join(' · ')}</div>` : ''}
+      <button class="bx-st" data-action="statusSheet" data-id="${esc(b.id)}"><i style="--d:${ST_DOT[st]}"></i>${STATUS[st]}${chevD}</button>
     </div>
+    <button class="bx-menu" data-action="bookMenu" data-id="${esc(b.id)}" aria-label="책 정보 수정, 표지, 삭제"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
   </section>
-  <div class="b4-acts">
-    <button class="pb-st" data-action="statusSheet" data-id="${esc(b.id)}"><i style="--d:${ST_DOT[st]}"></i>${STATUS[st]}${chevD}</button>
-    ${st !== 'want' ? `<button class="b4-cta" data-action="photo" data-book="${esc(b.id)}">${pen}<em>밑줄 긋기</em></button>` : `<button class="b4-cta" data-action="startRead" data-id="${esc(b.id)}"><em>읽기 시작</em></button>`}
-  </div>
-  <div class="b4-tabs" role="tablist">${tabs.map(([k, l, n]) => `<button role="tab" aria-selected="${tab === k}" class="${tab === k ? 'on' : ''}" data-action="bkTab" data-k="${k}">${l}${k !== 'r' ? `<span>${n}</span>` : ''}</button>`).join('')}</div>
-  <div class="b4-body">${body}</div>
-  <div class="pb-foot"><button data-action="bookMenu" data-id="${esc(b.id)}">책 정보 수정 · 표지 사진</button><i></i><button class="dz" data-action="delBookAsk" data-id="${esc(b.id)}">책 삭제</button></div>
+  ${rate}${prog ? `<div class="bx-prog">${prog}</div>` : ''}
+  <div class="bx-nums"><span><b>${qsNew.length}</b>밑줄</span><span><b>${ts.length}</b>사유</span><span><b>${nSeal}</b>각인</span>${!hasProg && st !== 'want' && st !== 'done' ? `<button data-action="progress" data-id="${esc(b.id)}">읽은 쪽 기록</button>` : ''}</div>
+  <div class="bx-tabs"><div role="tablist">${[['q', '밑줄'], ['t', '사유']].map(([k, l]) => `<button role="tab" aria-selected="${tab === k}" class="${tab === k ? 'on' : ''}" data-action="bkTab" data-k="${k}">${l}</button>`).join('')}</div>
+    ${tab === 'q' && qs.length > 1 ? `<button class="bx-sort" data-action="bkSort" aria-label="정렬 바꾸기">${byPage ? '쪽 순서' : '최근 순'}${chevD}</button>` : ''}</div>
+  <div class="bx-body">${body}</div>
+  <div class="pq-bar bx-bar2">${st !== 'want' ? `<button class="pq-go" data-action="photo" data-book="${esc(b.id)}">${pen}<span class="bx-ul">이 책에 밑줄 긋기</span></button>` : `<button class="pq-go" data-action="startRead" data-id="${esc(b.id)}"><span>읽기 시작</span></button>`}</div>
   </div>`;
 }
 function bookMenu(id){
@@ -6950,6 +7021,7 @@ const STATS_ACTIONS = {
   bkRate: el => { const b = S.docs[el.dataset.id]; if (!b) return; const r = +el.dataset.r, nr = b.rating === r ? 0 : r; put(b.id, { ...stripId(b), rating: nr, updatedAt: Date.now() }); render(); toast(nr ? `별 ${nr}개를 남겼어요` : '별점을 지웠어요'); },
   bkTab: el => { S.bkBook = S.bookId; S.bkTab = el.dataset.k; S.bkLim = 20; render(); },
   bkMore: () => { S.bkBook = S.bookId; S.bkLim = (S.bkLim || 20) + 40; render(); },
+  bkSort: () => { S.bkSort = (S.bkSort || 'page') === 'page' ? 'new' : 'page'; S.bkBook = S.bookId; S.bkLim = 20; render(); },
   mkWarnOff: () => $('#mkWarn').classList.add('hidden'),
   bookEdit: el => bookForm(el.dataset.id),
   srMore: () => { S.srLim = (S.srLim || 40) + 80; refreshResults(); },
