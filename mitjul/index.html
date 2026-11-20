@@ -3400,40 +3400,17 @@ body[data-theme="dark"] .wk-src i.q,body[data-theme="dark"] .we-m em:not(.t){bac
 .s6>.sv-hero{margin-top:0}
 
 /* 여백의 필력 */
-.pen{border-radius:18px;background:var(--card);border:1px solid var(--line);padding:16px 16px 12px;display:grid;gap:10px}
-.pen-h{display:flex;align-items:center;justify-content:space-between}
-.pen-k{font-size:12px;font-weight:700;letter-spacing:.04em;color:#7A6A9C}
-.pen-sw{all:unset;cursor:pointer;display:flex;flex:none}.pen-sw .sp-sw{display:block}
-.pen-b{display:flex;align-items:center;gap:12px}
-.pen-cv{display:flex;flex:none;padding-right:8px}.pen-cv .cover{--w:30px;margin-right:-10px;box-shadow:0 3px 8px -2px rgba(20,24,46,.35)}
-.pen-b>div{min-width:0}.pen-b b{display:block;word-break:keep-all;font-family:"Gowun Batang",var(--f-body);font-size:16px;font-weight:700;letter-spacing:-.01em}
-.pen-b small{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;word-break:keep-all}
-.pen-sum{margin:2px 0 0;font-family:"Gowun Batang",var(--f-body);font-size:14.5px;line-height:1.7;color:var(--ink2)}
-.pen-sum.dim{font-family:var(--f-body);font-size:13px;color:var(--muted)}
-.pen-tr{display:flex;flex-wrap:wrap;gap:6px}
-.pen-tr span{font-size:12px;padding:4px 10px;border-radius:999px;background:#F1ECF8;color:#5A4A82}
-.pen-f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:10px;border-top:1px solid var(--line)}
-.pen-f small{font-size:11.5px;color:var(--muted)}
-.pen-f button{all:unset;cursor:pointer;flex:none;font-size:12.5px;font-weight:700;color:var(--accent)}
-.pen-f button:disabled{opacity:.5}
-.pen.off .pen-b,.pen.off .pen-sum,.pen.off .pen-tr{opacity:.45}
-.pen-empty{margin:0;font-size:13px;line-height:1.7;color:var(--muted)}
 .wk-pen{color:#7A6A9C;font-weight:600}
-body[data-theme="dark"] .pen-tr span{background:#2C2440;color:#C9B2EE}
-body[data-theme="dark"] .pen-k,body[data-theme="dark"] .wk-pen{color:#B9A6E0}
 
 .wh-none{padding:22px 16px;border-radius:16px;border:1px dashed var(--line);background:var(--card);text-align:center;font-size:13px;line-height:1.7;color:var(--muted)}
 
-.pen-b b,.wh-w b,.wk-title{text-wrap:balance}
 .wh-w em .wk-pen{font-weight:600}
-.pen-b b .nw{white-space:nowrap}
 .wh-w b{word-break:keep-all}
 
 /* 손가락으로 누르기 쉬운 크기 (보이는 모양은 그대로, 누르는 영역만 넓힘) */
 .syncdot{position:relative}.syncdot::after{content:"";position:absolute;inset:-12px}
 [data-action="bkRate"]{position:relative}[data-action="bkRate"]::after{content:"";position:absolute;inset:-5px -2px}
 .pq-book{padding:8px 0!important;margin:-8px 0!important}
-.pen-f button{padding:8px 0 8px 12px;margin:-8px 0}
 
 /* 저장 공간 */
 .bk-cap{margin-top:10px;padding:14px 16px;border-radius:14px;background:var(--card);border:1px solid var(--line);display:grid;gap:8px}
@@ -3682,11 +3659,6 @@ body[data-theme="dark"] .wh2-go button:first-child .wh2-gk{color:#7A5B00}
 .wh2-cv{position:absolute;right:14px;bottom:14px;opacity:.6}
 .wh2-go button:active{transform:scale(.98)}
 .wh2-empty{margin-top:22px;padding:22px 18px;border:1px dashed var(--line);border-radius:16px;text-align:center;font-size:var(--t4);line-height:1.75;color:var(--muted);word-break:keep-all}
-.wh2 .pen{margin-top:14px!important;background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important}
-.wh2 .pen-k{color:var(--ink2)!important}
-.wh2 .pen-tr span{background:var(--soft)!important;color:var(--ink2)!important}
-.wh2 .pen-sum{font-family:"Gowun Batang",var(--f-quote)}
-.wh2 .pen-f button{color:var(--accent)!important}
 .wh2-h{margin-top:30px}
 .wh2-list{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .wh2-w{display:grid;gap:4px;width:100%;padding:16px;text-align:left;color:var(--ink)}
@@ -3771,6 +3743,7 @@ body[data-theme="dark"] .cal-w .sat,body[data-theme="dark"] .cd.sat .cd-n{color:
 .cd-cv .cover{--w:30px;width:30px;border-radius:2px 4px 4px 2px;box-shadow:0 2px 5px rgba(20,24,46,.25)}
 .cd-cv .cover .cv-t,.cd-cv .cover .cv-a,.cd-cv .cover .cv-u{display:none!important}
 .cd-b{position:absolute;right:-9px;top:-5px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--inkbg);color:var(--onink);font-style:normal;font-size:10px;font-weight:700;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--soft)}
+.wk-title{text-wrap:balance}
 </style>
 </head>
 <body>
@@ -6784,7 +6757,7 @@ const wkSpecOf = w => ({ id: w.id, type: w.type, tone: w.tone, len: w.len, theme
 function workView(){
   const id = S.workId, w = S.docs[id], live = WR.id === id && WR.run, spec = w ? wkSpecOf(w) : WR.id === id && (WR.run || WR.err) ? WR.spec : null;
   if (!spec) return '<div class="empty">원고를 찾지 못했어요.</div>';
-  const meta = `<span class="wk-m1"><b class="wk-kind">${WK_TYPE[spec.type]}</b>${spec.type === 'diary' && spec.date ? `<span>${dayLabel(spec.date)}</span>` : spec.theme ? `<span>주제 · ${esc(spec.theme)}</span>` : ''}</span><span class="wk-m2">${[`재료 ${spec.sources.length}개`, (WK_TONE[spec.tone] || [''])[0], spec.pen ? `${esc(spec.pen)}의 결` : ''].filter(Boolean).join(' · ')}</span>`;
+  const meta = `<span class="wk-m1"><b class="wk-kind">${WK_TYPE[spec.type]}</b>${spec.type === 'diary' && spec.date ? `<span>${dayLabel(spec.date)}</span>` : spec.theme ? `<span>주제 · ${esc(spec.theme)}</span>` : ''}</span><span class="wk-m2">${[`재료 ${spec.sources.length}개`, (WK_TONE[spec.tone] || [''])[0]].filter(Boolean).join(' · ')}</span>`;
   if (live || (!w && WR.err)) {
     const { title, paras } = parseWork(WR.text, spec);
     return `<div class="wk"><div class="wk-meta">${meta}</div><h1 class="wk-title" id="wkTitle">${live ? (/^(?:제목\s*[:：]|#)/.test(WR.text.trim()) ? esc(title) : '<span class="wk-wait">여백이가 쓰고 있어요</span>') : '글을 받지 못했어요'}</h1>
@@ -6860,18 +6833,6 @@ ${smp.map(q => `- "${q.text}"`).join('\n')}
 - 이 문체의 문장 길이, 호흡, 묘사 방식, 어휘의 온도를 닮게 써요. 다만 작가의 문장이나 고유한 표현을 가져오지 말고, 독자 자신의 말과 경험이 글의 주인이 되게 해요.
 `;
 }
-/* 글방의 필력 카드 */
-function penCard(){
-  const bs = penBasis(), p = penDoc(), on = penOn();
-  const sw = `<button class="pen-sw" data-action="penToggle" role="switch" aria-checked="${on}" aria-label="필력 반영"><i class="sp-sw${on ? ' on' : ''}"></i></button>`;
-  if (!bs) return `<section class="pen"><div class="pen-h"><span class="pen-k">여백의 필력</span></div><p class="pen-empty">한 책에 밑줄을 3줄 넘게, 모두 8줄 넘게 그으면<br>여백이가 당신이 좋아하는 문체를 배워 그 결로 써요.</p></section>`;
-  const fresh = p && p.sig === bs.sig;
-  return `<section class="pen${on ? '' : ' off'}"><div class="pen-h"><span class="pen-k">여백의 필력</span>${sw}</div>
-    <div class="pen-b"><span class="pen-cv">${bs.books.map(b => coverHTML(S.docs[b.bookId], 'sm')).join('')}</span>
-      <div><b>${[...new Set(bs.books.map(b => b.author || `『${b.title}』`))].map((a, i, l) => `<span class="nw">${esc(a)}${i === l.length - 1 ? '의 결' : ' ·'}</span>`).join(' ')}</b><small>밑줄을 가장 많이 그은 ${bs.books.map(b => `『${esc(shortTitle(b.title, 10))}』 ${b.n}줄`).join(' · ')}</small></div></div>
-    ${p ? `<p class="pen-sum">“${esc(p.summary)}”</p>${(p.traits || []).length ? `<div class="pen-tr">${p.traits.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}` : '<p class="pen-sum dim">아직 문체를 살피기 전이에요. 첫 글을 맡길 때 살펴요.</p>'}
-    <div class="pen-f"><small>${on ? (fresh ? `${fmtDate(p.at)}에 다듬음 · 밑줄이 쌓이면 필력도 자라요` : p ? '밑줄이 늘어 필력을 새로 다듬을 수 있어요' : '여백이가 이 문체를 참고해 써요') : '꺼 두면 담백한 기본 문체로 써요'}</small>${sample && on ? `<button data-action="penRefresh">${p ? '다시 다듬기' : '지금 다듬기'}</button>` : ''}</div></section>`;
-}
 const PEN_ACTIONS = {
   penToggle: () => { const { id, ...st } = S.docs.settings || {}; put('settings', { ...st, kind: 'settings', penOff: penOn() }); render(); toast(penOn() ? '필력을 반영해 써요' : '필력 없이 담백하게 써요'); },
   penRefresh: async el => { if (el.disabled) return; el.disabled = true; el.textContent = '다듬는 중…';
@@ -6895,9 +6856,8 @@ function writerHome(){
       <button data-action="wDiary"><span class="wh2-gk">일기</span><b>하루를 일기로</b><small>그날의 밑줄과 사유로<br>한 편의 일기를</small>${chev}</button>
       <button data-action="wEssay"><span class="wh2-gk">수필</span><b>한 주제를 수필로</b><small>같은 마음에 머문 사유를<br>엮어 한 편의 수필을</small>${chev}</button></div>`
       : `<div class="wh2-empty">아직 글감이 없어요.<br>밑줄을 긋고 선명이와 사유를 나누면 여백이가 그 이야기로 글을 써 드려요.</div>`}
-    ${can || ws.length ? penCard() : ''}
     ${can || ws.length ? `<div class="sx-h wh2-h"><b>나의 원고</b><span>${ws.length ? `${ws.length}편` : ''}</span></div>
-      ${ws.length ? `<div class="wh2-list">${ws.map(w => `<button class="wh2-w" data-action="wOpen" data-id="${esc(w.id)}"><span class="wh2-wk">${WK_TYPE[w.type] || '글'}<i></i>${when(w)}</span><b>${esc(w.title)}</b><small>${ex(w)}…</small><em>${[w.type === 'essay' && w.theme ? `주제 · ${esc(w.theme)}` : '', `재료 ${(w.sources || []).length}개`, w.pen ? `${esc(w.pen)}의 결` : ''].filter(Boolean).join(' · ')}</em></button>`).join('')}</div>`
+      ${ws.length ? `<div class="wh2-list">${ws.map(w => `<button class="wh2-w" data-action="wOpen" data-id="${esc(w.id)}"><span class="wh2-wk">${WK_TYPE[w.type] || '글'}<i></i>${when(w)}</span><b>${esc(w.title)}</b><small>${ex(w)}…</small><em>${[w.type === 'essay' && w.theme ? `주제 · ${esc(w.theme)}` : '', `재료 ${(w.sources || []).length}개`].filter(Boolean).join(' · ')}</em></button>`).join('')}</div>`
         : '<div class="wh2-none">아직 쓴 원고가 없어요. 위에서 일기나 수필을 여백이에게 맡겨 보세요.</div>'}` : ''}
     <p class="wh2-tip">여백이는 당신이 고른 사유만 읽어요. 글은 내 기록에만 저장되고, 쓸 때마다 Claude 사용량을 조금 써요.</p>
   </div>`;
