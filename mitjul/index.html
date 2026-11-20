@@ -3861,6 +3861,29 @@ mark.sr-hit{background:none;color:inherit;font-weight:700;text-decoration:underl
 .sr-none b{display:block;font-size:var(--t3);color:var(--ink);word-break:keep-all}
 .sr-none p{margin:8px 0 0;font-size:var(--t4);color:var(--muted);line-height:1.6;word-break:keep-all}
 .has-hb .sr>.back{display:none}
+
+/* ===== 더보기·환경설정: 남색, 차분한 아이콘, 화면 모드 미리보기 ===== */
+.panel:has(.st2),.panel:has(.mr2-me){--accent:#2F3A6B;--accent-soft:#E6E9F3}
+body[data-theme="dark"] .panel:has(.st2),body[data-theme="dark"] .panel:has(.mr2-me){--accent:#C9D0F0;--accent-soft:#232A4A}
+.panel:has(.mr2-me) .sp-ri,.panel:has(.st2) .sp-ri{background:var(--soft)!important;color:var(--ink)!important}
+.mr2-me{background:var(--card)!important;border:1px solid var(--line);padding:16px!important}
+.mr2-me b{font-family:"Gowun Batang",var(--f-quote);font-size:17px!important}
+.mr2-me small{color:var(--muted)!important}
+.st2-th{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.st2-th button{display:grid;justify-items:center;gap:8px;padding:12px 8px 10px;border-radius:16px;border:1px solid var(--line);background:var(--card);font-size:var(--t4);color:var(--ink2)}
+.st2-th button[aria-checked=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);color:var(--ink);font-weight:700}
+.st2-pv{position:relative;display:grid;gap:4px;align-content:start;width:52px;height:68px;padding:9px 8px;border-radius:9px;box-sizing:border-box;border:1px solid rgba(20,26,46,.12);overflow:hidden}
+.st2-pv i{display:block;height:5px;border-radius:3px}
+.st2-pv i:first-child{width:60%;height:7px}
+.st2-pv i:nth-child(3){width:75%}
+.st2-pv.light{background:#F4F5F8}.st2-pv.light i{background:#C9CCD8}.st2-pv.light i:first-child{background:#1E2235}
+.st2-pv.dark{background:#10131F;border-color:#2A2F44}.st2-pv.dark i{background:#343A52}.st2-pv.dark i:first-child{background:#E6E8F2}
+.st2-pv.auto{background:linear-gradient(135deg,#F4F5F8 50%,#10131F 50%)}.st2-pv.auto i{background:#8E93A8}.st2-pv.auto i:first-child{background:#F7DC6F}
+.st2 .sp-sw.on{background:var(--inkbg)!important}
+body[data-theme="dark"] .st2 .sp-sw.on::after{background:#10131F}
+.st2-sw small{line-height:1.5}
+.st2-note{margin:14px 4px 0;font-size:12px;color:var(--muted);line-height:1.6}
+.st2-ver{margin:22px 0 4px;text-align:center;font-size:11px;color:var(--muted);opacity:.8}
 </style>
 </head>
 <body>
@@ -5818,20 +5841,27 @@ function applyPref(){
 const cf = (w, px, kind) => `${Math.min(w, 700)} ${px}px ${kind === 'num' ? `"${FONT.display}", ` : ''}"${FONT.sans}", sans-serif`;
 if (darkMQ && darkMQ.addEventListener) darkMQ.addEventListener('change', applyPref);
 function settingsSheet(){
-  const seg = (key, opts) => `<div class="sp-seg">${opts.map(([v, l]) => `<button data-k="${key}" data-v="${v}" class="${PREF[key] === v ? 'on' : ''}">${l}</button>`).join('')}</div>`;
-  const host = (() => { try { const u = giftAppUrl(); return u ? u.replace(/^https:\/\//, '').replace(/^(claude\.ai\/)(code\/)?artifact\/(.{6}).*/, '$1…$3') : ''; } catch { return ''; } })();
+  const mini = v => `<span class="st2-pv ${v}" aria-hidden="true"><i></i><i></i><i></i></span>`;
+  const sw = (id, on, t, d) => `<button class="sp-row st2-sw" id="${id}" role="switch" aria-checked="${on}"><span><b>${t}</b><small>${d}</small></span><i class="sp-sw${on ? ' on' : ''}"></i></button>`;
   openSheet(`${sheetHead('환경설정', '')}
-    <div class="sp-lb">화면</div>
-    <div class="sp-g sp-pad"><div class="sp-row0"><b>화면 모드</b></div>${seg('theme', [['auto','시스템'],['light','밝게'],['dark','어둡게']])}</div>
-    <div class="sp-lb">${AI_NAME}이</div>
-    <div class="sp-g"><button class="sp-row" id="swAuto" role="switch" aria-checked="${PREF.smAuto !== 'off'}"><span><b>먼저 말 걸기</b><small>앱을 열 때 질문을 미리 준비해요 · Claude 사용량을 조금 써요</small></span><i class="sp-sw${PREF.smAuto !== 'off' ? ' on' : ''}"></i></button></div>
-`);
+    <div class="st2">
+      <div class="sp-lb">화면 모드</div>
+      <div class="st2-th" role="radiogroup" aria-label="화면 모드">${[['auto', '시스템'], ['light', '밝게'], ['dark', '어둡게']].map(([v, l]) => `<button role="radio" aria-checked="${PREF.theme === v || (!PREF.theme && v === 'auto')}" data-k="theme" data-v="${v}">${mini(v)}<span>${l}</span></button>`).join('')}</div>
+      <div class="sp-lb">${AI_NAME}이</div>
+      <div class="sp-g">${sw('swAuto', PREF.smAuto !== 'off', '먼저 말 걸기', '앱을 열 때 밑줄에 대한 질문을 미리 준비해요')}</div>
+      <div class="sp-lb">여백이</div>
+      <div class="sp-g">${sw('swPen', penOn(), '좋아하는 문체로 쓰기', '밑줄을 가장 많이 그은 작가의 결을 닮게 글을 써요')}</div>
+      <p class="st2-note">선명이와 여백이는 쓸 때마다 Claude 사용량을 조금 써요.</p>
+      <p class="st2-ver">밑줄 · 긋고, 되묻고, 건네다</p>
+    </div>`);
   sheet.querySelectorAll('[data-k]').forEach(b => b.onclick = () => {
     PREF[b.dataset.k] = b.dataset.v; try { localStorage.setItem('ul_pref', JSON.stringify(PREF)); } catch {}
-    applyPref(); sheet.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x => x.classList.toggle('on', x === b));
+    applyPref(); sheet.querySelectorAll(`[data-k="${b.dataset.k}"]`).forEach(x => x.setAttribute('aria-checked', x === b));
   });
+  const flip = (el, on) => { el.setAttribute('aria-checked', on); el.querySelector('.sp-sw').classList.toggle('on', on); };
   $('#swAuto').onclick = () => { PREF.smAuto = PREF.smAuto === 'off' ? 'on' : 'off'; try { localStorage.setItem('ul_pref', JSON.stringify(PREF)); } catch {}
-    applyPref(); softRender(); const on = PREF.smAuto !== 'off'; $('#swAuto').setAttribute('aria-checked', on); $('#swAuto .sp-sw').classList.toggle('on', on); };
+    applyPref(); softRender(); flip($('#swAuto'), PREF.smAuto !== 'off'); };
+  $('#swPen').onclick = () => { const { id, ...st } = S.docs.settings || {}; put('settings', { ...st, kind: 'settings', penOff: penOn() }); flip($('#swPen'), penOn()); };
   $('#fx').onclick = closeSheet;
 }
 
