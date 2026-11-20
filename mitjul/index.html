@@ -3643,18 +3643,12 @@ body[data-theme="dark"] .bx-ul{background:linear-gradient(transparent 86%,#F7DC6
 .sx-mn button{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
 .sx-mn button:disabled{opacity:.25}
 .sx-mn button:not(:disabled):active{background:var(--soft)}
-.sx-sum{margin:14px 0 0;font-family:var(--f-quote);font-size:20px;font-weight:500;line-height:1.7;letter-spacing:-.01em;color:var(--ink);word-break:keep-all}
-.sx-sum b{font-weight:600;background:linear-gradient(transparent 62%,var(--ul) 62%);padding:0 1px}
-.sx-ex{display:flex;justify-content:center;gap:6px;margin-top:12px}
-.sx-ex span{font-size:12px;color:var(--ink2);padding:3px 10px;border-radius:99px;background:var(--soft)}
 .sx-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:22px}
 .sx-tile{position:relative;display:grid;justify-items:start;gap:2px;padding:14px 12px 12px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:left;color:var(--ink)}
 .sx-tile strong{font-size:24px;font-weight:700;line-height:1.1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .sx-tile strong small{font-size:12px;font-weight:500;color:var(--muted);margin-left:2px}
 .sx-tile>span{font-size:12px;color:var(--muted);white-space:nowrap}
 .sx-tile em{position:absolute;top:10px;right:10px;font-style:normal;font-size:11px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
-.sx-tile em.up{color:#2F8A63}
-body[data-theme="dark"] .sx-tile em.up{color:#7FD3A8}
 .sx-tile:disabled{opacity:.55}
 .sx-tile.on{background:var(--inkbg);border-color:var(--inkbg);color:var(--onink)}
 .sx-tile.on strong small,.sx-tile.on>span,.sx-tile.on em{color:color-mix(in srgb,var(--onink) 70%,transparent)}
@@ -3679,15 +3673,6 @@ body[data-theme="dark"] .sx .sv-m>button.on .sv-mb i{background:#F7DC6F!importan
 /* 다 읽은 책 */
 /* 지금까지 */
 .sx-tot{margin-top:30px}
-.sx-tn{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.sx-tn>*{display:grid;align-content:center;gap:2px;min-height:68px;padding:10px 2px;font-size:11px;line-height:1.3;color:var(--muted);word-break:keep-all}
-.sx-tn>*+*{border-left:1px solid var(--line)}
-.sx-tn b{font-size:19px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
-.sx-tn button{position:relative;color:var(--accent);font-weight:500}
-.sx-tn button::after{content:"";position:absolute;left:50%;bottom:7px;width:5px;height:5px;margin-left:-3px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);opacity:.6}
-.sx-tn button.on{background:var(--inkbg);color:color-mix(in srgb,var(--onink) 75%,transparent)}
-.sx-tn button.on b{color:var(--onink)}
-.sx-tn button.on::after{transform:rotate(225deg);bottom:5px}
 .sx-tot .sx-list{margin-top:8px}
 body[data-theme="dark"] .sx-sum b,body[data-theme="dark"] .pq-q mark{background:linear-gradient(transparent 88%,#F7DC6F 88%,#F7DC6F 96%,transparent 96%)!important}
 /* ===== 여백의 글방: 브랜드 남색, 명조 인사, 한 장의 목록 ===== */
@@ -3752,7 +3737,6 @@ body[data-theme="dark"] .wh2-go button:first-child .wh2-gk{color:#7A5B00}
 .wk-src i,.wk-src i.q{background:var(--soft)!important;color:var(--ink2)!important}
 .wk-del{font-size:12px!important;color:var(--muted)!important;text-decoration:underline;text-underline-offset:3px;margin-top:4px}
 /* ===== 밑줄 현황 다듬기 ===== */
-.sx-th{margin-top:26px!important}
 .sx-tiles{margin-top:0!important}
 .sx-tile{border-radius:16px}
 .sx-tile em{font-weight:600}
@@ -3771,8 +3755,17 @@ body[data-theme="dark"] .wh2-go button:first-child .wh2-gk{color:#7A5B00}
 .sx-dr.on .sx-dch{transform:rotate(180deg)}
 .sx-dr:active{transform:scale(.99)}
 .sx-tot .sx-dr+.sx-list{margin-top:8px}
-.sx-tot .sx-tn{margin-top:8px;grid-template-columns:repeat(4,minmax(0,1fr))!important}
-.sx-tn>*{font-size:12px!important}
+
+/* 현황 간결하게: 요약 문장·표제 없이 숫자 칸이 주인공, 지금까지는 한 줄 */
+.sx-hero{padding-top:2px!important}
+.sx-tiles{margin-top:14px!important}
+.sx-tile em{position:static!important;margin-top:4px;font-size:11px!important;font-weight:500!important;color:var(--muted)!important}
+.sx-tile.on em{color:color-mix(in srgb,var(--onink) 65%,transparent)!important}
+.sx-none{margin:10px 0 0;text-align:center;font-size:var(--t4);color:var(--muted)}
+.sx-got{margin:10px 2px 0;font-size:12px;color:var(--muted)}
+.sx-tl{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 10px;margin:12px 0 0;font-size:12px;color:var(--muted)}
+.sx-tl b{color:var(--ink);font-weight:700;margin-left:2px}
+.sx-tl i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.5}
 </style>
 </head>
 <body>
@@ -6653,13 +6646,7 @@ function statsMonthSec(c){
   let k = S.stMonth || cur; if (k > cur) k = cur; if (k < first) k = first; S.stMonth = k;
   const [y, m] = k.split('-').map(Number), d = statsMonth(k, c), pv = statsMonth(monShift(k, -1), c), open = S.stOpen || '';
   const nb = d.bookIds.length, nq = d.mine.length, nt = d.talks.length, ng = d.given.length, nf = d.done.length, ns = d.sealed.length;
-  /* 요약 한 줄: 마지막 마디만 맺음말로 */
-  const parts = [nq && [`<b>${nb}권</b>의 책에서 <b>${nq}개</b>의 밑줄을 찾고`, `<b>${nb}권</b>의 책에서 <b>${nq}개</b>의 밑줄을 찾았어요`],
-    nt && [`<b>${nt}번</b>의 사유를 즐기고`, `<b>${nt}번</b>의 사유를 즐겼어요`],
-    nf && [`<b>${nf}권</b>을 끝까지 읽고`, `<b>${nf}권</b>을 끝까지 읽었어요`],
-    ng && [`<b>${ng}개</b>의 밑줄을 나누고`, `<b>${ng}개</b>의 밑줄을 나눴어요`]].filter(Boolean);
-  const lead = parts.length ? parts.map((x, i) => x[i === parts.length - 1 ? 1 : 0]).join(',<br>') + '.' : `${k === cur ? '이번 달은' : '이 달은'} 아직 남긴 기록이 없어요.`;
-  const delta = (a, b) => { if (k <= first) return ''; const dd = a - b; return `<em class="${dd > 0 ? 'up' : dd < 0 ? 'dn' : ''}" aria-label="지난달 ${b}">${dd > 0 ? `+${dd}` : dd < 0 ? `−${-dd}` : '±0'}</em>`; };
+  const delta = (a, b) => k <= first ? '' : `<em>지난달 ${b}</em>`;
   const bt = id => shortTitle((S.docs[id] || {}).title || '', 14);
   const qrow = (q, t, extra) => `<button class="s6-i" data-action="openQuote" data-id="${esc(q.id)}"><b>${esc(q.text)}</b><small>${extra ? `${esc(extra)} · ` : ''}『${esc(bt(q.bookId))}』 · ${fmtDate(t)}</small></button>`;
   const giftTo = q => ((q.gifts || []).slice(-1)[0] || {}).to;
@@ -6679,19 +6666,18 @@ function statsMonthSec(c){
   const mMax = Math.max(1, ...months.map(x => x.n));
   return `<section class="sx-hero">
       <div class="sx-mn"><button data-action="stMon" data-d="-1" ${k <= first ? 'disabled' : ''} aria-label="이전 달"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><b>${y}년 ${m}월</b><button data-action="stMon" data-d="1" ${k >= cur ? 'disabled' : ''} aria-label="다음 달"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
-      <p class="sx-sum">${lead}</p>
-      ${d.got.length ? `<div class="sx-ex"><span>받은 밑줄 ${d.got.length}</span></div>` : ''}
     </section>
-    <div class="sx-h sx-th"><b>${m}월의 기록</b>${k > first ? '<span>지난달과 비교</span>' : ''}</div>
     <div class="sx-tiles">${tiles.map(t => `<button class="sx-tile${ot && ot.k === t.k ? ' on' : ''}" ${t.n ? `data-action="stOpen" data-k="${t.k}" aria-expanded="${!!(ot && ot.k === t.k)}"` : 'disabled'}><strong>${t.n}<small>${t.u}</small></strong><span>${t.l}</span>${t.d}</button>`).join('')}</div>
+    ${!nb && !nq && !nt && !ng && !nf && !ns ? `<p class="sx-none">${k === cur ? '이번 달은' : '이 달은'} 아직 남긴 기록이 없어요.</p>` : ''}
     ${ot ? stListHTML(ot.k, `${m}월의 ${ot.l}`, ot.u, ot.rows()) : ''}
+    ${d.got.length ? `<p class="sx-got">받은 밑줄 ${d.got.length}개</p>` : ''}
     ${statsCal(k, d)}
     <section class="sx-card sx-chart"><div class="sx-h"><b>달마다 찾은 밑줄</b><span>최근 6개월</span></div>
       <div class="sv-m">${months.map(x => `<button data-action="stMon" data-k="${x.key}" class="${x.key === k ? 'on' : ''}" ${x.key < first ? 'disabled' : ''} aria-label="${x.m}월 밑줄 ${x.n}줄"><b>${x.n || ''}</b><span class="sv-mb"><i style="height:${Math.max(4, Math.round(x.n / mMax * 100))}%"></i></span><small>${x.m}월</small></button>`).join('')}</div></section>`;
 }
 function statsTotalSec(c){
-  const gs = c.qs.flatMap(q => (q.gifts && q.gifts.length ? q.gifts : q.given ? [{ to: '', at: q.given }] : []).map(g => ({ q, to: g.to, at: g.at }))).sort((a, b) => b.at - a.at);
-  const nBooks = new Set(c.mine.map(q => q.bookId)).size, open = S.stTot || '';
+  const gs = c.qs.flatMap(q => q.gifts && q.gifts.length ? q.gifts : q.given ? [q.given] : []);
+  const nBooks = new Set(c.mine.map(q => q.bookId)).size, open = S.stTot === 'f' ? 'f' : '';
   const thisY = new Date(Date.now() + KST).getUTCFullYear(), yN = c.done.filter(b => b.finishedAt && new Date(b.finishedAt + KST).getUTCFullYear() === thisY).length;
   const nd = c.done.length;
   const doneRow = nd ? `<button class="sx-dr${open === 'f' ? ' on' : ''}" data-action="stTot" data-k="f" aria-expanded="${open === 'f'}">
@@ -6699,14 +6685,11 @@ function statsTotalSec(c){
       <span class="sx-dt"><b>다 읽은 책 <em>${nd}권</em></b><small>${[yN ? `올해 ${yN}권` : '', c.done[0] ? `최근 『${esc(shortTitle(c.done[0].title, 12))}』` : ''].filter(Boolean).join(' · ')}</small></span>
       <svg class="sx-dch" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`
     : `<div class="sx-dr none"><span class="sx-dt"><b>다 읽은 책 <em>0권</em></b><small>책 화면에서 읽기 상태를 ‘다 읽음’으로 바꾸면 여기에 쌓여요</small></span></div>`;
-  const cells = [{ k: '', n: nBooks, l: '밑줄 그은 책' }, { k: '', n: c.mine.length, l: '밑줄' }, { k: '', n: c.talks.length, l: '사유' }, { k: 'g', n: gs.length, l: '선물' }];
-  let list = '';
-  if (open === 'f' && nd) list = stListHTML('tf', '다 읽은 책', '권', c.done.map(b => stBookRow(b, stDoneSub(b, c.qc[b.id]))));
-  if (open === 'g' && gs.length) list = stListHTML('tg', '보낸 선물', '개', gs.map(x => `<button class="s6-i" data-action="openQuote" data-id="${esc(x.q.id)}"><b>${esc(x.q.text)}</b><small>${x.to ? `${esc(x.to)}에게 · ` : ''}${fmtDate(x.at)}</small></button>`));
+  const cells = [['밑줄 그은 책', nBooks, '권'], ['밑줄', c.mine.length, '줄'], ['사유', c.talks.length, '번'], ['선물', gs.length, '번']];
+  const list = open === 'f' && nd ? stListHTML('tf', '다 읽은 책', '권', c.done.map(b => stBookRow(b, stDoneSub(b, c.qc[b.id])))) : '';
   return `<section class="sx-tot" id="st-tot"><div class="sx-h"><b>지금까지</b></div>
     ${doneRow}${open === 'f' ? list : ''}
-    <div class="sx-tn">${cells.map(x => x.k && x.n ? `<button class="${open === x.k ? 'on' : ''}" data-action="stTot" data-k="${x.k}" aria-expanded="${open === x.k}"><b>${x.n}</b>${x.l}</button>` : `<span><b>${x.n}</b>${x.l}</span>`).join('')}</div>
-    ${open === 'g' ? list : ''}
+    <p class="sx-tl">${cells.map(([l, n, u]) => `<span>${l} <b>${n}</b>${u}</span>`).join('<i></i>')}</p>
   </section>`;
 }
 function stScrollTot(){ setTimeout(() => { const o = $('#ov'), el = $('#st-tot'); if (o && el) o.scrollTo({ top: el.getBoundingClientRect().top - o.getBoundingClientRect().top + o.scrollTop - 8, behavior: 'smooth' }); }, 60); }
