@@ -38,7 +38,7 @@ def test_draft_flow_end_to_end(app, user_client, db, settings, fake_claude):
     assert "한빛병원 태핑" in page and "견적 송부" in page and "그린테크" in page
     # 새 이름은 기본 체크 해제, 일치 항목은 선택
     assert 'value="그린테크"' in page and 'value="그린테크" checked' not in page
-    assert f'<option value="{s.id}" selected' in page and f'<option value="{c.id}" selected' in page
+    assert f'name="solution_ids" value="{s.id}" checked' in page and f'name="customer_ids" value="{c.id}" checked' in page
     prompt = fake_claude.calls()[0]["stdin"]
     assert "한빛병원 미팅 메모" in prompt and "AI 에너지 절감" in prompt
     assert db.query(Activity).count() == 0
@@ -234,7 +234,7 @@ def test_draft_page_shows_ambiguous_hint(app, user_client, db, settings, fake_cl
     _run(app, settings)
     page = user_client.get(url).text
     assert "여러 항목과 비슷합니다: 한빛병원, 한빛의원" in page
-    assert f'<option value="{a.id}" selected' not in page and f'<option value="{b.id}" selected' not in page
+    assert f'name="customer_ids" value="{a.id}" >' in page and f'name="customer_ids" value="{b.id}" >' in page  # 둘 다 체크 안 됨
     assert 'name="new_customers" value="한빛"' not in page
 
 

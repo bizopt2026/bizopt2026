@@ -1,30 +1,39 @@
 {% extends "base.html" %}
+{% from "_macros.html" import stage_badge, tag_chips, list_meta %}
 {% block title %}솔루션{% endblock %}
 {% block content %}
-<h1>솔루션</h1>
-<form method="get" action="/solutions" class="row">
-  <label>검색 <input type="search" name="q" value="{{ q }}"></label>
+<div class="page-head"><h1>솔루션</h1></div>
+<form method="get" action="/solutions" class="toolbar" role="search">
+  <label>검색 <input type="search" name="q" value="{{ q }}" placeholder="이름·소개·태그"></label>
   <label>단계
-    <select name="stage">
+    <select name="stage" onchange="this.form.submit()">
       <option value="">전체</option>
       {% for code, name in labels.STAGES.items() %}<option value="{{ code }}" {{ "selected" if code == stage }}>{{ name }}</option>{% endfor %}
     </select>
   </label>
   <button type="submit">검색</button>
-  <a href="/solutions/new">+ 등록</a>
+  {% if q or stage %}<a href="/solutions">조건 지우기</a>{% endif %}
+  <span class="spacer"></span>
+  <a class="btn primary" href="/solutions/new">+ 솔루션 등록</a>
 </form>
 {% if solutions %}
-<table>
-  <thead><tr><th>이름</th><th>한 줄 소개</th><th>단계</th><th>파트너</th><th>태그</th></tr></thead>
+{{ list_meta(solutions, q or stage) }}
+<div class="table-wrap">
+<table class="sortable stack-sm">
+  <thead><tr><th data-sort="text">이름</th><th>한 줄 소개</th><th data-sort="text">단계</th><th data-sort="text">파트너</th><th>태그</th></tr></thead>
   <tbody>
+  {% set order = labels.STAGES.keys() | list %}
   {% for s in solutions %}
     <tr>
-      <td><a href="/solutions/{{ s.id }}">{{ s.name }}</a></td><td>{{ s.summary }}</td>
-      <td>{{ labels.STAGES.get(s.stage, s.stage) }}</td>
-      <td>{{ s.partner.name if s.partner }}</td><td>{{ s.tags }}</td>
+      <td class="title-cell" data-label="이름"><a href="/solutions/{{ s.id }}">{{ s.name }}</a></td>
+      <td data-label="소개">{{ s.summary }}</td>
+      <td data-label="단계" data-value="{{ order.index(s.stage) if s.stage in order else 9 }}">{{ stage_badge(s.stage) }}</td>
+      <td data-label="파트너">{{ s.partner.name if s.partner }}</td>
+      <td data-label="태그">{{ tag_chips(s.tags) }}</td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
-{% else %}<p class="muted">{{ "검색 결과가 없습니다." if q or stage else "등록된 항목이 없습니다." }}</p>{% endif %}
+</div>
+{% else %}<p class="empty">{{ "검색 결과가 없습니다." if q or stage else "등록된 항목이 없습니다." }}</p>{% endif %}
 {% endblock %}

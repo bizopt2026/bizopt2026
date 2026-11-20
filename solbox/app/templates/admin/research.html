@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}리서치 설정{% endblock %}
 {% block content %}
-<h1>리서치 설정</h1>
+<div class="page-head"><h1>리서치 설정</h1></div>
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 
 
@@ -18,7 +18,7 @@
     </label>
     <label>시 <input type="number" name="hour" min="0" max="23" value="{{ schedule.hour }}" required></label>
     <label>분 <input type="number" name="minute" min="0" max="59" value="{{ schedule.minute }}" required></label>
-    <button type="submit">저장</button>
+    <button type="submit" class="primary">저장</button>
   </form>
   <p class="muted">서버 PC의 현지 시각 기준입니다.</p>
 </section>
@@ -33,12 +33,12 @@
         {% for code, text in areas.items() %}<option value="{{ code }}">{{ text }}</option>{% endfor %}
       </select>
     </label>
-    <button type="submit">추가</button>
+    <button type="submit" class="primary">추가</button>
   </form>
 </section>
 
 {% for code, text in areas.items() %}
-<h2>{{ text }}</h2>
+<h2 style="margin-top:24px">{{ text }}</h2>
 {% if by_area[code] %}
 <table>
   <thead><tr><th>주제</th><th>키워드</th><th>분야</th><th>사용</th><th></th></tr></thead>
@@ -55,8 +55,8 @@
       </td>
       <td><input form="{{ f }}" type="checkbox" name="is_active" value="on" {% if t.is_active %}checked{% endif %}></td>
       <td>
-        <button form="{{ f }}" type="submit">저장</button>
-        <form method="post" action="/admin/research/topics/{{ t.id }}/delete" style="display:inline" onsubmit="return confirm('이 주제를 삭제할까요?')"><button type="submit">삭제</button></form>
+        <button form="{{ f }}" type="submit" class="small">저장</button>
+        <form method="post" action="/admin/research/topics/{{ t.id }}/delete" style="display:inline" onsubmit="return confirm('이 주제를 삭제할까요?')"><button type="submit" class="danger small">삭제</button></form>
       </td>
     </tr>
   {% endfor %}

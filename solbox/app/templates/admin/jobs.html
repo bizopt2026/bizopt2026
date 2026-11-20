@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% block title %}AI 작업{% endblock %}
 {% block content %}
-<h1>AI 작업</h1>
-<table>
+<div class="page-head"><h1>AI 작업</h1></div>
+<div class="table-wrap"><table>
   <thead><tr><th>번호</th><th>종류</th><th>상태</th><th>요청자</th><th>요청 시각</th><th>끝난 시각</th><th>오류</th></tr></thead>
   <tbody>
   {% for j in jobs %}
     <tr>
       <td>{{ j.id }}</td>
       <td>{{ labels.JOB_KINDS.get(j.kind, j.kind) }}</td>
-      <td>{{ labels.JOB_STATUSES.get(j.status, j.status) }}</td>
+      <td><span class="badge {{ {'done': 'ok', 'failed': 'err', 'running': '', 'pending': 'muted'}.get(j.status, 'muted') }}">{{ labels.JOB_STATUSES.get(j.status, j.status) }}</span></td>
       <td>{{ requesters.get(j.requester_id, "-") }}</td>
       <td>{{ j.created_at.strftime("%Y-%m-%d %H:%M") if j.created_at else "" }}</td>
       <td>{{ j.finished_at.strftime("%Y-%m-%d %H:%M") if j.finished_at else "" }}</td>
@@ -19,5 +19,5 @@
     <tr><td colspan="7">작업이 없습니다.</td></tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% endblock %}

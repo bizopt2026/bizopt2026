@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block title %}제안 만들기{% endblock %}
 {% block content %}
-<h1>제안 만들기</h1>
+{% from "_macros.html" import page_head %}
+{{ page_head("제안 만들기", [("제안", "/proposals")]) }}
+<p class="page-lead">고객과 요청 내용을 정하면, 다음 화면에서 AI가 제안 방향을 만들어 줍니다.</p>
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 <form method="post" action="/proposals" class="card stack">
   <label>고객
@@ -22,6 +24,6 @@
   </label>
   {% set memo = form.request_memo %}{% set selected_ids = form.extra_solution_ids %}
   {% include "proposals/_target_fields.html" %}
-  <div class="row"><button type="submit">만들기</button> <a href="/proposals">취소</a></div>
+  <div class="row"><button type="submit" class="primary">만들기</button> <a href="/proposals">취소</a></div>
 </form>
 {% endblock %}

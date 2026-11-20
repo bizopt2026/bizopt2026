@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}리서치 {{ run.started_at.strftime("%Y-%m-%d") }}{% endblock %}
 {% block content %}
-<p><a href="/research">&larr; 리서치 목록</a></p>
-<h1>리서치 {{ run.started_at.strftime("%Y-%m-%d") }} <span class="badge {{ 'warn' if run.status in ('partial', 'failed') }}">{{ labels.RUN_STATUSES.get(run.status, run.status) }}</span></h1>
-<p class="muted">AI가 웹에서 수집한 내용입니다. 링크를 열어 확인하세요.</p>
+<ol class="crumbs" aria-label="이동 경로"><li><a href="/research">리서치</a></li><li aria-current="page">{{ run.started_at.strftime("%Y-%m-%d") }}</li></ol>
+<h1 style="margin-bottom:8px">리서치 {{ run.started_at.strftime("%Y-%m-%d") }} <span class="badge {{ 'warn' if run.status in ('partial', 'failed') }}">{{ labels.RUN_STATUSES.get(run.status, run.status) }}</span></h1>
+<p class="notice"><span class="ai-tag">AI</span> AI가 웹에서 수집한 내용입니다. 링크를 열어 원문을 확인하세요.</p>
 {% if run.status == "running" %}
 <section class="card"><h2>조사 진행</h2>
   <div hx-get="/research/runs/{{ run.id }}/status" hx-trigger="load" hx-swap="outerHTML"></div>
@@ -34,6 +34,6 @@
 {% endfor %}
 
 {% if user.role == "admin" and run.status != "running" %}
-<form method="post" action="/research/runs/{{ run.id }}/delete" onsubmit="return confirm('이 조사 결과를 삭제할까요?')"><button type="submit" class="danger">이 조사 삭제</button></form>
+<div class="danger-zone"><p>이 조사 결과를 지웁니다.</p><form method="post" action="/research/runs/{{ run.id }}/delete" onsubmit="return confirm('이 조사 결과를 삭제할까요?')"><button type="submit" class="danger">이 조사 삭제</button></form></div>
 {% endif %}
 {% endblock %}

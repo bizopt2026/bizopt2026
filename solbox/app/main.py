@@ -123,6 +123,10 @@ def create_app(settings: Settings) -> FastAPI:
     app.state.templates.env.globals["deck_is_stale"] = deck_is_stale
     app.state.templates.env.globals["labels"] = labels  # 매크로에서도 쓴다
     app.state.templates.env.filters["md"] = render_markdown
+    from app.flash import pop_flash
+
+    app.state.templates.env.globals["pop_flash"] = pop_flash
+    app.state.templates.env.globals["asset_v"] = str(max((int(f.stat().st_mtime) for f in static_dir.glob("app.*")), default=0))  # 고친 CSS·JS 를 바로 받게
 
     from app.routers import activities, admin, auth, businesses, customers, files, home, jobs, partners, proposal_outline, proposals, research, solutions  # 지연 임포트: 라우터가 render 를 쓴다
 

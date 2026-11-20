@@ -4,28 +4,35 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% endblock %} · 솔루션 박스</title>
-  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/app.css?v={{ asset_v }}">
   <script src="/static/htmx.min.js" defer></script>
+  <script src="/static/app.js?v={{ asset_v }}" defer></script>
 </head>
 <body>
 {% if user %}
+{% set path = request.url.path %}
+{% macro nav_link(href, text) -%}
+<a href="{{ href }}"{% if (href == "/" and path == "/") or (href != "/" and (path == href or path.startswith(href ~ "/"))) %} aria-current="page"{% endif %}>{{ text }}</a>
+{%- endmacro %}
 <header class="topbar">
   <a class="brand" href="/">솔루션 박스</a>
-  <nav>
-    <a href="/">홈</a>
-    <a href="/solutions">솔루션</a>
-    <a href="/customers">고객</a>
-    <a href="/businesses">기존 사업</a>
-    <a href="/partners">파트너</a>
-    <a href="/proposals">제안</a>
-    <a href="/activities">활동 기록</a>
-    <a href="/research">리서치</a>
+  <nav aria-label="주 메뉴">
+    {{ nav_link("/", "홈") }}
+    {{ nav_link("/solutions", "솔루션") }}
+    {{ nav_link("/customers", "고객") }}
+    {{ nav_link("/businesses", "기존 사업") }}
+    {{ nav_link("/partners", "파트너") }}
+    {{ nav_link("/proposals", "제안") }}
+    {{ nav_link("/activities", "활동 기록") }}
+    {{ nav_link("/research", "리서치") }}
     {% if user.role == "admin" %}
-    <details class="menu"><summary>관리</summary>
-      <a href="/admin/users">사용자</a>
-      <a href="/admin/jobs">AI 작업</a>
-      <a href="/admin/research">리서치 설정</a>
-      <a href="/admin/system">시스템</a>
+    <details class="menu{% if path.startswith('/admin') %} current{% endif %}"><summary>관리</summary>
+      <div class="menu-list">
+        {{ nav_link("/admin/users", "사용자") }}
+        {{ nav_link("/admin/jobs", "AI 작업") }}
+        {{ nav_link("/admin/research", "리서치 설정") }}
+        {{ nav_link("/admin/system", "시스템") }}
+      </div>
     </details>
     {% endif %}
   </nav>
@@ -36,6 +43,8 @@
 </header>
 {% endif %}
 <main>
+{% set flash_text = pop_flash(request) if user else None %}
+{% if flash_text %}<p class="flash" role="status">{{ flash_text }}</p>{% endif %}
 {% block content %}{% endblock %}
 </main>
 </body>

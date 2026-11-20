@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}활동 기록 AI 초안{% endblock %}
 {% block content %}
-<h1>활동 기록 AI 초안</h1>
+{% from "_macros.html" import page_head %}
+{{ page_head("활동 기록 AI 초안", [("활동 기록", "/activities")]) }}
 {% if f is none %}
-<p class="muted">AI가 메모를 정리하는 중입니다. 이 화면을 열어 두면 끝나는 대로 초안이 나타납니다.</p>
 {% include "jobs/_status.html" %}
 <div class="card stack">
   <strong>원문 메모</strong>
-  <pre style="white-space: pre-wrap">{{ raw_text }}</pre>
+  <pre class="raw">{{ raw_text }}</pre>
   <form method="post" action="/activities/raw">
     <input type="hidden" name="raw_text" value="{{ raw_text }}">
     <button type="submit">기다리지 않고 원문만 저장</button>
@@ -15,18 +15,18 @@
 </div>
 {% else %}
 {% if error_kind %}
-<div class="card stack" role="alert">
-  <p class="error">{{ labels.ERROR_KINDS.get(error_kind, labels.ERROR_KINDS["unknown"]) }}</p>
+<div class="error stack" role="alert">
+  <p>{{ labels.ERROR_KINDS.get(error_kind, labels.ERROR_KINDS["unknown"]) }}</p>
   <form method="post" action="/activities/draft/{{ job.id }}/retry"><button type="submit">다시 시도</button></form>
   <p class="muted">직접 정리해서 저장할 수도 있습니다. 원문은 아래에 채워져 있습니다.</p>
 </div>
 {% else %}
-<p class="muted">AI가 만든 초안입니다. 내용을 확인하고 고친 뒤 저장하세요. 저장하기 전에는 아무것도 기록되지 않습니다. 새로 등록할 이름은 직접 체크하세요.</p>
+<p class="notice"><span class="ai-tag">AI</span> 초안입니다. 내용을 확인하고 고친 뒤 저장하세요. 저장하기 전에는 아무것도 기록되지 않습니다. 새로 등록할 이름은 직접 체크하세요.</p>
 {% endif %}
 <form method="post" action="/activities" class="card stack">
   {% include "activities/_form_fields.html" %}
   <div class="row">
-    <button type="submit">저장</button>
+    <button type="submit" class="primary">저장</button>
     <a href="/activities">취소</a>
   </div>
 </form>

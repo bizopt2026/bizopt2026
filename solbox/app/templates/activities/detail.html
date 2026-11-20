@@ -1,12 +1,11 @@
 {% extends "base.html" %}
-{% from "_macros.html" import detail_actions %}
+{% from "_macros.html" import detail_actions, page_head %}
 {% block title %}{{ activity.title or "활동 기록" }}{% endblock %}
 {% block content %}
-<h1>{{ activity.title or "(제목 없음)" }}</h1>
-{{ detail_actions("/activities", activity, can_delete) }}
+{% call page_head(activity.title or "(제목 없음)", [("활동 기록", "/activities")]) %}{{ detail_actions("/activities", activity, can_delete) }}{% endcall %}
 <section class="card">
   <dl>
-    <dt>종류</dt><dd>{{ labels.ACTIVITY_KINDS.get(activity.kind, activity.kind) }}</dd>
+    <dt>종류</dt><dd><span class="badge muted">{{ labels.ACTIVITY_KINDS.get(activity.kind, activity.kind) }}</span></dd>
     <dt>일자</dt><dd>{{ activity.date or "" }}</dd>
     <dt>솔루션</dt><dd>{% for o in activity.solutions %}<a href="/solutions/{{ o.id }}">{{ o.name }}</a>{{ ", " if not loop.last }}{% endfor %}</dd>
     <dt>고객</dt><dd>{% for o in activity.customers %}<a href="/customers/{{ o.id }}">{{ o.name }}</a>{{ ", " if not loop.last }}{% endfor %}</dd>
@@ -18,20 +17,23 @@
 <section class="card"><h2>정리</h2><div class="md">{{ activity.summary_md | md }}</div></section>
 {% endif %}
 <section class="card">
-  <h2>후속 조치</h2>
+  {% set open_count = (activity.follow_ups or []) | rejectattr("done") | list | length %}
+  <div class="card-head"><h2>후속 조치</h2>{% if activity.follow_ups %}<span class="muted">남은 일 {{ open_count }}건</span>{% endif %}</div>
   {% if activity.follow_ups %}
-  <ul>
+  <ul class="todo">
     {% for fu in activity.follow_ups %}
     <li>
-      <form method="post" action="/activities/{{ activity.id }}/followups/{{ loop.index0 }}/toggle" class="row">
-        <button type="submit">{{ "완료 취소" if fu.done else "완료" }}</button>
-        <span>{% if fu.done %}<s>{{ fu.task }}</s>{% else %}{{ fu.task }}{% endif %}
-          {% if fu.owner %}· 담당 {{ fu.owner }}{% endif %}{% if fu.due %}· 기한 {{ fu.due }}{% endif %}</span>
+      <form method="post" action="/activities/{{ activity.id }}/followups/{{ loop.index0 }}/toggle">
+        <button type="submit" class="small">{{ "완료 취소" if fu.done else "완료" }}</button>
+        <span>
+          <span class="task">{% if fu.done %}<s class="muted">{{ fu.task }}</s>{% else %}{{ fu.task }}{% endif %}</span>
+          {% if fu.owner or fu.due %}<span class="meta">{% if fu.owner %}담당 {{ fu.owner }}{% endif %}{% if fu.owner and fu.due %} · {% endif %}{% if fu.due %}기한 {{ fu.due }}{% endif %}</span>{% endif %}
+        </span>
       </form>
     </li>
     {% endfor %}
   </ul>
-  {% else %}<p class="muted">후속 조치가 없습니다.</p>{% endif %}
+  {% else %}<p class="muted">후속 조치가 없습니다. <a href="/activities/{{ activity.id }}/edit">수정</a>에서 추가할 수 있습니다.</p>{% endif %}
 </section>
 {% if activity.demand_signals %}
 <section class="card">
@@ -40,8 +42,6 @@
 </section>
 {% endif %}
 <section class="card">
-  <h2>원문</h2>
-  <details><summary>원문 보기</summary><div style="white-space: pre-wrap">{{ activity.raw_text }}</div></details>
+  <details class="plain"{% if not activity.summary_md %} open{% endif %}><summary><strong>원문 메모</strong></summary><div class="raw">{{ activity.raw_text }}</div></details>
 </section>
-<p><a href="/activities">&larr; 목록</a></p>
 {% endblock %}

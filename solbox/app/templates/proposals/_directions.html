@@ -6,7 +6,7 @@
 <div class="stack">
   {% for d in directions %}
   <article class="card{% if proposal.selected_index == loop.index0 %} selected{% endif %}">
-    <h3>{{ d.title }}{% if proposal.selected_index == loop.index0 %} <span class="badge">선택됨</span>{% endif %}</h3>
+    <h3><span class="ai-tag">AI</span> {{ d.title }}{% if proposal.selected_index == loop.index0 %} <span class="badge">선택됨</span>{% endif %}</h3>
     {% if d.summary %}<p>{{ d.summary }}</p>{% endif %}
     <dl>
       <dt>조합 솔루션</dt>
@@ -27,17 +27,17 @@
     {% if proposal.selected_index != loop.index0 %}
     <form method="post" action="/proposals/{{ proposal.id }}/select"{% if confirm_change and proposal.selected_index is not none %} onsubmit="{{ confirm_change }}"{% endif %}>
       <input type="hidden" name="index" value="{{ loop.index0 }}">
-      <button type="submit">이 방향으로 구체화</button>
+      <button type="submit" class="primary">이 방향으로 구체화</button>
     </form>
     {% endif %}
   </article>
   {% endfor %}
 </div>
 {% else %}
-<p class="muted">아직 만든 방향이 없습니다.</p>
+<p class="muted">아직 만든 방향이 없습니다. AI가 고객 정보와 박스의 솔루션을 조합해 제안 방향 몇 가지를 만들어 줍니다.</p>
 {% endif %}
 {% if not busy %}
 <form method="post" action="/proposals/{{ proposal.id }}/directions"{% if confirm_change %} onsubmit="{{ confirm_change }}"{% endif %}>
-  <button type="submit">{% if directions %}방향 다시 만들기{% else %}방향 만들기{% endif %}</button>
+  <button type="submit" class="{{ 'ai' if directions else 'primary' }}">{% if directions %}방향 다시 만들기{% else %}AI로 방향 만들기{% endif %}</button>
 </form>
 {% endif %}

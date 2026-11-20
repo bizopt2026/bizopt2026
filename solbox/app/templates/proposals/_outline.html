@@ -1,13 +1,13 @@
 {% if proposal.outline %}
 {% set job = proposal.active_job %}
 {% set busy = job is not none and job.status in ("pending", "running") %}
-<p><strong>{{ proposal.outline.slides | length }}장</strong> · <a href="/proposals/{{ proposal.id }}/outline">구성안 검토·수정</a></p>
+<p><strong>{{ proposal.outline.slides | length }}장</strong> · <a class="btn primary" href="/proposals/{{ proposal.id }}/outline">구성안 검토·수정</a></p>
 {% if not busy %}
 <form method="post" action="/proposals/{{ proposal.id }}/outline" class="stack">
   <label>추가 지시 (선택)<input type="text" name="instruction" maxlength="500"></label>
-  <div><button type="submit">다시 만들기</button></div>
+  <div><button type="submit" class="ai">구성안 다시 만들기</button></div>
 </form>
 {% endif %}
 {% else %}
-<p class="muted">대화를 마치고 "제안서 만들기" 를 누르면 슬라이드 구성안을 만듭니다.</p>
+<p class="muted">대화를 마치고 "제안서 만들기"를 누르면 슬라이드 구성안을 만듭니다.</p>
 {% endif %}

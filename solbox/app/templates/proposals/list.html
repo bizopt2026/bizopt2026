@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% from "_macros.html" import proposal_badge, list_meta %}
 {% block title %}제안{% endblock %}
 {% block content %}
-<h1>제안</h1>
-<form method="get" action="/proposals" class="row">
-  <label>검색 <input type="search" name="q" value="{{ q }}"></label>
+<div class="page-head"><h1>제안</h1></div>
+<form method="get" action="/proposals" class="toolbar" role="search">
+  <label>검색 <input type="search" name="q" value="{{ q }}" placeholder="제안·고객 이름"></label>
   <label>상태
-    <select name="status">
+    <select name="status" onchange="this.form.submit()">
       <option value="">전체</option>
       {% for code, name in labels.PROPOSAL_STATUSES.items() %}
       <option value="{{ code }}" {{ "selected" if code == status }}>{{ name }}</option>
@@ -13,21 +14,27 @@
     </select>
   </label>
   <button type="submit">검색</button>
-  <a href="/proposals/new">+ 제안 만들기</a>
+  {% if q or status %}<a href="/proposals">조건 지우기</a>{% endif %}
+  <span class="spacer"></span>
+  <a class="btn primary" href="/proposals/new">+ 제안 만들기</a>
 </form>
 {% if proposals %}
-<table>
-  <thead><tr><th>제안</th><th>고객</th><th>상태</th><th>수정</th></tr></thead>
+{{ list_meta(proposals, q or status) }}
+<div class="table-wrap">
+<table class="sortable stack-sm">
+  <thead><tr><th data-sort="text">제안</th><th data-sort="text">고객</th><th data-sort="text">상태</th><th data-sort="text">수정</th></tr></thead>
+  {% set order = labels.PROPOSAL_STATUSES.keys() | list %}
   <tbody>
   {% for p in proposals %}
     <tr>
-      <td><a href="/proposals/{{ p.id }}">{{ display_title(p) }}</a></td>
-      <td><a href="/customers/{{ p.customer_id }}">{{ p.customer.name }}</a></td>
-      <td>{{ labels.PROPOSAL_STATUSES.get(p.status, p.status) }}</td>
-      <td>{{ p.updated_at.strftime("%Y-%m-%d %H:%M") }}</td>
+      <td class="title-cell" data-label="제안"><a href="/proposals/{{ p.id }}">{{ display_title(p) }}</a></td>
+      <td data-label="고객"><a href="/customers/{{ p.customer_id }}">{{ p.customer.name }}</a></td>
+      <td data-label="상태" data-value="{{ order.index(p.status) if p.status in order else 9 }}">{{ proposal_badge(p.status) }}</td>
+      <td class="date" data-label="수정">{{ p.updated_at.strftime("%Y-%m-%d %H:%M") }}</td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
-{% else %}<p class="muted">{{ "검색 결과가 없습니다." if (q or status) else "등록된 제안 건이 없습니다." }}</p>{% endif %}
+</div>
+{% else %}<p class="empty">{{ "검색 결과가 없습니다." if (q or status) else "등록된 제안 건이 없습니다." }}</p>{% endif %}
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}사용자 관리{% endblock %}
 {% block content %}
-<h1>사용자 관리</h1>
+<div class="page-head"><h1>사용자 관리</h1></div>
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 
 <section class="card">
@@ -15,11 +15,11 @@
         {% for code, text in roles.items() %}<option value="{{ code }}">{{ text }}</option>{% endfor %}
       </select>
     </label>
-    <button type="submit">추가</button>
+    <button type="submit" class="primary">추가</button>
   </form>
 </section>
 
-<table>
+<div class="table-wrap"><table>
   <thead><tr><th>아이디</th><th>이름</th><th>권한</th><th>사용</th><th>새 비밀번호</th><th></th></tr></thead>
   <tbody>
   {% for u in users %}
@@ -34,9 +34,9 @@
       </td>
       <td><input form="{{ f }}" type="checkbox" name="is_active" value="on" {% if u.is_active %}checked{% endif %}></td>
       <td><input form="{{ f }}" type="password" name="password" autocomplete="new-password" placeholder="변경할 때만 입력"></td>
-      <td><button form="{{ f }}" type="submit">저장</button></td>
+      <td><button form="{{ f }}" type="submit" class="small">저장</button></td>
     </tr>
   {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% endblock %}

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
+from app.flash import flash
 from app.db import get_db
 from app.knowledge import KnowledgeMirror, get_mirror
 from app.main import render
@@ -73,6 +74,7 @@ def create(
     db.refresh(business.customer)
     mirror.sync(business)
     mirror.sync(business.customer)  # 고객 사본의 사업 목록
+    flash(request, "사업을 등록했습니다.")
     return RedirectResponse(f"/businesses/{business.id}", status_code=303)
 
 
@@ -115,12 +117,13 @@ def update(
     if old_customer.id != business.customer_id:  # 옛 고객 사본의 사업 목록
         db.refresh(old_customer)
         mirror.sync(old_customer)
+    flash(request, "저장했습니다.")
     return RedirectResponse(f"/businesses/{business.id}", status_code=303)
 
 
 @router.post("/{business_id}/delete")
 def delete(
-    business_id: int,
+    business_id: int, request: Request,
     user: User = Depends(require_user), db: Session = Depends(get_db),
     mirror: KnowledgeMirror = Depends(get_mirror),
 ):
@@ -133,4 +136,5 @@ def delete(
     db.refresh(customer)
     mirror.sync(customer)
     resync_activities(db, mirror, activities)
+    flash(request, "사업을 삭제했습니다.")
     return RedirectResponse("/businesses", status_code=303)

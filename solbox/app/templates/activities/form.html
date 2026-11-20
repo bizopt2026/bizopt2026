@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 {% block title %}활동 기록 {{ "수정" if activity else "등록" }}{% endblock %}
 {% block content %}
-<h1>활동 기록 {{ "수정" if activity else "등록" }}</h1>
+{% from "_macros.html" import page_head %}
+{{ page_head("활동 기록 " ~ ("수정" if activity else "등록"), [("활동 기록", "/activities")]) }}
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 {% block form_intro %}{% endblock %}
 <form method="post" action="{{ "/activities/" ~ activity.id if activity else "/activities" }}" class="card stack">
   {% include "activities/_form_fields.html" %}
   <div class="row">
-    <button type="submit">저장</button>
+    <button type="submit" class="primary">저장</button>
     <a href="{{ "/activities/" ~ activity.id if activity else "/activities" }}">취소</a>
   </div>
 </form>

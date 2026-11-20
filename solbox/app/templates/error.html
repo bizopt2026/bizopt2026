@@ -3,7 +3,7 @@
 {% block content %}
 <h1>요청을 처리하지 못했습니다</h1>
 <div class="card stack" role="alert">
-  <p class="error">{{ message }}</p>
-  <p><a href="/">처음 화면으로 돌아가기</a></p>
+  <p class="error" style="margin:0">{{ message }}</p>
+  <p><a class="btn" href="/">홈으로</a> <a class="btn" href="javascript:history.back()">이전 화면</a></p>
 </div>
 {% endblock %}

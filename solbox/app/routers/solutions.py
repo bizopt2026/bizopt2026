@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
+from app.flash import flash
 from app import labels
 from app.ai.queue import enqueue, queue_position
 from app.ai.tasks import NO_READABLE_FILES, SolutionDraft
@@ -107,6 +108,7 @@ def create(
     mirror.sync(solution)
     if solution.partner:
         mirror.sync(solution.partner)
+    flash(request, "솔루션을 등록했습니다.")
     return RedirectResponse(f"/solutions/{solution.id}", status_code=303)
 
 
@@ -167,7 +169,7 @@ def edit_form(
 
 @router.post("/{solution_id}/stage")
 def change_stage(
-    solution_id: int, stage: str = Form(""),
+    solution_id: int, request: Request, stage: str = Form(""),
     user: User = Depends(require_user), db: Session = Depends(get_db),
     mirror: KnowledgeMirror = Depends(get_mirror),
 ):
@@ -177,6 +179,7 @@ def change_stage(
     solution.stage = stage
     db.commit()
     mirror.sync(solution)
+    flash(request, "발굴 단계를 바꿨습니다.")
     return RedirectResponse(f"/solutions/{solution.id}", status_code=303)
 
 
@@ -203,6 +206,7 @@ def update(
     if old_partner is not None and old_partner.id != solution.partner_id:  # 옛 파트너 사본
         db.refresh(old_partner)
         mirror.sync(old_partner)
+    flash(request, "저장했습니다.")
     return RedirectResponse(f"/solutions/{solution.id}", status_code=303)
 
 
@@ -222,4 +226,5 @@ def delete(
     resync_activities(db, mirror, activities)
     if partner is not None:
         mirror.sync(partner)
+    flash(request, "솔루션을 삭제했습니다.")
     return RedirectResponse("/solutions", status_code=303)

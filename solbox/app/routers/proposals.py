@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse, RedirectResponse, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.flash import flash
 from app import labels
 from app.ai.queue import queue_position
 from app.db import get_db
@@ -126,6 +127,7 @@ def create(
     db.add(proposal)
     db.commit()
     start_job(db, proposal, "proposal_directions", user)
+    flash(request, "제안 건을 만들었습니다. 이제 제안 방향을 만들어 보세요.")
     return RedirectResponse(f"/proposals/{proposal.id}", status_code=303)
 
 
@@ -326,7 +328,7 @@ def download(
 
 @router.post("/{proposal_id}/target")
 def update_target(
-    proposal_id: int,
+    proposal_id: int, request: Request,
     request_memo: str = Form(""), extra_solution_ids: list[str] = Form([]),
     user: User = Depends(require_user), db: Session = Depends(get_db),
 ):
@@ -342,6 +344,7 @@ def update_target(
     proposal.request_memo = request_memo.strip()
     proposal.extra_solution_ids = ids
     db.commit()
+    flash(request, "대상을 저장했습니다.")
     return RedirectResponse(f"/proposals/{proposal.id}", status_code=303)
 
 
@@ -355,4 +358,5 @@ def delete(
     db.delete(proposal)
     db.commit()
     shutil.rmtree(request.app.state.settings.decks_dir / str(pid), ignore_errors=True)
+    flash(request, "제안 건을 삭제했습니다.")
     return RedirectResponse("/proposals", status_code=303)

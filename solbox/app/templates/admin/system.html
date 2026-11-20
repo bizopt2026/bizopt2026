@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}시스템{% endblock %}
 {% block content %}
-<h1>시스템</h1>
-{% if error %}<p class="error">{{ error }}</p>{% endif %}
-<table style="margin-bottom:1.25rem">
+<div class="page-head"><h1>시스템</h1></div>
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<div class="table-wrap" style="margin-bottom:16px"><table>
   <tbody>
     <tr><th>버전</th><td>{{ version }}</td></tr>
     <tr><th>데이터 폴더</th><td>{{ data_dir }} ({{ data_size }})</td></tr>
@@ -21,17 +21,17 @@
       {% else %}없음{% endif %}
     </td></tr>
   </tbody>
-</table>
+</table></div>
 
 <section class="card">
 <h2>AI 연결 확인</h2>
-<form method="post" action="/admin/system/ai-check" style="margin-bottom:.75rem"><button type="submit">AI 연결 확인</button></form>
+<form method="post" action="/admin/system/ai-check" style="margin-bottom:.75rem"><button type="submit" class="ai">AI 연결 확인</button></form>
 <p class="muted"><small>다른 AI 작업이 진행 중이면 그 작업이 끝난 뒤에 확인합니다.</small></p>
 {% include "admin/_ai_check.html" %}
 </section>
 
 <section class="card">
 <h2>백업</h2>
-<form method="post" action="/admin/system/backup" style="margin-bottom:.75rem"><button type="submit">지금 백업</button></form>
+<form method="post" action="/admin/system/backup" style="margin-bottom:.75rem"><button type="submit" class="primary">지금 백업</button></form>
 </section>
 {% endblock %}

@@ -1,71 +1,88 @@
 {% extends "base.html" %}
+{% from "_macros.html" import proposal_badge %}
 {% block title %}홈{% endblock %}
 {% block content %}
-<h1>홈</h1>
-{% if ai_problem %}<p class="error">AI 상태: {{ ai_problem }}</p>{% endif %}
+<div class="page-head">
+  <h1>{{ (user.name or user.username) }}님, 오늘 할 일부터 볼까요?</h1>
+</div>
+{% if ai_problem %}<div class="error" role="alert">AI 상태: {{ ai_problem }} <span class="muted">AI 없이도 조회와 직접 입력은 할 수 있습니다.</span></div>{% endif %}
 
-<section class="card">
-  <h2>발굴 단계별 솔루션</h2>
-  <ul class="stages">
-    {% for code, name, count in stages %}
-    <li><a href="/solutions?stage={{ code }}">{{ name }}<strong>{{ count }}</strong></a></li>
-    {% endfor %}
-  </ul>
-</section>
+<div class="quick">
+  <a class="btn primary" href="/activities/new">+ 활동 기록</a>
+  <a class="btn" href="/proposals/new">+ 제안 만들기</a>
+  <a class="btn" href="/solutions/new">+ 솔루션 등록</a>
+</div>
 
-<section class="card">
-  <h2>최신 리서치</h2>
-  {% if research %}
-  <p class="muted">{{ (research.run.finished_at or research.run.started_at).strftime("%Y-%m-%d") }} 조사 · <a href="/research/runs/{{ research.run.id }}">자세히 보기</a></p>
-  {% if research.insights %}<h3>시사점</h3><ul>{% for i in research.insights %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
-  {% if research.suggestions %}<h3>발굴 방향 제안</h3><ul>{% for s in research.suggestions %}<li>{{ s.title }}</li>{% endfor %}</ul>{% endif %}
-  {% else %}<p class="muted">아직 리서치 결과가 없습니다.</p>{% endif %}
-  <p><a href="/research">리서치 목록</a></p>
-</section>
+<div class="home-grid">
+<div>
+  <section class="card">
+    {% set overdue = follow_ups | selectattr("overdue") | list %}
+    <div class="card-head">
+      <h2>후속 조치 <span class="muted" style="font-weight:400;font-size:13px">기한 14일 이내</span></h2>
+      {% if overdue %}<span class="badge err">기한 지남 {{ overdue | length }}건</span>{% endif %}
+    </div>
+    {% if follow_ups %}
+    <ul class="todo">
+      {% for f in follow_ups %}
+      <li{% if f.overdue %} class="is-overdue"{% endif %}>
+        <form method="post" action="/activities/{{ f.activity.id }}/followups/{{ f.index }}/toggle">
+          <button type="submit" class="small" title="완료로 표시">완료</button>
+          <span>
+            <span class="task">{{ f.task }}</span>
+            <span class="meta">
+              {% if f.overdue %}<span class="overdue">기한 지남 · {{ f.due }}</span>{% else %}기한 {{ f.due }}{% endif %}
+              {% if f.owner %}· 담당 {{ f.owner }}{% endif %}
+              · <a href="/activities/{{ f.activity.id }}">{{ f.activity.title or "(제목 없음)" }}</a>
+            </span>
+          </span>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">처리할 후속 조치가 없습니다.</p>{% endif %}
+  </section>
 
-<section class="card">
-  <h2>진행 중인 제안 건</h2>
-  {% if proposals %}
-  <ul>
-    {% for p in proposals %}
-    <li><a href="/proposals/{{ p.id }}">{{ display_title(p) }}</a> · {{ p.customer.name }} <span class="badge">{{ labels.PROPOSAL_STATUSES.get(p.status, p.status) }}</span></li>
-    {% endfor %}
-  </ul>
-  {% else %}<p class="muted">진행 중인 제안 건이 없습니다.</p>{% endif %}
-  <p><a href="/proposals">제안 건 목록</a> · <a href="/proposals/new">+ 제안 건 만들기</a></p>
-</section>
+  <section class="card">
+    <div class="card-head"><h2>진행 중인 제안 건</h2><a href="/proposals">전체 보기</a></div>
+    {% if proposals %}
+    <ul class="plain-list">
+      {% for p in proposals %}
+      <li><a href="/proposals/{{ p.id }}">{{ display_title(p) }}</a> <span class="meta">{{ p.customer.name }}</span> {{ proposal_badge(p.status) }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">진행 중인 제안 건이 없습니다. <a href="/proposals/new">+ 제안 건 만들기</a></p>{% endif %}
+  </section>
 
-<section class="card">
-  <h2>후속 조치 (기한 14일 이내)</h2>
-  {% if follow_ups %}
-  <ul>
-    {% for f in follow_ups %}
-    <li>
-      <form method="post" action="/activities/{{ f.activity.id }}/followups/{{ f.index }}/toggle" class="row">
-        <button type="submit">완료</button>
-        <span>{{ f.task }}
-          {% if f.owner %}· 담당 {{ f.owner }}{% endif %}
-          · 기한 {{ f.due }}{% if f.overdue %} <span class="overdue">기한 지남</span>{% endif %}
-          · <a href="/activities/{{ f.activity.id }}">{{ f.activity.title or "(제목 없음)" }}</a></span>
-      </form>
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}<p class="muted">처리할 후속 조치가 없습니다.</p>{% endif %}
-</section>
+  <section class="card">
+    <div class="card-head"><h2>최근 활동 기록</h2><a href="/activities">전체 보기</a></div>
+    {% if recent %}
+    <ul class="plain-list">
+      {% for a in recent %}
+      <li><span class="meta">{{ a.date or "" }}</span> <a href="/activities/{{ a.id }}">{{ a.title or "(제목 없음)" }}</a> <span class="meta">{{ labels.ACTIVITY_KINDS.get(a.kind, a.kind) }}</span></li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">등록된 활동 기록이 없습니다.</p>{% endif %}
+  </section>
+</div>
 
-<section class="card">
-  <h2>최근 활동 기록</h2>
-  {% if recent %}
-  <table>
-    <thead><tr><th>일자</th><th>종류</th><th>제목</th></tr></thead>
-    <tbody>
-    {% for a in recent %}
-      <tr><td>{{ a.date or "" }}</td><td>{{ labels.ACTIVITY_KINDS.get(a.kind, a.kind) }}</td><td><a href="/activities/{{ a.id }}">{{ a.title or "(제목 없음)" }}</a></td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% else %}<p class="muted">등록된 활동 기록이 없습니다.</p>{% endif %}
-  <p><a href="/activities/new">+ 활동 기록 등록</a></p>
-</section>
+<div>
+  <section class="card">
+    <div class="card-head"><h2>발굴 단계별 솔루션</h2><a href="/solutions">전체 보기</a></div>
+    <ul class="pipeline">
+      {% for code, name, count in stages %}
+      <li><a href="/solutions?stage={{ code }}"><span class="n">{{ count }}</span><span class="label">{{ name }}</span></a></li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>최신 리서치 <span class="ai-tag">AI</span></h2><a href="/research">리서치 목록</a></div>
+    {% if research %}
+    <p class="muted">{{ (research.run.finished_at or research.run.started_at).strftime("%Y-%m-%d") }} 조사 · <a href="/research/runs/{{ research.run.id }}">자세히 보기</a></p>
+    {% if research.insights %}<h3>시사점</h3><ul>{% for i in research.insights %}<li>{{ i }}</li>{% endfor %}</ul>{% endif %}
+    {% if research.suggestions %}<h3>발굴 방향 제안</h3><ul>{% for s in research.suggestions %}<li>{{ s.title }}</li>{% endfor %}</ul>{% endif %}
+    {% else %}<p class="muted">아직 리서치 결과가 없습니다.</p>{% endif %}
+  </section>
+</div>
+</div>
 {% endblock %}

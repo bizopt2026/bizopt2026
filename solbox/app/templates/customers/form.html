@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block title %}고객 {{ "수정" if customer else "등록" }}{% endblock %}
 {% block content %}
-<h1>고객 {{ "수정" if customer else "등록" }}</h1>
+{% from "_macros.html" import page_head %}
+{{ page_head("고객 " ~ ("수정" if customer else "등록"), [("고객", "/customers")]) }}
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 <form method="post" action="{{ "/customers/" ~ customer.id if customer else "/customers" }}" class="card stack">
     <label>이름 (필수) <input name="name" value="{{ form.name }}"></label>
@@ -9,7 +10,7 @@
     <label>연락처 <input name="contact" value="{{ form.contact }}"></label>
     <label>메모 <textarea name="memo" rows="3">{{ form.memo }}</textarea></label>
     <div class="row">
-      <button type="submit">저장</button>
+      <button type="submit" class="primary">저장</button>
       <a href="{{ "/customers/" ~ customer.id if customer else "/customers" }}">취소</a>
     </div>
 </form>

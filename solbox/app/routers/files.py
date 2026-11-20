@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
+from app.flash import flash
 from app import labels
 from app.db import get_db
 from app.extract import extract_text
@@ -102,6 +103,7 @@ def upload_files(
     if skipped:
         notice = f"크기 제한({max_mb}MB)을 넘어 건너뛴 파일: {', '.join(skipped)}"
         return detail_page(request, db, user, solution, notice=notice)
+    flash(request, "파일을 올렸습니다.")
     return RedirectResponse(f"/solutions/{solution.id}", status_code=303)
 
 
@@ -154,4 +156,5 @@ def delete_file(
     db.commit()
     db.refresh(solution)
     mirror.sync(solution)
+    flash(request, "파일을 삭제했습니다.")
     return RedirectResponse(f"/solutions/{solution.id}", status_code=303)

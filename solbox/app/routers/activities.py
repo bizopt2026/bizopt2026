@@ -10,6 +10,7 @@ from pydantic import ValidationError
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
+from app.flash import flash
 from app import labels
 from app.ai.queue import enqueue, queue_position
 from app.ai.tasks import ActivityDraft, draft_summary_md, match_mentions, normalize_draft, normalize_name
@@ -235,6 +236,7 @@ def _save(request, db, user, mirror, activity: Activity | None, raw_text, memo_f
     )
     db.commit()
     _sync_all(mirror, activity, old)
+    flash(request, "활동 기록을 저장했습니다.")
     return RedirectResponse(f"/activities/{activity.id}", status_code=303)
 
 
@@ -275,6 +277,7 @@ def save_raw(
     db.add(activity)
     db.commit()
     mirror.sync(activity)
+    flash(request, "원문을 저장했습니다. 수정에서 정리할 수 있습니다.")
     return RedirectResponse(f"/activities/{activity.id}", status_code=303)
 
 
@@ -408,7 +411,7 @@ def update(
 
 @router.post("/{activity_id}/delete")
 def delete(
-    activity_id: int, user: User = Depends(require_user), db: Session = Depends(get_db),
+    activity_id: int, request: Request, user: User = Depends(require_user), db: Session = Depends(get_db),
     mirror: KnowledgeMirror = Depends(get_mirror),
 ):
     a = get_deletable_or_404(db, Activity, activity_id, user)
@@ -418,6 +421,7 @@ def delete(
     db.commit()
     for obj in linked:
         mirror.sync(obj)
+    flash(request, "활동 기록을 삭제했습니다.")
     return RedirectResponse("/activities", status_code=303)
 
 

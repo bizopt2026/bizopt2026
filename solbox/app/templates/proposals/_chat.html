@@ -14,11 +14,11 @@
 {% if chat_error is defined and chat_error %}<p class="error" role="alert">{{ chat_error }}</p>{% endif %}
 {% if not busy %}
 <form method="post" action="/proposals/{{ proposal.id }}/chat" class="stack">
-  <label>메시지<textarea name="message" rows="3" required></textarea></label>
-  <div><button type="submit">보내기</button></div>
+  <label>메시지<textarea name="message" rows="3" required placeholder="예) 2단계 도입으로 나눠 주세요. 비용 비교를 강조해 주세요."></textarea></label>
+  <div><button type="submit" class="primary">보내기</button></div>
 </form>
 <form method="post" action="/proposals/{{ proposal.id }}/outline">
-  <button type="submit">제안서 만들기</button>
+  <button type="submit" class="ai">제안서 만들기 (구성안부터)</button>
 </form>
 {% endif %}
 {% else %}

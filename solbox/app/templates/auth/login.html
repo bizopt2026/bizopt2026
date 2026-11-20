@@ -2,12 +2,13 @@
 {% block title %}로그인{% endblock %}
 {% block content %}
 <section class="card narrow">
-  <h1>솔루션 박스</h1>
+  <h1 class="brand" style="margin-bottom:6px">솔루션 박스</h1>
+  <p class="muted" style="margin:0 0 8px">솔루션 발굴부터 제안서까지 한곳에서</p>
   {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
   <form method="post" action="/login" class="stack">
     <label>아이디 <input name="username" autocomplete="username" required autofocus></label>
     <label>비밀번호 <input type="password" name="password" autocomplete="current-password" required></label>
-    <button type="submit">로그인</button>
+    <button type="submit" class="primary">로그인</button>
   </form>
 </section>
 {% endblock %}

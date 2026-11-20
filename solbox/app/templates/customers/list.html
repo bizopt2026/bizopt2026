@@ -1,17 +1,20 @@
 {% extends "base.html" %}
-{% from "_macros.html" import search_box %}
+{% from "_macros.html" import search_box, list_meta %}
 {% block title %}고객{% endblock %}
 {% block content %}
-<h1>고객</h1>
-{{ search_box("/customers", q) }}
+<div class="page-head"><h1>고객</h1></div>
+{{ search_box("/customers", q, "+ 고객 등록") }}
 {% if customers %}
-<table>
-  <thead><tr><th>이름</th><th>업종</th><th>연락처</th></tr></thead>
+{{ list_meta(customers, q) }}
+<div class="table-wrap">
+<table class="sortable stack-sm">
+  <thead><tr><th data-sort="text">이름</th><th data-sort="text">업종</th><th>연락처</th></tr></thead>
   <tbody>
   {% for c in customers %}
-    <tr><td><a href="/customers/{{ c.id }}">{{ c.name }}</a></td><td>{{ c.industry }}</td><td>{{ c.contact }}</td></tr>
+    <tr><td class="title-cell" data-label="이름"><a href="/customers/{{ c.id }}">{{ c.name }}</a></td><td data-label="업종">{{ c.industry }}</td><td data-label="연락처">{{ c.contact }}</td></tr>
   {% endfor %}
   </tbody>
 </table>
-{% else %}<p class="muted">{{ "검색 결과가 없습니다." if q else "등록된 항목이 없습니다." }}</p>{% endif %}
+</div>
+{% else %}<p class="empty">{{ "검색 결과가 없습니다." if q else "등록된 항목이 없습니다." }}</p>{% endif %}
 {% endblock %}

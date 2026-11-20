@@ -3,15 +3,19 @@
    choices (연결 후보: solution, customer, business, partner 목록). #}
 {% set fus = f.follow_ups or [] %}
 {% set dss = f.demand_signals or [] %}
+<div class="row">
 <label>종류
   <select name="kind">
     {% for code, name in labels.ACTIVITY_KINDS.items() %}<option value="{{ code }}" {{ "selected" if f.kind == code }}>{{ name }}</option>{% endfor %}
   </select>
 </label>
 <label>일자 <input type="date" name="date" value="{{ f.date }}"></label>
-<label>제목 <input name="title" value="{{ f.title }}"></label>
-<label>원문 메모 (필수) <textarea name="raw_text" rows="10">{{ f.raw_text }}</textarea></label>
-<label>정리본 <textarea name="summary_md" rows="10">{{ f.summary_md }}</textarea></label>
+<label style="flex:1 1 280px">제목 <input name="title" value="{{ f.title }}" placeholder="비우면 메모 첫 줄을 씁니다"></label>
+</div>
+<div class="memo-pair">
+  <label>원문 메모 (필수) <textarea name="raw_text" rows="12">{{ f.raw_text }}</textarea></label>
+  <label>정리본 <textarea name="summary_md" rows="12">{{ f.summary_md }}</textarea></label>
+</div>
 
 <fieldset>
   <legend>후속 조치</legend>
@@ -31,7 +35,7 @@
       <label><input type="checkbox" name="fu_done" value="{{ fus|length }}"> 완료</label>
     </div>
   </div>
-  <button type="button" data-add-row="fu-rows">+ 후속 조치 추가</button>
+  <button type="button" class="small" data-add-row="fu-rows" style="align-self:flex-start">+ 후속 조치 추가</button>
 </fieldset>
 
 <fieldset>
@@ -48,21 +52,23 @@
       <label>내용 <input name="ds_content"></label>
     </div>
   </div>
-  <button type="button" data-add-row="ds-rows">+ 수요 단서 추가</button>
+  <button type="button" class="small" data-add-row="ds-rows" style="align-self:flex-start">+ 수요 단서 추가</button>
 </fieldset>
 
 <fieldset>
   <legend>연결</legend>
+  <div class="pick-grid">
   {% for key, title, field in (("solution", "솔루션", "solution_ids"), ("customer", "고객", "customer_ids"), ("business", "기존 사업", "business_ids"), ("partner", "파트너", "partner_ids")) %}
-  <label>{{ title }}
-    <select name="{{ field }}" multiple size="5">
-      {% for o in choices[key] %}<option value="{{ o.id }}" {{ "selected" if o.id in f.selected[key] }}>{{ o.name }}</option>{% endfor %}
-    </select>
-  </label>
-  {% for amb in (f.ambiguous or {}).get(key, []) %}
-  <p class="muted ambiguous-hint">“{{ amb.name }}”: 여러 항목과 비슷합니다: {{ amb.candidates | join(", ") }} — 위 목록에서 맞는 항목을 직접 선택하세요.</p>
+  <div class="picker">
+    <span class="picker-title"><span>{{ title }}</span><span class="picker-count"></span></span>
+    {% if choices[key] | length > 6 %}<input type="search" class="picker-filter" placeholder="{{ title }} 이름으로 찾기" aria-label="{{ title }} 찾기">{% endif %}
+    <div class="picker-list" role="group" aria-label="{{ title }}">{% for o in choices[key] %}<label><input type="checkbox" name="{{ field }}" value="{{ o.id }}" {{ "checked" if o.id in f.selected[key] }}> {{ o.name }}</label>{% endfor %}</div>
+    {% for amb in (f.ambiguous or {}).get(key, []) %}
+    <p class="notice ambiguous-hint" style="margin:0;font-size:13px">“{{ amb.name }}”: 여러 항목과 비슷합니다: {{ amb.candidates | join(", ") }} — 위 목록에서 맞는 항목을 직접 고르세요.</p>
+    {% endfor %}
+  </div>
   {% endfor %}
-  {% endfor %}
+  </div>
 </fieldset>
 
 <fieldset>

@@ -29,6 +29,7 @@
 
 ## 문서
 - 설계·계획: `docs/superpowers/specs/`, `docs/superpowers/plans/`
+- 화면 디자인 컨셉(색·버튼·스텝·알림 규칙): `docs/디자인컨셉.md`. 화면을 고칠 때 이 규칙을 따른다 (주 버튼은 화면마다 하나, 삭제는 `.danger`, AI 결과에는 AI 표식, 저장 뒤 확인 문구는 `app/flash.py`)
 - 운영(설치·인증서·방화벽·자동 시작·백업·복원·업데이트·문제 해결): `docs/운영가이드.md`
 - 서버 PC로 옮기는 작업 지시서(Claude Code용): `docs/서버이관_Claude용.md`
 - 사용법·Claude CLI 수동 확인 목록: `README.md`

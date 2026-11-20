@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block title %}솔루션 {{ "수정" if solution else "등록" }}{% endblock %}
 {% block content %}
-<h1>솔루션 {{ "수정" if solution else "등록" }}</h1>
+{% from "_macros.html" import page_head %}
+{{ page_head("솔루션 " ~ ("수정" if solution else "등록"), [("솔루션", "/solutions")]) }}
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 {% if job %}
 <section class="card">{% include "jobs/_status.html" %}</section>
 {% else %}
-{% if drafted %}<p class="notice" role="status">AI 초안입니다. 확인 후 저장하세요.</p>{% endif %}
+{% if drafted %}<p class="notice" role="status"><span class="ai-tag">AI</span> AI 초안입니다. 확인하고 고친 뒤 저장해야 반영됩니다.</p>{% endif %}
 {% if draft_error %}
 <div class="card" role="alert">
   <p class="error">{{ draft_error }}</p>
@@ -32,7 +33,7 @@
     <label>적용 가능 유형 <input name="applicable_types" value="{{ form.applicable_types }}"></label>
     <label>태그 (쉼표로 구분) <input name="tags" value="{{ form.tags }}"></label>
     <div class="row">
-      <button type="submit">저장</button>
+      <button type="submit" class="primary">저장</button>
       <a href="{{ "/solutions/" ~ solution.id if solution else "/solutions" }}">취소</a>
     </div>
 </form>

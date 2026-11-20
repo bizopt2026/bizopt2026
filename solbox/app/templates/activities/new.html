@@ -1,16 +1,18 @@
 {% extends "base.html" %}
+{% from "_macros.html" import page_head, file_pick %}
 {% block title %}활동 기록 등록{% endblock %}
 {% block content %}
-<h1>활동 기록 등록</h1>
-<p class="muted">미팅·통화 메모를 붙여 넣거나 텍스트 파일(.txt, .md)을 선택하세요.</p>
+{{ page_head("활동 기록 등록", [("활동 기록", "/activities")]) }}
+<p class="page-lead">미팅·통화 메모를 붙여 넣거나 텍스트 파일(.txt, .md)을 고르세요. AI가 종류·후속 조치·연결 항목을 정리한 초안을 만들어 줍니다.</p>
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 <form method="post" action="/activities/raw" enctype="multipart/form-data" class="card stack">
-  <label>메모 <textarea name="raw_text" rows="16">{{ raw_text }}</textarea></label>
-  <label>텍스트 파일 <input type="file" name="memo_file" accept=".txt,.md"></label>
+  <label>메모 <textarea name="raw_text" rows="14" placeholder="예) 한빛건설 김 팀장 미팅. 현장 안전 카메라에 관심. 다음 주 금요일까지 견적 전달.">{{ raw_text }}</textarea></label>
+  {{ file_pick("memo_file", label="또는 텍스트 파일", accept=".txt,.md") }}
   <div class="row">
-    <button type="submit" formaction="/activities/draft">AI로 정리</button>
+    <button type="submit" class="primary" formaction="/activities/draft">AI로 정리</button>
     <button type="submit">원문만 저장</button>
     <a href="/activities">취소</a>
   </div>
+  <p class="muted" style="margin:0;font-size:13px">AI 정리는 초안입니다. 확인하고 저장하기 전에는 기록되지 않습니다.</p>
 </form>
 {% endblock %}

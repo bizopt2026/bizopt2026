@@ -1,18 +1,15 @@
 {% extends "base.html" %}
-{% from "_macros.html" import activity_list, detail_actions, proposal_list %}
+{% from "_macros.html" import activity_list, detail_actions, proposal_list, page_head %}
 {% block title %}{{ customer.name }}{% endblock %}
 {% block content %}
-<h1>{{ customer.name }}</h1>
+{% call page_head(customer.name, [("고객", "/customers")]) %}{{ detail_actions("/customers", customer, can_delete) }}{% endcall %}
 {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-{{ detail_actions("/customers", customer, can_delete) }}
 <section class="card"><dl><dt>업종</dt><dd>{{ customer.industry }}</dd><dt>연락처</dt><dd>{{ customer.contact }}</dd><dt>메모</dt><dd>{{ customer.memo }}</dd></dl></section>
 <section class="card">
-  <h2>기존 사업</h2>
-  {% if businesses %}<ul>{% for b in businesses %}<li><a href="/businesses/{{ b.id }}">{{ b.name }}</a> {{ b.status }}</li>{% endfor %}</ul>
+  <div class="card-head"><h2>기존 사업</h2><a href="/businesses/new?customer_id={{ customer.id }}">+ 사업 등록</a></div>
+  {% if businesses %}<ul class="plain-list">{% for b in businesses %}<li><a href="/businesses/{{ b.id }}">{{ b.name }}</a> {% if b.status %}<span class="badge muted">{{ b.status }}</span>{% endif %}</li>{% endfor %}</ul>
   {% else %}<p class="muted">등록된 사업이 없습니다.</p>{% endif %}
-  <a href="/businesses/new?customer_id={{ customer.id }}">+ 사업 등록</a>
 </section>
 {{ proposal_list(proposals, "/proposals/new?customer_id=" ~ customer.id) }}
 {{ activity_list(activities) }}
-<p><a href="/customers">&larr; 목록</a></p>
 {% endblock %}

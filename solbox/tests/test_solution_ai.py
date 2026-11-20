@@ -75,9 +75,9 @@ def test_bad_output_is_retried_once(app, user_client, db, settings, fake_claude)
 
 def test_prompt_treats_files_as_untrusted_and_detail_button(app, user_client, db, settings, fake_claude):
     s = Solution(name="A"); db.add(s); db.commit()
-    assert "AI로 소개 초안 만들기" not in user_client.get(f"/solutions/{s.id}").text
+    assert "소개 초안 만들기" not in user_client.get(f"/solutions/{s.id}").text
     _upload(user_client, s)
-    assert "AI로 소개 초안 만들기" in user_client.get(f"/solutions/{s.id}").text
+    assert "소개 초안 만들기" in user_client.get(f"/solutions/{s.id}").text
     fake_claude.set(mode="ok", result='{"summary": "x"}')
     user_client.post(f"/solutions/{s.id}/draft")
     _run(app, settings)

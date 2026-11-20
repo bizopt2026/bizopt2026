@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
+from app.flash import flash
 from app.db import get_db
 from app.knowledge import KnowledgeMirror, get_mirror
 from app.main import render
@@ -50,6 +51,7 @@ def create(
     db.add(partner)
     db.commit()
     mirror.sync(partner)
+    flash(request, "파트너를 등록했습니다.")
     return RedirectResponse(f"/partners/{partner.id}", status_code=303)
 
 
@@ -85,12 +87,13 @@ def update(
     db.commit()
     mirror.sync(partner)
     resync_related(db, mirror, partner)
+    flash(request, "저장했습니다.")
     return RedirectResponse(f"/partners/{partner.id}", status_code=303)
 
 
 @router.post("/{partner_id}/delete")
 def delete(
-    partner_id: int,
+    partner_id: int, request: Request,
     user: User = Depends(require_user), db: Session = Depends(get_db),
     mirror: KnowledgeMirror = Depends(get_mirror),
 ):
@@ -106,4 +109,5 @@ def delete(
         db.refresh(s)
         mirror.sync(s)
     resync_activities(db, mirror, activities)
+    flash(request, "파트너를 삭제했습니다.")
     return RedirectResponse("/partners", status_code=303)

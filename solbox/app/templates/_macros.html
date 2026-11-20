@@ -1,10 +1,38 @@
+{# 화면 머리: 이동 경로 + 제목 + (call 블록이 있으면) 오른쪽 버튼.
+   crumbs: [(글, 주소), ...] 마지막은 현재 화면이라 링크 없이 제목을 쓴다. #}
+{% macro page_head(title, crumbs=[]) %}
+{% if crumbs %}
+<ol class="crumbs" aria-label="이동 경로">
+  {% for text, href in crumbs %}<li><a href="{{ href }}">{{ text }}</a></li>{% endfor %}
+  <li aria-current="page">{{ title | truncate(30, true, "…") }}</li>
+</ol>
+{% endif %}
+<div class="page-head">
+  <h1>{{ title }}</h1>
+  {% if caller is defined %}<div class="actions">{{ caller() }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro stage_badge(code) -%}
+<span class="badge stage-{{ code }}">{{ labels.STAGES.get(code, code) }}</span>
+{%- endmacro %}
+
+{% macro proposal_badge(status) -%}
+<span class="badge {{ 'ok' if status == 'deck' else '' }}">{{ labels.PROPOSAL_STATUSES.get(status, status) }}</span>
+{%- endmacro %}
+
+{% macro tag_chips(tags, base="/solutions") -%}
+{%- set items = (tags or "").split(",") | map("trim") | reject("equalto", "") | list -%}
+{%- if items %}<span class="chips">{% for t in items %}<a class="chip" href="{{ base }}?q={{ t | urlencode }}">{{ t }}</a>{% endfor %}</span>{% endif %}
+{%- endmacro %}
+
 {% macro activity_list(activities) %}
 <section class="card">
-  <h2>활동 기록</h2>
+  <div class="card-head"><h2>활동 기록</h2><span class="muted">{{ activities | length }}건</span></div>
   {% if activities %}
-  <ul>
+  <ul class="plain-list">
     {% for a in activities %}
-    <li>{{ a.date or "날짜 없음" }} <a href="/activities/{{ a.id }}">{{ a.title or "(제목 없음)" }}</a></li>
+    <li><span class="meta">{{ a.date or "날짜 없음" }}</span> <a href="/activities/{{ a.id }}">{{ a.title or "(제목 없음)" }}</a> <span class="meta">{{ labels.ACTIVITY_KINDS.get(a.kind, a.kind) }}</span></li>
     {% endfor %}
   </ul>
   {% else %}<p class="muted">연결된 활동 기록이 없습니다.</p>{% endif %}
@@ -13,33 +41,48 @@
 
 {% macro proposal_list(proposals, new_url=None, heading="제안 건") %}
 <section class="card">
-  <h2>{{ heading }}</h2>
+  <div class="card-head"><h2>{{ heading }}</h2>{% if new_url %}<a href="{{ new_url }}">+ 제안 만들기</a>{% endif %}</div>
   {% if proposals %}
-  <ul>
+  <ul class="plain-list">
     {% for p in proposals %}
-    <li><a href="/proposals/{{ p.id }}">{{ display_title(p) }}</a> <span class="muted">{{ labels.PROPOSAL_STATUSES.get(p.status, p.status) }}</span></li>
+    <li><a href="/proposals/{{ p.id }}">{{ display_title(p) }}</a> {{ proposal_badge(p.status) }}</li>
     {% endfor %}
   </ul>
   {% else %}<p class="muted">제안 건이 없습니다.</p>{% endif %}
-  {% if new_url %}<a href="{{ new_url }}">+ 제안 만들기</a>{% endif %}
 </section>
 {% endmacro %}
 
-{% macro search_box(path, q) %}
-<form method="get" action="{{ path }}" class="row">
-  <label>검색 <input type="search" name="q" value="{{ q }}"></label>
+{% macro search_box(path, q, new_text="+ 등록") %}
+<form method="get" action="{{ path }}" class="toolbar" role="search">
+  <label>검색 <input type="search" name="q" value="{{ q }}" placeholder="이름으로 찾기"></label>
+  {{ caller() if caller is defined }}
   <button type="submit">검색</button>
-  <a href="{{ path }}/new">+ 등록</a>
+  <span class="spacer"></span>
+  <a class="btn primary" href="{{ path }}/new">{{ new_text }}</a>
 </form>
 {% endmacro %}
 
+{% macro list_meta(items, q) -%}
+<p class="list-meta">{{ "검색 결과 " if q else "전체 " }}{{ items | length }}건{% if items | length > 1 %}<span class="sort-hint"> · 표 머리를 누르면 정렬됩니다</span>{% endif %}</p>
+{%- endmacro %}
+
 {% macro detail_actions(path, obj, can_delete) %}
-<div class="row">
-  <a href="{{ path }}/{{ obj.id }}/edit">수정</a>
-  {% if can_delete %}
-  <form method="post" action="{{ path }}/{{ obj.id }}/delete" onsubmit="return confirm('삭제할까요?')">
-    <button type="submit">삭제</button>
-  </form>
-  {% endif %}
+<a class="btn" href="{{ path }}/{{ obj.id }}/edit">수정</a>
+{% if can_delete %}
+<form method="post" action="{{ path }}/{{ obj.id }}/delete" onsubmit="return confirm('삭제할까요? 되돌릴 수 없습니다.')">
+  <button type="submit" class="danger">삭제</button>
+</form>
+{% endif %}
+{% endmacro %}
+
+{# 한국어 파일 선택 칸. name, multiple, accept, required 를 넘긴다. #}
+{% macro file_pick(name, label="파일", multiple=False, accept=None, required=False) %}
+<div class="stack" style="gap:4px">
+  <span class="field-label">{{ label }}</span>
+  <label class="file-pick">
+    <input type="file" name="{{ name }}"{% if multiple %} multiple{% endif %}{% if accept %} accept="{{ accept }}"{% endif %}{% if required %} required{% endif %}>
+    <span class="btn">파일 선택</span>
+    <span class="file-names">선택한 파일 없음</span>
+  </label>
 </div>
 {% endmacro %}

@@ -1,8 +1,9 @@
 {% extends "base.html" %}
+{% from "_macros.html" import page_head, proposal_badge %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<h1>{{ title }}</h1>
-{% if notice %}<p class="error" role="alert">{{ notice }}</p>{% endif %}
+{% call page_head(title, [("제안", "/proposals")]) %}{{ proposal_badge(proposal.status) }}{% endcall %}
+{% if notice %}<p class="notice" role="alert">{{ notice }}</p>{% endif %}
 {% set job = proposal.active_job %}
 <div id="ai-status">
   {% if job is not none and job.status in ("pending", "running") %}
@@ -17,14 +18,23 @@
     </div>
   {% endif %}
 </div>
-<div class="row status-row">
-  <span>상태: <strong>{{ labels.PROPOSAL_STATUSES.get(proposal.status, proposal.status) }}</strong></span>
-  {% if can_delete %}
-  <form method="post" action="/proposals/{{ proposal.id }}/delete" onsubmit="return confirm('삭제할까요? 만든 제안서 파일도 함께 지워집니다.')">
-    <button type="submit">삭제</button>
-  </form>
-  {% endif %}
-</div>
+
+{# 단계: 1 방향 · 2 대화 · 3 구성안 · 4 제안서. 지금 할 단계만 펼치고, 끝난 단계는 접고, 아직 못 하는 단계는 흐리게. #}
+{% set cur = {"new": 1, "directions": 1, "refining": 2, "outlined": 3, "deck": 4}.get(proposal.status, 1) %}
+{% set has_deck = proposal.deck_name and not deck_is_stale(proposal) %}
+{% set steps = [("directions", "제안 방향"), ("chat", "대화로 구체화"), ("outline", "슬라이드 구성안"), ("deck", "제안서")] %}
+{% set states = [] %}{% for n in range(1, 5) %}{% set _ = states.append("done" if n < cur or (n == 4 and has_deck) else ("current" if n == cur else "upcoming")) %}{% endfor %}
+<section class="card flow" aria-label="제안 진행 단계">
+  <ol class="stepper">
+    {% for key, name in steps %}
+    {% set st = states[loop.index0] %}
+    <li class="{{ st }}"{% if st == "current" %} aria-current="step"{% endif %}>
+      <a class="step" href="#{{ key }}"><span class="dot">{{ "✓" if st == "done" else loop.index }}</span>{{ name }}</a>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+
 <section class="card">
   <h2>대상</h2>
   <dl>
@@ -35,28 +45,38 @@
   </dl>
   <details>
     <summary>대상 수정</summary>
-    <form method="post" action="/proposals/{{ proposal.id }}/target" class="stack">
+    <form method="post" action="/proposals/{{ proposal.id }}/target" class="stack" style="margin-top:12px">
       {% set memo = proposal.request_memo %}{% set selected_ids = proposal.extra_solution_ids %}
       {% include "proposals/_target_fields.html" %}
       <div><button type="submit">저장</button></div>
     </form>
   </details>
 </section>
-<section class="card" id="directions">
-  <h2>제안 방향</h2>
-  {% include "proposals/_directions.html" ignore missing %}
-</section>
-<section class="card" id="chat">
-  <h2>대화로 구체화</h2>
-  {% include "proposals/_chat.html" ignore missing %}
-</section>
-<section class="card" id="outline">
-  <h2>슬라이드 구성안</h2>
-  {% include "proposals/_outline.html" ignore missing %}
-</section>
-<section class="card" id="deck">
-  <h2>제안서</h2>
-  {% include "proposals/_deck.html" %}
-</section>
-<p><a href="/proposals">&larr; 목록</a></p>
+
+{% set selected = proposal.directions[proposal.selected_index].title if proposal.selected_index is not none and proposal.directions and proposal.selected_index < proposal.directions | length else "" %}
+{% set hints = {
+  "directions": selected and ("선택: " ~ selected) or "",
+  "chat": (proposal.messages | length ~ "개 메시지") if proposal.messages else "",
+  "outline": (proposal.outline.slides | length ~ "장") if proposal.outline else "",
+  "deck": "",
+} %}
+{% for key, name in steps %}
+{% set st = states[loop.index0] %}
+<details class="card step-section is-{{ st }}" id="{{ key }}"{% if st != "done" %} open{% endif %}>
+  <summary><span class="step-no">{{ "✓" if st == "done" else loop.index }}</span><h2>{{ name }}{% if hints[key] %} <span class="summary-hint">· {{ hints[key] }}</span>{% endif %}</h2></summary>
+  {% if key == "directions" %}{% include "proposals/_directions.html" ignore missing %}
+  {% elif key == "chat" %}{% include "proposals/_chat.html" ignore missing %}
+  {% elif key == "outline" %}{% include "proposals/_outline.html" ignore missing %}
+  {% else %}{% include "proposals/_deck.html" %}{% endif %}
+</details>
+{% endfor %}
+
+{% if can_delete %}
+<div class="danger-zone">
+  <p>이 제안 건을 지우면 만든 제안서 파일도 함께 지워집니다.</p>
+  <form method="post" action="/proposals/{{ proposal.id }}/delete" onsubmit="return confirm('삭제할까요? 만든 제안서 파일도 함께 지워집니다.')">
+    <button type="submit" class="danger">제안 건 삭제</button>
+  </form>
+</div>
+{% endif %}
 {% endblock %}
