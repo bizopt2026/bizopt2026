@@ -3816,6 +3816,51 @@ body[data-theme="dark"] .panel:has(#bf){--accent:#C9D0F0;--accent-soft:#232A4A}
 #bf .bf-bar .btn.ghost{padding:0 22px!important}
 #bf .bf-bar .btn.accent{background:var(--inkbg)!important;color:var(--onink)!important}
 #bf .bf-st input:checked+span i{box-shadow:0 0 0 1.5px var(--onink)}
+.bk-oh{margin:14px 0 0;font-size:12px;line-height:1.6;color:var(--ink2)}
+.sp-row small.ok{color:#2F8A63!important;font-weight:600}
+body[data-theme="dark"] .sp-row small.ok{color:#7FD3A8!important}
+#bkCode{font-family:ui-monospace,Menlo,monospace!important;font-size:11px!important;color:var(--muted)!important;background:var(--soft)!important}
+.panel:has(.bkp2){--accent:#2F3A6B;--accent-soft:#E6E9F3}
+body[data-theme="dark"] .panel:has(.bkp2){--accent:#C9D0F0;--accent-soft:#232A4A}
+
+/* ===== 찾기: 부드러운 입력칸, 종류 칩, 한 장의 목록, 찾은 말 표시 ===== */
+.sr{--accent:#2F3A6B;--accent-soft:#E6E9F3}
+body[data-theme="dark"] .sr{--accent:#C9D0F0;--accent-soft:#232A4A}
+.sr .search{margin:2px 0 6px!important;height:50px;padding:0 6px 0 16px!important;border-radius:14px!important;border:1px solid var(--line)!important;background:var(--card)!important;box-shadow:none!important}
+.sr .search:focus-within{border-color:color-mix(in srgb,var(--ink) 40%,var(--line))!important}
+.sr .search svg{color:var(--muted)}
+.sr .search input{font-size:var(--t3)}
+.sr .search [data-action=clearQ]{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:13px;color:var(--muted);background:var(--soft)}
+.sr0{padding:14px 2px 0}
+.sr0-h{font-size:12px!important;font-weight:700!important;color:var(--muted)!important;margin:12px 2px 8px!important}
+.sr0-c button{border:1px solid var(--line)!important;background:var(--card)!important;color:var(--ink)!important;font-weight:500}
+.sr0-n{margin-top:24px!important;text-align:center;font-size:12px!important;color:var(--muted)!important}
+.sr-tabs{display:flex;gap:6px;margin:12px 0 4px;overflow-x:auto;scrollbar-width:none}
+.sr-tabs::-webkit-scrollbar{display:none}
+.sr-tabs button{flex:none;display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:var(--t4);color:var(--ink2)}
+.sr-tabs button em{font-style:normal;font-size:12px;color:var(--muted)}
+.sr-tabs button[aria-selected=true]{background:var(--inkbg);border-color:var(--inkbg);color:var(--onink);font-weight:600}
+.sr-tabs button[aria-selected=true] em{color:color-mix(in srgb,var(--onink) 70%,transparent)}
+.sr-sec{margin-top:20px}
+.sr-list{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.sr-r{display:flex;align-items:center;gap:12px;width:100%;padding:14px 12px 14px 16px;text-align:left;color:var(--ink)}
+.sr-r+.sr-r{border-top:1px solid var(--line)}
+.sr-r:active{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.sr-r .cover{--w:34px;flex:none;box-shadow:0 3px 8px rgba(20,26,46,.2)}
+.sr-r .cover .cv-t,.sr-r .cover .cv-a{display:none!important}
+.sr-m{flex:1;min-width:0;display:grid;gap:3px}
+.sr-m b{font-size:var(--t3);font-weight:700;line-height:1.45}
+.sr-t .sr-m b{font-family:"Gowun Batang",var(--f-quote)}
+.sr-m small{font-size:12px;color:var(--muted);line-height:1.5}
+.sr-qt{font-family:var(--f-quote);font-size:var(--t3);line-height:1.75;word-break:keep-all;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.sr-qf{font-size:12.5px;color:var(--ink2);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sr-cv{flex:none;color:var(--muted);opacity:.6}
+mark.sr-hit{background:none;color:inherit;font-weight:700;text-decoration:underline;text-decoration-color:var(--ul);text-decoration-thickness:.35em;text-underline-offset:-.12em;text-decoration-skip-ink:none}
+.sr-more{display:block;width:100%;margin-top:8px;min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:var(--t4);font-weight:500;color:var(--ink)}
+.sr-none{margin-top:40px;text-align:center;padding:0 20px}
+.sr-none b{display:block;font-size:var(--t3);color:var(--ink);word-break:keep-all}
+.sr-none p{margin:8px 0 0;font-size:var(--t4);color:var(--muted);line-height:1.6;word-break:keep-all}
+.has-hb .sr>.back{display:none}
 </style>
 </head>
 <body>
@@ -4571,16 +4616,33 @@ function libraryBody(){
     ''}</div>` : ''}`)}
 `;
 }
+/* 찾은 말에 형광 밑줄 */
+function srHi(text){
+  const t = esc(text || ''), k = esc(String(S.q || '').trim()); if (!k) return t;
+  return t.replace(new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => `<mark class="sr-hit">${m}</mark>`);
+}
+const SR_CHEV = '<svg class="sr-cv" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
 function globalResults(q){
-  const lim = S.srLim || 40;   /* 기록이 많아도 빠르게: 처음엔 40개씩만 그림 */
   const bs = books().filter(b => hit(q, b.title, b.author, b.memo));
-  const qs = quotesOf().filter(x => { const b = S.docs[x.bookId] || {}; return hit(q, x.text, x.feeling, x.context, b.title, b.author, (x.tags || {}).themes, reasonLabel(x.reason)); });
+  const qs = quotesOf().filter(x => { const b = S.docs[x.bookId] || {}; return hit(q, x.text, x.feeling, x.context, b.title, b.author, (x.tags || {}).themes, reasonLabel(x.reason), x.mood); });
   const ts = savedTalks().filter(t => { const s = t.summary || {}; return hit(q, s.title, s.empathy, s.insight, s.meaning, s.lifeLink, s.authorLine, s.emotions, t.quoteText, t.bookTitle); });
-  if (!bs.length && !qs.length && !ts.length) return `<div class="empty"><b>찾는 기록이 없어요</b>다른 단어로 찾아보세요.</div>`;
-  return `
-    ${bs.length ? `<div class="row"><h2>책 ${bs.length}</h2></div><div class="bgrid">${bs.map(bookCard).join('')}</div>` : ''}
-    ${qs.length ? `<div class="row"><h2>밑줄 ${qs.length}</h2></div><div class="qlist">${qs.slice(0, lim).map(quoteRow).join('')}</div>${qs.length > lim ? `<button class="morebtn" data-action="srMore">밑줄 더 보기 · ${qs.length - lim}줄 남음</button>` : ''}` : ''}
-    ${ts.length ? `<div class="row"><h2>사유 ${ts.length}</h2></div><div class="glist">${ts.slice(0, lim).map(talkCard).join('')}</div>${ts.length > lim ? `<button class="morebtn" data-action="srMore">사유 더 보기 · ${ts.length - lim}개 남음</button>` : ''}` : ''}`;
+  if (!bs.length && !qs.length && !ts.length) return `<div class="sr-none"><b>‘${esc(S.q.trim())}’에 맞는 기록이 없어요</b><p>책 제목, 작가, 문장 속 낱말, 남긴 마음으로 찾아보세요.</p></div>`;
+  const qc = {}; all('quote').forEach(x => { qc[x.bookId] = (qc[x.bookId] || 0) + 1; });
+  const bt = id => esc(shortTitle((S.docs[id] || {}).title || '', 14));
+  const kw = norm(S.q);
+  const row = {
+    b: b => `<button class="sr-r sr-b" data-action="openBook" data-id="${esc(b.id)}">${coverHTML(b, 'sm')}<span class="sr-m"><b>${srHi(splitTitle(b.title).main)}</b><small>${[srHi(authorShort(b) || '작가 미상'), STATUS[b.status || 'reading'], qc[b.id] ? `밑줄 ${qc[b.id]}` : ''].filter(Boolean).join(' · ')}</small></span>${SR_CHEV}</button>`,
+    q: x => { const fe = x.feeling && norm(x.feeling).includes(kw) && !norm(x.text).includes(kw);
+      return `<button class="sr-r sr-q" data-action="openQuote" data-id="${esc(x.id)}"><span class="sr-m"><span class="sr-qt">${srHi(x.text)}</span>${fe ? `<span class="sr-qf">내 마음 · ${srHi(x.feeling)}</span>` : ''}<small>${[`『${bt(x.bookId)}』`, x.page ? `p.${esc(x.page)}` : '', fmtDate(x.createdAt), x.mood ? srHi(x.mood) : ''].filter(Boolean).join(' · ')}</small></span>${SR_CHEV}</button>`; },
+    t: t => `<button class="sr-r sr-t" data-action="openTalk" data-id="${esc(t.id)}"><span class="sr-m"><b>${srHi((t.summary || {}).title || '이름 없는 사유')}</b><span class="sr-qf">${srHi(t.quoteText || '')}</span><small>『${bt(t.bookId) || esc(shortTitle(t.bookTitle || '', 14))}』 · ${fmtDate(t.savedAt)}${(t.summary || {}).emotions && t.summary.emotions.length ? ` · ${t.summary.emotions.slice(0, 2).map(srHi).join(' · ')}` : ''}</small></span>${SR_CHEV}</button>` };
+  const groups = [['b', '책', '권', bs], ['q', '밑줄', '줄', qs], ['t', '사유', '개', ts]].filter(g => g[3].length);
+  const type = groups.some(g => g[0] === S.srType) ? S.srType : '';
+  const lim = S.srLim || 40;
+  const tabs = groups.length > 1 ? `<div class="sr-tabs" role="tablist">${[['', '전체', bs.length + qs.length + ts.length], ...groups.map(g => [g[0], g[1], g[3].length])].map(([k, l, n]) => `<button role="tab" aria-selected="${type === k}" data-action="srType" data-v="${k}">${l}<em>${n}</em></button>`).join('')}</div>` : '';
+  const sec = ([k, l, u, xs]) => { const cap = type ? lim : 5, more = xs.length > cap;
+    return `<section class="sr-sec"><div class="sx-h"><b>${l}</b><span>${xs.length}${u}</span></div><div class="sr-list">${xs.slice(0, cap).map(row[k]).join('')}</div>
+      ${more ? (type ? `<button class="sr-more" data-action="srMore">${xs.length - cap}${u} 더 보기</button>` : `<button class="sr-more" data-action="srType" data-v="${k}">${l} ${xs.length}${u} 모두 보기</button>`) : ''}</section>`; };
+  return tabs + groups.filter(g => !type || g[0] === type).map(sec).join('');
 }
 
 /* ----- book ----- */
@@ -4592,14 +4654,14 @@ function quoteRow(q){ return qRowHTML(q); }
 /* ----- 기록 (밑줄 | 공감) ----- */
 function searchView(){
   setTimeout(() => { const i = $('#srch'); if (i && !S.q) i.focus(); }, 50);
-  return `${backBtn(prevLabel())}<div style="height:12px"></div>${searchBox('책, 문장, 감정, 작가로 찾기')}<div id="results">${searchBody()}</div>`;
+  return `<div class="sr">${backBtn(prevLabel())}${searchBox('책, 문장, 마음, 작가로 찾기')}<div id="results">${searchBody()}</div></div>`;
 }
 function searchBody(){
   const q = norm(S.q);
   if (!q) { const mood = {}; quotesOf().forEach(x => { if (x.mood) mood[x.mood] = (mood[x.mood] || 0) + 1; });
     const ms = Object.entries(mood).sort((a, b) => b[1] - a[1]).slice(0, 8).map(x => x[0]), bs = homeBooks().slice(0, 6);
     const chip = t => `<button data-action="srchSet" data-q="${esc(t)}">${esc(t)}</button>`;
-    return `<div class="sr0">${ms.length ? `<div class="sr0-h">자주 남긴 마음</div><div class="sr0-c">${ms.map(chip).join('')}</div>` : ''}${bs.length ? `<div class="sr0-h">내 서재</div><div class="sr0-c">${bs.map(b => chip(splitTitle(b.title).main)).join('')}</div>` : ''}<p class="sr0-n">책, 밑줄, 마음, 작가, 사유를 한꺼번에 찾아요.</p></div>`; }
+    return `<div class="sr0">${ms.length ? `<div class="sr0-h">자주 남긴 마음</div><div class="sr0-c">${ms.map(chip).join('')}</div>` : ''}${bs.length ? `<div class="sr0-h">읽고 있는 책</div><div class="sr0-c">${bs.map(b => chip(splitTitle(b.title).main)).join('')}</div>` : ''}<p class="sr0-n">책, 밑줄, 마음, 작가, 사유를 한 번에 찾아요.</p></div>`; }
   return globalResults(q);
 }
 /* ----- all quotes ----- */
@@ -7082,6 +7144,7 @@ const STATS_ACTIONS = {
   bkSort: () => { S.bkSort = (S.bkSort || 'page') === 'page' ? 'new' : 'page'; S.bkBook = S.bookId; S.bkLim = 20; render(); },
   mkWarnOff: () => $('#mkWarn').classList.add('hidden'),
   bookEdit: el => bookForm(el.dataset.id),
+  srType: el => { S.srType = el.dataset.v || ''; S.srLim = 0; refreshResults(); const o = $('#ov'); if (o) o.scrollTop = 0; },
   srMore: () => { S.srLim = (S.srLim || 40) + 80; refreshResults(); },
   srchSet: el => { S.srLim = 0; const i = $('#srch'); S.q = el.dataset.q; if (i) { i.value = S.q; } refreshResults(); },
   stats: () => { if (S.view === 'stats') { const o = $('#ov'); if (o) o.scrollTo({ top: 0, behavior: 'smooth' }); return; } S.stMonth = ''; S.stOpen = ''; S.stTot = ''; go('stats', {}); },
@@ -7180,7 +7243,9 @@ function backupBlock(){
     ${capBlock()}
     <div class="sp-lb">백업하기</div>
     <div class="sp-g">${row('bkCopy', svg('<rect x="8" y="8" width="11" height="12" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/>'), '백업 코드 복사', '메모 앱에 붙여 두면 언제든 되살릴 수 있어요')}
-      ${downloads ? row('bkFile', svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'), '파일로 저장', '기기에 .json 파일로 내려받아요') : ''}</div>
+      ${downloads ? row('bkFile', svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'), '파일로 저장', '기기에 .json 파일로 내려받아요') : ''}
+      <div class="bk-rs" id="bkOut" hidden><p class="bk-oh">복사가 막혀 있어요. 아래 코드를 길게 눌러 <b>모두 선택</b>한 뒤 복사하세요.</p><textarea class="bkp-t" id="bkCode" readonly spellcheck="false" aria-label="백업 코드"></textarea><div class="bkp-a"><button class="btn small ghost" id="bkAgain">다시 복사</button></div></div></div>
+    <div class="bkp-m" id="bkMsg1" role="status"></div>
     <div class="sp-lb">복원하기</div>
     <div class="sp-g">${row('bkRs', svg('<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/>'), '백업에서 되살리기', '코드를 붙여 넣거나 파일을 불러와요')}
       <div class="bk-rs" id="bkRsBox" hidden>
@@ -7214,19 +7279,25 @@ function markBackup(){ const { id, ...st } = S.docs.settings || {}; put('setting
 function wireBackup(){
   const ta = $('#bkText'), msg = $('#bkMsg'), row = $('#bkRsRow'); if (!ta) return;
   const say = t => { msg.textContent = t; };
-  $('#bkCopy').onclick = async () => {
-    const t = JSON.stringify(backupData()); $('#bkRsBox').hidden = false; ta.hidden = false; ta.value = t; row.hidden = true;
-    try { await navigator.clipboard.writeText(t); say('복사했어요. 메모 앱에 붙여 넣어 두세요.'); }
-    catch { ta.focus(); ta.select(); say('아래 코드를 길게 눌러 모두 선택한 뒤 복사하세요.'); }
+  /* 백업 코드 복사: 복원 칸과 섞지 않음. 복사되면 그 줄에서 알리고, 막히면 백업하기 안에 코드를 보여 줌 */
+  const say1 = t => { $('#bkMsg1').textContent = t; };
+  const copyRow = $('#bkCopy small'), copyTxt = copyRow ? copyRow.textContent : '';
+  const doCopy = async () => {
+    const t = JSON.stringify(backupData());
+    $('#bkRsBox').hidden = true; say('');
+    try { await navigator.clipboard.writeText(t); $('#bkOut').hidden = true; say1('');
+      if (copyRow) { copyRow.textContent = '복사했어요 · 메모 앱에 붙여 넣어 두세요'; copyRow.classList.add('ok'); clearTimeout(doCopy.t); doCopy.t = setTimeout(() => { copyRow.textContent = copyTxt; copyRow.classList.remove('ok'); }, 4000); } }
+    catch { const c = $('#bkCode'); $('#bkOut').hidden = false; c.value = t; c.focus(); c.select(); say1(''); }
     markBackup();
   };
+  $('#bkCopy').onclick = doCopy; $('#bkAgain').onclick = doCopy;
   const fb = $('#bkFile');
   if (fb) fb.onclick = async () => {
     const d = new Date(), name = `밑줄-백업-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.json`;
-    try { await downloads.save({ filename: name, data: new Blob([JSON.stringify(backupData(), null, 1)], { type: 'application/json' }) }); say(`‘${name}’으로 저장했어요.`); markBackup(); }
-    catch (e) { if (!(e && e.code === 'declined')) say('파일로 저장하지 못했어요. ‘백업 코드 복사’를 써 주세요.'); }
+    try { await downloads.save({ filename: name, data: new Blob([JSON.stringify(backupData(), null, 1)], { type: 'application/json' }) }); say1(`‘${name}’으로 저장했어요.`); markBackup(); }
+    catch (e) { if (!(e && e.code === 'declined')) say1('파일로 저장하지 못했어요. ‘백업 코드 복사’를 써 주세요.'); }
   };
-  $('#bkRs').onclick = () => { $('#bkRsBox').hidden = false; ta.hidden = false; ta.value = ''; row.hidden = false; say('백업 코드를 붙여 넣거나 백업 파일을 불러온 뒤 ‘이 코드로 복원’을 누르세요.'); ta.focus(); };
+  $('#bkRs').onclick = () => { $('#bkOut').hidden = true; say1(''); $('#bkRsBox').hidden = false; ta.hidden = false; ta.value = ''; row.hidden = false; say('백업 코드를 붙여 넣거나 백업 파일을 불러온 뒤 ‘이 코드로 복원’을 누르세요.'); ta.focus(); };
   $('#bkIn').onchange = async e => { const f = e.target.files && e.target.files[0]; if (!f) return; try { ta.value = await f.text(); say(`‘${f.name}’을 불러왔어요. ‘이 코드로 복원’을 누르세요.`); } catch { say('파일을 읽지 못했어요.'); } };
   $('#bkGo').onclick = async () => {
     let o; try { o = JSON.parse(ta.value.trim()); } catch { o = null; }
