@@ -3404,6 +3404,55 @@ body.scrolled .top{box-shadow:0 0 0 100vmax var(--paper),0 1px 0 100vmax var(--l
 .fabq{left:0!important;right:0!important;margin:0 auto!important;width:min(600px,calc(100% - 40px))!important;height:54px!important;border-radius:16px!important;display:flex!important;align-items:center;justify-content:center;gap:10px!important;padding:0 20px!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;font-size:var(--t3)}
 .fabq[hidden]{display:none!important}
 .fabq .fq-t{color:#fff;font-weight:700}
+/* ===== 밑줄 상세 개편: 전체 화면 · 명조 문장 · 내 마음 · 하단 바 ===== */
+.ov{border-radius:0!important;box-shadow:none!important;animation:ovIn .2s ease!important}
+@keyframes ovIn{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ov{animation:none!important}}
+body.ov-open .top{box-shadow:0 0 0 100vmax var(--paper)!important}
+#ov .ov-in:has(>.pq){min-height:100%;display:flex;flex-direction:column;padding-bottom:0!important}
+.pq{flex:1;display:flex;flex-direction:column}
+.pq>.back{align-self:flex-start}
+.pq-hero{padding:0 4px 4px!important;border-bottom:0!important}
+.pq-top{margin-bottom:18px!important}
+.pq-book{font-size:var(--t4)!important;font-weight:500!important;color:var(--muted)!important}
+.pq-book span{color:var(--muted)}
+.pq-more{width:44px!important;height:44px!important;margin-right:-10px}
+.pq-q{font-family:var(--f-quote)!important;font-size:24px!important;font-weight:600!important;line-height:1.75!important;letter-spacing:-.01em}
+.pq-q mark{background:linear-gradient(transparent 60%,var(--ul) 60%)!important;padding:0 1px}
+.pq-m{margin-top:14px!important}
+/* 내 마음 */
+.pq-fb{margin:26px 4px 0}
+.pq-fl{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.pq-fl label{font-size:var(--t4);font-weight:700;color:var(--accent)}
+.pq-fl button{font-size:var(--t4);color:var(--muted);padding:10px 12px;margin:-10px -12px;border-radius:99px}
+.pq-fr{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.pq-fr textarea{display:block;width:100%;box-sizing:border-box;min-height:48px;max-height:160px;resize:vertical;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);color:var(--ink);font-size:var(--t3);line-height:1.6;outline:none}
+.pq-fr textarea:focus{border-color:var(--ink)}
+.pq-fs{height:48px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:var(--t4);font-weight:700;color:var(--ink)}
+.pq-ft{margin:0;font-family:var(--f-quote);font-size:var(--t3);line-height:1.8;color:var(--ink2);white-space:pre-wrap;word-break:keep-all}
+/* 선명이 질문 */
+.pq-ask.bq-ask{margin:22px 0 0!important;background:var(--card)!important;border:1px solid var(--line)}
+.pq-ask .ab-q{font-family:var(--f-quote);font-weight:600}
+.pq-ask .ab-o button,.pq-ask .ab-r textarea{background:var(--paper)!important}
+.pq-ask .ab-go{background:var(--inkbg)!important;color:var(--onink)!important}
+/* 나눈 사유 · 이어지는 밑줄 */
+.pq .pg-sh{margin:30px 4px 10px!important}
+.pq .pg-list{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.pq .pg-rh{font-weight:700}
+.pq .pg-rx,.pq .pg-rt{font-family:var(--f-quote);line-height:1.75}
+/* 하단 바 */
+.pq-bar{position:sticky;bottom:0;z-index:2;margin:auto -20px 0;padding:12px 20px calc(14px + env(safe-area-inset-bottom));display:flex;gap:8px;background:var(--paper);border-top:1px solid var(--line)}
+#ov .pq>.pq-bar{margin-top:auto}
+.pq-ask+.pq-bar,.pg-list+.pq-bar,.pq-fb+.pq-bar{margin-top:28px}
+.pq-sb{flex:none;width:56px;height:56px;border-radius:16px;border:1px solid var(--line);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:11px;font-weight:500;color:var(--ink2)}
+.pq-sb .stp-s{width:22px!important;height:22px!important;font-size:8px!important;opacity:.55}
+.pq-sb.on{border-color:color-mix(in srgb,#C9A94A 60%,var(--line));color:var(--ink)}
+.pq-sb.on .stp-s{opacity:1}
+.pq-go{flex:1;min-width:0;height:56px;border-radius:16px;background:var(--inkbg);color:var(--onink);display:flex;align-items:center;justify-content:center;gap:8px;font-size:var(--t3);font-weight:700}
+.pq-go span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pq-go .sm-av{flex:none;border-radius:50%}
+.pq-go.resume{background:var(--accent);color:var(--on-accent)}
+.pq-sb:active,.pq-go:active{transform:scale(.97)}
 </style>
 </head>
 <body>
@@ -3579,8 +3628,10 @@ function render(){
     if (m.dataset.v !== 'home') { m.dataset.v = 'home'; m.innerHTML = homeHTML(); }
     const key = [S.view, S.bookId || '', S.quoteId || '', S.talkId || ''].join(':'), fresh = ov.hidden || ov.dataset.v !== key, y = ov.scrollTop;
     ov.hidden = false; ov.dataset.v = key;
+    const fk = $('#pqFeel') ? { v: $('#pqFeel').value, f: document.activeElement && document.activeElement.id === 'pqFeel' } : null;
     ov.innerHTML = `<div class="ov-in">${({ book: bookView, search: searchView, talk: talkView, quote: quoteView, stats: statsView, done: doneView }[S.view])()}</div>`;
     ov.scrollTop = fresh ? 0 : y;
+    if (fk && !fresh && $('#pqFeel')) { $('#pqFeel').value = fk.v; if (fk.f) $('#pqFeel').focus(); }
     return;
   }
   ov.hidden = true; ov.innerHTML = ''; ov.dataset.v = '';
@@ -4182,21 +4233,29 @@ function quoteView(){
       ${stampsHTML(q)}
       <blockquote class="pq-q"><mark>${esc(q.text)}</mark></blockquote>
       <div class="pq-m">${[q.page ? `p.${esc(q.page)}` : '', fmtDate(q.createdAt), q.mood ? `<span class="pq-mood">${esc(q.mood)}</span>` : ''].filter(Boolean).join('<i></i>')}</div>
-      ${q.feeling ? `<p class="pq-feel">${esc(q.feeling)}</p>` : ''}
       ${(() => { const sl = isSealed(q), gl = (q.gifts || []).slice(-1)[0], gv = isGiven(q); if (!sl && !gv) return '';
         return `<div class="pq-stat">${sl ? `<span class="ps-seal"><i>각인</i>${q.sealed ? `${fmtDate(q.sealed)}에 각인했어요` : '각인한 밑줄이에요'}</span>` : ''}${gv ? `<span class="ps-gift"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11"/></svg>${gl && gl.to ? `${esc(gl.to)}에게 선물했어요` : '선물한 밑줄이에요'}${(q.gifts || []).length > 1 ? ` · ${q.gifts.length}번` : ''}</span>` : ''}</div>`; })()}
     </section>
     ${q.from ? `<div class="gf-from"><b>${esc(q.from.nick || '누군가')}</b>님에게 선물받은 밑줄${q.from.at ? ` · ${fmtDate(q.from.at)}` : ''}${q.from.note ? `<span>“${esc(q.from.note)}”</span>` : ''}</div>${q.from.think ? giftThinkHTML(q.from.think, q.from.nick) : ''}` : ''}
+    ${feelBoxHTML(q)}
     ${sample && !ts.length && !draft ? `<section class="pq-ask bq-ask"><div class="bq-ah">${SM_AVATAR(18)}<span>${AI_NAME}이가 물어요</span></div>${askBox(q, {})}</section>` : ''}
-    <div class="pq-act">
-      ${ts.length || draft ? `<button class="btn wide qmain ${draft ? 'resume' : ''}" data-action="chat" data-id="${esc(q.id)}"><i class="ic ic-chat"></i>${draft ? '이어서 이야기하기' : `${AI_NAME}이와 이야기하기`}</button>` : ''}
-      <div class="qact2"><button class="qs" data-action="shareCard" data-id="${esc(q.id)}"><svg class="bi" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11"/><path d="M12 9c-2.5 0-4.5-1-4.5-2.7S9.6 3.9 12 9zM12 9c2.5 0 4.5-1 4.5-2.7S14.4 3.9 12 9z"/></svg>선물하기</button>
-      <button class="qs qs-seal${isSealed(q) ? ' on' : ''}" data-action="sealToggle" data-id="${esc(q.id)}"><i class="stp stp-seal stp-s">각인</i>${isSealed(q) ? '각인 풀기' : '각인하기'}</button></div>
-    </div>
     ${ts.length ? `<div class="pg-sh"><b>나눈 사유</b><span>${ts.length}</span></div><div class="pg-list">${ts.map(storyRow).join('')}</div>` : ''}
     ${sim.length ? `<div class="pg-sh"><b>이어지는 밑줄</b></div>${other ? `<p class="pg-note">${SM_AVATAR(18)}다른 책에서도 같은 마음(${esc(sharedWhy(q, other))})에 멈추셨어요</p>` : ''}
       <div class="pg-list">${sim.map(x => { const xb = S.docs[x.bookId] || {}, w = sharedWhy(q, x); return `<button class="pg-row" data-action="openQuote" data-id="${esc(x.id)}"><span class="pg-rt">${esc(x.text)}</span><span class="pg-rs">『${esc(shortTitle(xb.title || '', 14))}』 · ${fmtDate(x.createdAt)}${w ? ` · ${esc(w)}` : ''}</span></button>`; }).join('')}</div>` : ''}
+    <div class="pq-bar">
+      <button class="pq-sb" data-action="shareCard" data-id="${esc(q.id)}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11"/><path d="M12 9c-2.5 0-4.5-1-4.5-2.7S9.6 3.9 12 9zM12 9c2.5 0 4.5-1 4.5-2.7S14.4 3.9 12 9z"/></svg><span>선물</span></button>
+      <button class="pq-sb${isSealed(q) ? ' on' : ''}" data-action="sealToggle" data-id="${esc(q.id)}" aria-pressed="${isSealed(q)}" aria-label="${isSealed(q) ? '각인 풀기' : '각인하기'}"><i class="stp stp-seal stp-s" aria-hidden="true">각인</i><span>${isSealed(q) ? '각인됨' : '각인'}</span></button>
+      <button class="pq-go${draft ? ' resume' : ''}" data-action="chat" data-id="${esc(q.id)}">${SM_AVATAR(24)}<span>${draft ? '이어서 이야기하기' : `${AI_NAME}이와 이야기하기`}</span></button>
+    </div>
   </div>`;
+}
+function feelBoxHTML(q){
+  const edit = S.feelEdit === q.id || !q.feeling;
+  return `<section class="pq-fb">
+    <div class="pq-fl"><label for="pqFeel">내 마음</label>${!edit ? `<button data-action="feelEdit" data-id="${esc(q.id)}">고치기</button>` : ''}</div>
+    ${edit ? `<div class="pq-fr"><textarea id="pqFeel" rows="2" maxlength="600" placeholder="이 문장에서 멈춘 이유를 한 줄 남겨 보세요">${esc(q.feeling || '')}</textarea><button class="pq-fs" data-action="feelSave" data-id="${esc(q.id)}">남기기</button></div>`
+      : `<p class="pq-ft">${esc(q.feeling)}</p>`}
+  </section>`;
 }
 /* 이야기 한 줄: 제목 + 글 첫머리 */
 function storyRow(t){
@@ -6258,7 +6317,7 @@ const STATS_ACTIONS = {
   sealToggle: el => { const q = S.docs[el.dataset.id]; if (!q) return; const on = isSealed(q); const { sealed, star, ...rest } = stripId(q);
     put(q.id, on ? rest : { ...rest, sealed: Date.now() });
     if (on && (smDoc().sealed || []).includes(q.id)) smPut({ sealed: (smDoc().sealed || []).filter(x => x !== q.id) });
-    toast(on ? '각인을 풀었어요' : '이 밑줄을 각인했어요'); }
+    toast(on ? '각인을 풀었어요' : '이 밑줄을 각인했어요'); if (S.view === 'quote') render(); }
 };
 const COVER_ACTIONS = {
   coverTap: el => { const id = el.dataset.id, s = el.closest('.bks'); if (s && !s.classList.contains('on')) { carouselCenter(s, true); return; } go('book', { bookId: id }); },   /* 가운데 표지 = 책 정보 */
@@ -6795,6 +6854,10 @@ const A = {
   mkClear: () => { MK.strokes = []; rebuildBase(); mkDraw(); updateCount(); },
   mkDone: () => markerDone(),
   quoteMenu: el => quoteMenu(el.dataset.id),
+  feelEdit: el => { S.feelEdit = el.dataset.id; render(); setTimeout(() => { const t = $('#pqFeel'); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }, 30); },
+  feelSave: async el => { const q = S.docs[el.dataset.id], t = $('#pqFeel'); if (!q || !t) return; const v = t.value.trim();
+    if (v === (q.feeling || '')) { S.feelEdit = ''; render(); return; }
+    S.feelEdit = ''; await put(q.id, { ...stripId(q), feeling: v, updatedAt: Date.now() }); render(); toast(v ? '내 마음을 남겼어요' : '내 마음을 지웠어요'); },
   chat: el => openChat(el.dataset.id),
   leaveChat, chatMenu, send, saveEmpathy,
   retry: () => askAuthor(),
