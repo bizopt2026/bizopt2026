@@ -3884,6 +3884,24 @@ body[data-theme="dark"] .st2 .sp-sw.on::after{background:#10131F}
 .st2-sw small{line-height:1.5}
 .st2-note{margin:14px 4px 0;font-size:12px;color:var(--muted);line-height:1.6}
 .st2-ver{margin:22px 0 4px;text-align:center;font-size:11px;color:var(--muted);opacity:.8}
+
+/* ===== 이용 안내: 번호를 이은 타임라인, 어디서 하는지 표시 ===== */
+.panel:has(.gs2){--accent:#2F3A6B;--accent-soft:#E6E9F3}
+body[data-theme="dark"] .panel:has(.gs2){--accent:#C9D0F0;--accent-soft:#232A4A}
+.panel:has(.gs2) .sp-head h3,.panel:has(.gs2) h3{font-family:"Gowun Batang",var(--f-quote)}
+.gs2{list-style:none;margin:6px 0 0;padding:18px 18px 4px;background:var(--card);border:1px solid var(--line);border-radius:18px}
+.gs2 li{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr);gap:14px;padding-bottom:20px}
+.gs2 li:not(:last-child)::before{content:"";position:absolute;left:13.5px;top:30px;bottom:2px;width:1px;background:var(--line)}
+.gs2-n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--inkbg);color:var(--onink);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.gs2 li:first-child .gs2-n{box-shadow:0 0 0 3px color-mix(in srgb,#F7DC6F 55%,transparent)}
+.gs2 b{display:block;font-size:var(--t3);font-weight:700;line-height:28px;color:var(--ink)}
+.gs2 em{display:inline-block;margin-top:2px;padding:2px 9px;border-radius:99px;background:var(--soft);font-style:normal;font-size:11.5px;font-weight:500;color:var(--ink2)}
+.gs2 p{margin:7px 0 0;font-size:var(--t4);line-height:1.7;color:var(--ink2);word-break:keep-all}
+.panel:has(.gs2) .sp-fold{margin-top:12px}
+.panel:has(.gs2) .sp-note{background:var(--card)!important;border:1px solid var(--line)}
+.panel:has(.gs2) .sp-note svg{color:var(--muted)}
+.gs2-fo{display:flex!important;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px!important;min-height:46px;border-radius:14px;border:1px solid var(--line)!important;background:var(--card)!important;color:var(--ink)!important;font-weight:600;text-decoration:none!important}
+.gs2-fo .sm-av{width:20px;height:20px}
 </style>
 </head>
 <body>
@@ -7234,8 +7252,15 @@ function libraryView(){
 const sheetHead = (title, sub, lead = '') => `<div class="sp-h">${lead}<div class="sp-ht"><h3>${title}</h3>${sub ? `<p>${sub}</p>` : ''}</div><button class="sp-x" id="fx" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>`;
 const SP_CHEV = '<svg class="sp-cv" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
 function guideSheet(){
+  const steps = [
+    ['긋기', '첫 화면 아래 「밑줄 긋기」', '책 페이지를 찍고 마음에 닿은 문장 위를 그어요. 전자책은 스크린샷이나 직접 입력으로 남겨요.'],
+    ['되묻기', `${AI_NAME}이와 이야기하기`, `${AI_NAME}이가 왜 그 문장에서 멈췄는지 물어요. 답하다 보면 한 편의 사유로 남고, 언제든 이어서 이야기할 수 있어요.`],
+    ['쓰기', '위쪽 깃펜 · 여백의 글방', '여백이가 남긴 사유를 모아 하루는 일기로, 한 주제는 수필로 엮어요. 밑줄을 많이 그은 작가의 결을 닮게.'],
+    ['각인', '밑줄 화면 아래 「각인」', '오래 간직하고 싶은 밑줄에 각인 도장을 찍어 둬요.'],
+    ['선물하기', '밑줄 화면 아래 「선물」', `아끼는 한 줄을 카드에 담고, ${AI_NAME}이와 함께 쓴 편지를 붙여 보내요.`],
+    ['돌아보기', '위쪽 막대 · 밑줄 현황', '한 달의 숫자와 독서 캘린더, 지금까지 다 읽은 책을 돌아봐요.']];
   openSheet(`${sheetHead('긋고, 되묻고, 건네다', '밑줄을 쓰는 여섯 가지 방법', `<span class="sp-av">${SM_AVATAR(40)}</span>`)}
-    <ol class="gs"><li class="gs-s"><span class="gs-i"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 4.2l4.6 4.6-7.4 7.4H6.8v-4.6z"/><path d="M7.4 11l4.6 4.6"/></svg></span><div><b>긋기</b><p>페이지를 찍고 문장 위를 그어요. 전자책은 스크린샷이나 직접 입력으로.</p></div></li><li class="gs-s"><span class="gs-i"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14v10H10l-4 4v-4H5z"/><path d="M10 9.5a2 2 0 1 1 2.8 1.8c-.6.3-.8.7-.8 1.2"/></svg></span><div><b>되묻기</b><p>${AI_NAME}이가 왜 멈췄는지 물어요. 답하다 보면 한 편의 사유로 남아요.</p></div></li><li class="gs-s"><span class="gs-i"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4c-7 0-12 4-13 11l-2 5"/><path d="M20 4c0 7-4 12-11 13"/><path d="M9 15l5-5"/></svg></span><div><b>쓰기</b><p>위쪽 깃펜 아이콘의 여백이가 사유를 모아 일기·수필로 엮어요. 밑줄을 많이 그은 작가의 결을 닮게.</p></div></li><li class="gs-s"><span class="gs-i"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="4.5" stroke-dasharray="2 2"/></svg></span><div><b>각인</b><p>오래 간직할 밑줄에는 각인 도장을 찍어 둬요.</p></div></li><li class="gs-s"><span class="gs-i"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11"/><path d="M12 9c-2.5 0-4.5-1-4.5-2.7S9.6 3.9 12 9zM12 9c2.5 0 4.5-1 4.5-2.7S14.4 3.9 12 9z"/></svg></span><div><b>선물하기</b><p>아끼는 한 줄을 카드에 담고, 선명이와 함께 쓴 편지를 붙여 보내요.</p></div></li><li class="gs-s"><span class="gs-i"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M12 20V5M19 20v-10"/></svg></span><div><b>돌아보기</b><p>위쪽 막대 아이콘에서 한 달의 독서 캘린더와 다 읽은 책을 돌아봐요.</p></div></li></ol>
+    <ol class="gs2">${steps.map(([t, w, d], i) => `<li><span class="gs2-n">${i + 1}</span><div><b>${t}</b><em>${w}</em><p>${d}</p></div></li>`).join('')}</ol>
     <details class="sp-g sp-fold"><summary><span><b>선물을 보내고 받는 법</b><small>카드 · 편지</small></span>${SP_CHEV}</summary>
       <div class="sp-fb">
       <b class="gd-gh">보내는 사람</b>
@@ -7245,7 +7270,7 @@ function guideSheet(){
       <ol class="gd-gl"><li>카드와 편지만으로 선물은 끝이에요. 앱이나 로그인이 필요 없어요.</li></ol></div>
     </details>
     <div class="sp-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><p>책 페이지 사진은 저장하지 않고, 표지 사진만 작게 남겨요. 기록은 내 계정에만 있고, AI 기능은 Claude 사용량을 써요.</p></div>
-    <button class="sp-link" id="fo">${AI_NAME}이 소개 다시 보기</button>`);
+    <button class="sp-link gs2-fo" id="fo">${SM_AVATAR(20)}${AI_NAME}이 소개 다시 보기</button>`);
   $('#fx').onclick = closeSheet; $('#fo').onclick = () => { closeSheet(); onboarding(); };
   const { id, ...st } = S.docs.settings || {};
   if (!st.guideSeen && S.mode !== 'loading') put('settings', { ...st, kind: 'settings', guideSeen: Date.now() });
