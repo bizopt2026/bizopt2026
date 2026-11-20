@@ -3789,6 +3789,33 @@ body[data-theme="dark"] .chat-quote{background:var(--paper)!important}
 .ch-sep{align-self:center;display:flex;align-items:center;gap:10px;width:100%;margin:14px 0 6px;font-size:11px;color:var(--muted)}
 .ch-sep::before,.ch-sep::after{content:"";flex:1;height:1px;background:var(--line)}
 .ch-sep.past{margin-top:2px}
+
+/* ===== 책 추가·수정: 가벼운 미리보기, 남색, 꼭 필요한 칸만 먼저 ===== */
+.panel:has(#bf){--accent:#2F3A6B;--accent-soft:#E6E9F3}
+body[data-theme="dark"] .panel:has(#bf){--accent:#C9D0F0;--accent-soft:#232A4A}
+#bf .bf-hero{display:flex!important;align-items:center;gap:16px;padding:6px 4px 18px!important;margin:0!important;background:none!important;border:0!important;border-bottom:1px solid var(--line)!important;border-radius:0!important;box-shadow:none!important}
+#bf .bf-cv{flex:none}
+#bf .bf-cv .cover,#bf .bf-cv img{--w:64px;width:64px!important;box-shadow:0 8px 18px rgba(20,26,46,.22)!important;border-radius:3px 7px 7px 3px}
+#bf .bf-cv .cover .cv-t{font-size:9px!important}
+#bf .bf-cv .cover .cv-a{font-size:7px!important}
+#bf .bf-ht b{font-family:"Gowun Batang",var(--f-quote);font-size:20px!important;font-weight:700;line-height:1.35;color:var(--ink)}
+#bf .bf-ht small{font-size:var(--t4)!important;color:var(--muted)!important}
+#bf .bf-ai{background:none!important;border:1px solid var(--line)!important;color:var(--ink)!important;font-weight:500!important}
+#bf .bf-ai svg{color:var(--accent)}
+#bf .bf-hint{font-size:12px!important;color:var(--muted)!important;margin:8px 4px 0!important}
+.bf-more{margin-top:10px}
+.bf-more summary{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 4px;list-style:none;cursor:pointer;font-size:var(--t4);color:var(--ink2)}
+.bf-more summary::-webkit-details-marker{display:none}
+.bf-more[open] summary svg{transform:rotate(180deg)}
+.bf-more .bf-g{margin-top:4px}
+#bf .bf-st label span{font-weight:500}
+#bf .bf-st input:checked+span{background:var(--inkbg)!important;color:var(--onink)!important;box-shadow:none!important}
+#bf .bf-pg input{font-weight:500!important}
+#bf .bf-pg input::placeholder{font-weight:400;color:color-mix(in srgb,var(--muted) 70%,transparent)}
+#bf .bf-bar{grid-template-columns:auto 1fr!important}
+#bf .bf-bar .btn.ghost{padding:0 22px!important}
+#bf .bf-bar .btn.accent{background:var(--inkbg)!important;color:var(--onink)!important}
+#bf .bf-st input:checked+span i{box-shadow:0 0 0 1.5px var(--onink)}
 </style>
 </head>
 <body>
@@ -4773,11 +4800,12 @@ function bookForm(id, opts = {}){
       <div class="sp-g bf-g">
         <label class="sh-in bf-tl"><span>제목</span><input name="title" id="bfTitle" required maxlength="80" value="${esc(tp.main)}" placeholder="예: 아몬드">${!b && sample ? `<button type="button" class="bf-ai" id="bfFind">${sparkle}<em>AI로 채우기</em></button>` : ''}</label>
         <div id="bfCands"></div>
-        <label class="sh-in"><span>부제</span><input name="subtitle" maxlength="100" value="${esc(sub0)}" placeholder="있을 때만"></label>
         <label class="sh-in"><span>작가</span><input name="author" id="bfAuthor" maxlength="80" value="${esc(b?.author ?? pf.author)}" placeholder="예: 손원평"></label>
-        <label class="sh-in"><span>출판사</span><input name="publisher" maxlength="60" value="${esc(b?.publisher ?? pf.publisher)}" placeholder="선택"></label>
       </div>
       ${!b && sample && !pf.source ? '<p class="bf-hint">제목만 적고 「AI로 채우기」를 누르면 작가·출판사·쪽수를 채워요.</p>' : ''}
+      <details class="bf-more"${sub0 || (b?.publisher ?? pf.publisher) ? ' open' : ''}><summary>부제·출판사 더 적기<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="sp-g bf-g"><label class="sh-in"><span>부제</span><input name="subtitle" maxlength="100" value="${esc(sub0)}" placeholder="있을 때만"></label>
+        <label class="sh-in"><span>출판사</span><input name="publisher" maxlength="60" value="${esc(b?.publisher ?? pf.publisher)}" placeholder="선택"></label></div></details>
       <div class="sp-lb">읽기 상태</div>
       <div class="bf-st">${SHELF_ORDER.map(k => `<label><input type="radio" name="status" value="${k}" ${st === k ? 'checked' : ''}><span><i style="--d:${ST_DOT[k]}"></i>${STATUS[k]}</span></label>`).join('')}</div>
       <div class="sp-g bf-pg">
