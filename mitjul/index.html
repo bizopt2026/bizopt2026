@@ -3271,23 +3271,6 @@ body[data-theme="dark"] .cover.dc0{filter:brightness(.86) saturate(.95)}
 .cal-w span{text-align:center;font-size:12px;color:var(--muted);font-weight:500}
 .cal-w .sun,.cal-d.sun .cal-n0{color:#C8605A}
 .cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-.cal-d{all:unset;box-sizing:border-box;position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:5/7;padding:6px 4px;border-bottom:1px solid var(--line);min-width:0}
-.cal-g>.cal-d:nth-last-child(-n+7){border-bottom:0}
-.cal-n0{font-size:15px;font-weight:600;color:color-mix(in srgb,var(--muted) 70%,transparent)}
-.cal-d.fut .cal-n0{opacity:.45}
-.cal-d.tdy .cal-n0{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff}
-.cal-d.on{cursor:pointer;-webkit-tap-highlight-color:transparent}
-.cal-cv{position:relative;display:block;width:100%;transition:transform .15s}
-.cal-d.on:active .cal-cv{transform:scale(.95)}
-.cal-d.multi .cal-cv::before{content:"";position:absolute;left:8%;right:8%;top:-4px;height:10px;border-radius:3px 3px 0 0;background:color-mix(in srgb,var(--muted) 30%,var(--card));z-index:0}
-.cal-cv .cover{--w:100%;width:100%;position:relative;z-index:1;border-radius:2px 4px 4px 2px;box-shadow:0 3px 8px -3px rgba(20,24,46,.35)}
-.cover.cv-cal{padding:14% 9% 9% 13%}
-.cover.cv-cal .cv-t{font-size:clamp(6.5px,2vw,9px)!important;line-height:1.2;-webkit-line-clamp:3}
-.cover.cv-cal .cv-a,.cover.cv-cal .cv-u{display:none}
-.cover.dc0.cv-cal{padding-top:34%}
-.cover.dc2.cv-cal::after{inset:5% 5% 5% 8%}
-.cal-b{position:absolute;right:2px;bottom:4px;z-index:2;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:rgba(24,27,42,.86);color:#fff;font-style:normal;font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--card)}
-.cal-d.tdy.on::after{content:"";position:absolute;left:50%;bottom:1px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--accent)}
 /* 하루 기록 시트 */
 .cds{display:grid;gap:12px;margin-top:4px}
 .cds-b{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
@@ -3765,6 +3748,29 @@ body[data-theme="dark"] .wh2-go button:first-child .wh2-gk{color:#7A5B00}
 .sx-tl{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 10px;margin:12px 0 0;font-size:12px;color:var(--muted)}
 .sx-tl b{color:var(--ink);font-weight:700;margin-left:2px}
 .sx-tl i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.5}
+
+/* 독서 캘린더: 모든 날에 날짜, 읽은 날은 그 아래 작은 표지. 칸 높이는 모두 같게 */
+.sx .cal{padding:18px 12px 14px!important}
+.sx .cal-w{background:none!important;padding:0 0 6px!important;margin:0!important}
+.sx .cal-w span{font-size:11px;font-weight:600}
+.cal-w .sat{color:#4A6FB5}
+.cal-g{gap:6px 3px}
+.cd{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;height:80px;padding:5px 2px 6px;border-radius:10px;min-width:0;box-sizing:border-box;color:var(--ink)}
+.cd.pad{visibility:hidden}
+.cd-n{font-size:13px;font-weight:600;line-height:20px;min-width:22px;height:20px;text-align:center;border-radius:10px;font-variant-numeric:tabular-nums}
+.cd:not(.on) .cd-n{color:var(--muted);font-weight:500}
+.cd.sun .cd-n{color:#C8605A}
+.cd.sat .cd-n{color:#4A6FB5}
+body[data-theme="dark"] .cd.sun .cd-n{color:#F0A29B}
+body[data-theme="dark"] .cal-w .sat,body[data-theme="dark"] .cd.sat .cd-n{color:#9DB7EC}
+.cd.fut .cd-n{opacity:.4}
+.cd.tdy .cd-n{background:var(--inkbg);color:var(--onink)!important;padding:0 6px}
+.cd.on{cursor:pointer;background:var(--soft);-webkit-tap-highlight-color:transparent}
+.cd.on:active{transform:scale(.96)}
+.cd-cv{position:relative;width:30px;flex:none}
+.cd-cv .cover{--w:30px;width:30px;border-radius:2px 4px 4px 2px;box-shadow:0 2px 5px rgba(20,24,46,.25)}
+.cd-cv .cover .cv-t,.cd-cv .cover .cv-a,.cd-cv .cover .cv-u{display:none!important}
+.cd-b{position:absolute;right:-9px;top:-5px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--inkbg);color:var(--onink);font-style:normal;font-size:10px;font-weight:700;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--soft)}
 </style>
 </head>
 <body>
@@ -6602,16 +6608,16 @@ function statsDays(k, d){
 function statsCal(k, d){
   const [y, m] = k.split('-').map(Number), nd = new Date(Date.UTC(y, m, 0)).getUTCDate(), w0 = new Date(Date.UTC(y, m - 1, 1)).getUTCDay(), today = dayKey(Date.now());
   const by = statsDays(k, d), DN = '일월화수목금토', on = Object.keys(by).length;
-  const cells = [...Array(w0)].map(() => '<div class="cal-d pad"></div>');
+  const cells = [...Array(w0)].map(() => '<div class="cd pad" aria-hidden="true"></div>');
   for (let i = 1; i <= nd; i++) {
     const dk = `${k}-${String(i).padStart(2, '0')}`, x = by[dk];
-    const wd = (w0 + i - 1) % 7, base = `cal-d${dk === today ? ' tdy' : ''}${dk > today ? ' fut' : ''}${wd === 0 ? ' sun' : ''}`;
-    if (!x) { cells.push(`<div class="${base}"><span class="cal-n0">${i}</span></div>`); continue; }
+    const wd = (w0 + i - 1) % 7, base = `cd${dk === today ? ' tdy' : ''}${dk > today ? ' fut' : ''}${wd === 0 ? ' sun' : wd === 6 ? ' sat' : ''}`;
+    if (!x) { cells.push(`<div class="${base}"><span class="cd-n">${i}</span></div>`); continue; }
     const ids = Object.keys(x).sort((a, b) => (x[b].q.length + x[b].t.length) - (x[a].q.length + x[a].t.length));
-    cells.push(`<button class="${base} on${ids.length > 1 ? ' multi' : ''}" data-action="stDay" data-k="${dk}" aria-label="${m}월 ${i}일 · 책 ${ids.length}권"><span class="cal-cv">${coverHTML(S.docs[ids[0]], 'cal')}</span>${ids.length > 1 ? `<i class="cal-b">${ids.length}</i>` : ''}</button>`);
+    cells.push(`<button class="${base} on" data-action="stDay" data-k="${dk}" aria-label="${m}월 ${i}일 · 책 ${ids.length}권"><span class="cd-n">${i}</span><span class="cd-cv">${coverHTML(S.docs[ids[0]], 'cal')}${ids.length > 1 ? `<i class="cd-b">+${ids.length - 1}</i>` : ''}</span></button>`);
   }
   return `<section class="cal"><div class="cal-h"><b>${m}월 독서 캘린더</b><span>${on ? `읽은 날 <em>${on}</em>일` : '아직 읽은 날이 없어요'}</span></div>
-    <div class="cal-w">${[...DN].map((c, i) => `<span${i === 0 ? ' class="sun"' : ''}>${c}</span>`).join('')}</div>
+    <div class="cal-w">${[...DN].map((c, i) => `<span${i === 0 ? ' class="sun"' : i === 6 ? ' class="sat"' : ''}>${c}</span>`).join('')}</div>
     <div class="cal-g">${cells.join('')}</div></section>`;
 }
 function statsDaySheet(dk){
