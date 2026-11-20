@@ -3744,6 +3744,48 @@ body[data-theme="dark"] .cal-w .sat,body[data-theme="dark"] .cd.sat .cd-n{color:
 .cd-cv .cover .cv-t,.cd-cv .cover .cv-a,.cd-cv .cover .cv-u{display:none!important}
 .cd-b{position:absolute;right:-9px;top:-5px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--inkbg);color:var(--onink);font-style:normal;font-size:10px;font-weight:700;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--soft)}
 .wk-title{text-wrap:balance}
+/* ===== 선명이 대화: 밝은 머리, 문장 띠, 선명이는 말풍선 없이, 내 말은 남색 ===== */
+.chat{--accent:#2F3A6B;--accent-soft:#E6E9F3}
+body[data-theme="dark"] .chat{--accent:#C9D0F0;--accent-soft:#232A4A}
+.chat-head{background:var(--paper)!important;color:var(--ink)!important;border-bottom:0!important;padding:8px 10px!important}
+.chat-head .who{color:var(--ink)!important;font-size:var(--t3)!important;font-weight:700}
+.chat-head .sub{color:var(--muted)!important;font-size:12px!important}
+.chat-head .iconbtn{width:44px!important;height:44px!important;color:var(--ink)!important}
+.chat-head .iconbtn:active{background:var(--soft)}
+.ch-av .sm-av{width:32px;height:32px}
+.ch-av i{border-color:var(--paper)!important;width:9px!important;height:9px!important}
+/* 문장 띠: 머리 아래 한 줄, 대화와는 가는 선으로 나눔 */
+.chat-quote{display:flex;align-items:flex-start;gap:10px;margin:0!important;padding:4px 18px 14px 20px!important;border-radius:0!important;background:var(--paper)!important;border-bottom:1px solid var(--line)!important;box-shadow:none!important}
+.chat-quote span{flex:1;font-family:var(--f-quote);font-size:var(--t4)!important;line-height:1.8!important;color:var(--ink2);-webkit-line-clamp:2!important}
+.chat-quote mark,body[data-theme="dark"] .chat-quote mark{background:none!important;text-decoration:underline;text-decoration-color:var(--ul);text-decoration-thickness:.3em;text-underline-offset:-.1em;text-decoration-skip-ink:none}
+.cq-edit{background:none!important;border:1px solid var(--line)!important;padding:4px 10px!important;font-size:11px!important;color:var(--muted)!important;margin-top:2px}
+/* 메시지 */
+.msgs{padding:14px 18px 18px!important;gap:4px!important}
+.msgs>.note{background:none!important;padding:0!important;margin:2px 0 10px!important;font-size:11px!important;color:var(--muted)!important;opacity:.85}
+.mrow{align-items:flex-start!important;gap:10px!important;max-width:94%!important}
+.mrow.first{margin-top:14px!important}
+.m-av,.m-av .sm-av{width:26px!important;height:26px!important}
+.mrow .m-av{margin-top:3px}
+.msg.a{background:none!important;border:0!important;border-radius:0!important;padding:2px 0!important;font-family:var(--f-body)!important;font-size:15px!important;line-height:1.8!important;color:var(--ink)!important;box-shadow:none!important}
+.msg.u{margin-top:14px!important;max-width:78%!important;padding:10px 15px!important;background:var(--inkbg)!important;color:var(--onink)!important;border-radius:18px 18px 6px 18px!important;box-shadow:none!important;font-size:15px!important;line-height:1.7!important}
+/* 추천 질문: 선명이 말 아래 줄을 맞춰 */
+.quick{padding:0 0 0 36px!important;margin:10px 0 0!important;gap:6px!important}
+.quick button{border:1px solid var(--line)!important;background:var(--card)!important;color:var(--ink)!important;font-weight:500!important;font-size:13px!important;padding:8px 14px!important;box-shadow:none!important}
+.quick button:active{background:var(--soft)!important;transform:scale(.97)}
+/* 사유로 남길까요 제안 */
+.offer2{margin:16px 0 4px 36px!important;padding:14px 16px!important;border-radius:16px!important;background:var(--card)!important;border:1px solid var(--line)}
+.of-a .btn:not(.ghost){background:var(--inkbg)!important;color:var(--onink)!important}
+.ch-start{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:none!important}
+.ch-start .btn{background:var(--inkbg)!important;color:var(--onink)!important}
+/* 아래 입력 */
+.composer{border-top:1px solid var(--line)!important}
+#saveBtn:not(:disabled){background:var(--card)!important;color:var(--ink)!important;border:1px solid var(--line)!important}
+#saveBtn svg{color:var(--accent)}
+.inputrow{border-radius:22px!important;padding:4px 4px 4px 16px!important}
+.inputrow:focus-within{border-color:color-mix(in srgb,var(--ink) 35%,var(--line))!important;box-shadow:none!important}
+.inputrow .send{background:var(--inkbg)!important;color:var(--onink)!important}
+.inputrow .send:disabled{background:var(--soft)!important;color:var(--muted)!important}
+body[data-theme="dark"] .chat-quote{background:var(--paper)!important}
 </style>
 </head>
 <body>
